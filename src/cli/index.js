@@ -49,7 +49,7 @@ async function main() {
     });
     const log = (...xs) => process.stderr.write(xs.join(' ') + '\n');
     log(
-      `chat-export-server listening on http://${server.host}:${server.port} (ws /ws, mcp /mcp)`
+      `chat-export-server listening on http://${server.host}:${server.port} (ws /ws|/ext, mcp /mcp)`
     );
     if (parsed.flags.stdio) log('MCP stdio transport attached');
 

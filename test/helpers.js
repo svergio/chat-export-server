@@ -35,10 +35,11 @@ export function connectMockBrowser(port, {
   browserLabel = 'Test Browser',
   platformsEnabled = ['chatgpt', 'grok', 'grok-x', 'copilot'],
   allowDestructive = false,
+  path = '/ws',
   onRpc
 } = {}) {
   return new Promise((resolve, reject) => {
-    const ws = new WebSocket(`ws://127.0.0.1:${port}/ws`);
+    const ws = new WebSocket(`ws://127.0.0.1:${port}${path}`);
 
     ws.on('open', () => {
       ws.send(

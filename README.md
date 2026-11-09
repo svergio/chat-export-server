@@ -21,7 +21,8 @@ chat-export-server key new
 # 2) Start HTTP + WebSocket hub + Streamable MCP
 chat-export-server start
 # listens on http://127.0.0.1:8765
-#   WS   /ws     — extension bridge
+#   WS   /ws     — extension bridge (canonical)
+#   WS   /ext    — alias of /ws (compat)
 #   MCP  /mcp    — Authorization: Bearer <key>
 #   GET  /health
 ```

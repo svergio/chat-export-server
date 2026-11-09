@@ -84,4 +84,18 @@ describe('BrowserHub', () => {
       );
     });
   });
+
+  it('accepts /ext as alias of /ws', async () => {
+    await withServer(async (server) => {
+      const created = server.core.keyNew();
+      const mock = await connectMockBrowser(server.port, {
+        key: created.key,
+        browserId: 'b-ext',
+        path: '/ext'
+      });
+      assert.equal(mock.welcome.browserId, 'b-ext');
+      assert.equal(server.hub.browsers.has('b-ext'), true);
+      mock.close();
+    });
+  });
 });

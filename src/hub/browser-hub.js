@@ -37,12 +37,29 @@ export class BrowserHub {
 
   /**
    * @param {import('node:http').Server} httpServer
-   * @param {{ path?: string }} [opts]
+   * @param {{ path?: string, aliasPaths?: string[] }} [opts]
    */
   attach(httpServer, opts = {}) {
     const path = opts.path || '/ws';
-    this.wss = new WebSocketServer({ server: httpServer, path });
+    const aliases = opts.aliasPaths || ['/ext'];
+    const paths = new Set([path, ...aliases.filter(Boolean)]);
+    this.wss = new WebSocketServer({ noServer: true });
     this.wss.on('connection', (ws) => this.#onConnection(ws));
+    this._onUpgrade = (req, socket, head) => {
+      let pathname = '/';
+      try {
+        pathname = new URL(req.url || '/', 'http://127.0.0.1').pathname;
+      } catch {
+        socket.destroy();
+        return;
+      }
+      if (!paths.has(pathname)) return;
+      this.wss.handleUpgrade(req, socket, head, (ws) => {
+        this.wss.emit('connection', ws, req);
+      });
+    };
+    httpServer.on('upgrade', this._onUpgrade);
+    this._httpServer = httpServer;
     return this;
   }
 
@@ -61,6 +78,11 @@ export class BrowserHub {
     }
     this.browsers.clear();
     this.boundBrowserId = null;
+    if (this._httpServer && this._onUpgrade) {
+      this._httpServer.off('upgrade', this._onUpgrade);
+      this._httpServer = null;
+      this._onUpgrade = null;
+    }
     if (this.wss) {
       this.wss.close();
       this.wss = null;
