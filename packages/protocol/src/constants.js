@@ -1,0 +1,44 @@
+export const PROTOCOL_VERSION = 1;
+
+/** @typedef {'chatgpt' | 'grok' | 'grok-x' | 'copilot'} Platform */
+export const PLATFORMS = Object.freeze(['chatgpt', 'grok', 'grok-x', 'copilot']);
+
+/** @typedef {'chats.list' | 'chats.get' | 'chats.export' | 'chats.create' | 'chats.delete'} Op */
+export const OPS = Object.freeze(['chats.list', 'chats.get', 'chats.export', 'chats.create', 'chats.delete']);
+
+export const DESTRUCTIVE_OPS = Object.freeze(['chats.delete']);
+
+/** @typedef {'md' | 'yaml' | 'json' | 'html' | 'pdf'} ExportFormat */
+export const EXPORT_FORMATS = Object.freeze(['md', 'yaml', 'json', 'html', 'pdf']);
+
+export const ROLES = Object.freeze(['user', 'assistant', 'system']);
+
+/**
+ * @typedef {'PLATFORM_DISABLED' | 'NOT_BOUND' | 'CONFIRM_REQUIRED' | 'DESTRUCTIVE_DISABLED' |
+ *   'UNAUTHORIZED' | 'TIMEOUT' | 'HOST_ERROR' | 'NOT_FOUND' | 'BAD_REQUEST'} ErrorCode
+ */
+export const ERROR_CODES = Object.freeze({
+  PLATFORM_DISABLED: 'PLATFORM_DISABLED',
+  NOT_BOUND: 'NOT_BOUND',
+  CONFIRM_REQUIRED: 'CONFIRM_REQUIRED',
+  DESTRUCTIVE_DISABLED: 'DESTRUCTIVE_DISABLED',
+  UNAUTHORIZED: 'UNAUTHORIZED',
+  TIMEOUT: 'TIMEOUT',
+  HOST_ERROR: 'HOST_ERROR',
+  NOT_FOUND: 'NOT_FOUND',
+  BAD_REQUEST: 'BAD_REQUEST'
+});
+
+export const WS_TYPES = Object.freeze({
+  HELLO: 'hello',
+  WELCOME: 'welcome',
+  SETTINGS: 'settings',
+  ERROR: 'error',
+  RPC: 'rpc',
+  RPC_RESULT: 'rpc.result'
+});
+
+export const CONTENT_RPC_TYPE = 'chat-export-rpc';
+
+export const LIST_LIMIT_MAX = 100;
+export const LIST_LIMIT_DEFAULT = 20;

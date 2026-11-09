@@ -1,0 +1,23 @@
+{
+  "name": "chat-export-server",
+  "version": "0.1.0",
+  "description": "Local MCP server that drives the Chat Export browser extension (ChatGPT, Grok, X Grok, Copilot).",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node --test \"packages/*/test/**/*.test.js\" \"test/**/*.test.js\"",
+    "test:protocol": "npm test -w @chat-export/protocol",
+    "schema": "npm run schema -w @chat-export/protocol"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/svergio/chat-export-server.git"
+  },
+  "license": "ISC"
+}

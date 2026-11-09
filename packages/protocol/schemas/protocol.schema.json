@@ -1,0 +1,644 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/svergio/chat-export-server/protocol/v1.json",
+  "title": "chat-export protocol v1",
+  "x-protocol-version": 1,
+  "x-ops": {
+    "chats.list": {
+      "args": "ChatsListArgs",
+      "result": "ChatsListResult"
+    },
+    "chats.get": {
+      "args": "ChatsGetArgs",
+      "result": "ChatsGetResult"
+    },
+    "chats.export": {
+      "args": "ChatsExportArgs",
+      "result": "ChatsExportResult"
+    },
+    "chats.create": {
+      "args": "ChatsCreateArgs",
+      "result": "ChatsCreateResult"
+    },
+    "chats.delete": {
+      "args": "ChatsDeleteArgs",
+      "result": "ChatsDeleteResult"
+    }
+  },
+  "$defs": {
+    "Platform": {
+      "type": "string",
+      "enum": [
+        "chatgpt",
+        "grok",
+        "grok-x",
+        "copilot"
+      ]
+    },
+    "Op": {
+      "type": "string",
+      "enum": [
+        "chats.list",
+        "chats.get",
+        "chats.export",
+        "chats.create",
+        "chats.delete"
+      ]
+    },
+    "ExportFormat": {
+      "type": "string",
+      "enum": [
+        "md",
+        "yaml",
+        "json",
+        "html",
+        "pdf"
+      ]
+    },
+    "ErrorCode": {
+      "type": "string",
+      "enum": [
+        "PLATFORM_DISABLED",
+        "NOT_BOUND",
+        "CONFIRM_REQUIRED",
+        "DESTRUCTIVE_DISABLED",
+        "UNAUTHORIZED",
+        "TIMEOUT",
+        "HOST_ERROR",
+        "NOT_FOUND",
+        "BAD_REQUEST"
+      ]
+    },
+    "Link": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string"
+        },
+        "href": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "text",
+        "href"
+      ],
+      "additionalProperties": false
+    },
+    "Source": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "title",
+        "url"
+      ],
+      "additionalProperties": false
+    },
+    "Message": {
+      "type": "object",
+      "properties": {
+        "role": {
+          "type": "string",
+          "enum": [
+            "user",
+            "assistant",
+            "system"
+          ]
+        },
+        "roleTag": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        },
+        "links": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Link"
+          }
+        },
+        "sources": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Source"
+          }
+        }
+      },
+      "required": [
+        "role",
+        "roleTag",
+        "text"
+      ],
+      "additionalProperties": false
+    },
+    "Chat": {
+      "type": "object",
+      "properties": {
+        "platform": {
+          "$ref": "#/$defs/Platform"
+        },
+        "chatId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "title": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        },
+        "updatedAt": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "createdAt": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "platform",
+        "chatId",
+        "title",
+        "url",
+        "updatedAt"
+      ],
+      "additionalProperties": false
+    },
+    "ExportPayload": {
+      "type": "object",
+      "properties": {
+        "platform": {
+          "$ref": "#/$defs/Platform"
+        },
+        "url": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "chatId": {
+          "type": "string"
+        },
+        "model": {
+          "type": "string"
+        },
+        "userName": {
+          "type": "string"
+        },
+        "userHandle": {
+          "type": "string"
+        },
+        "userEmail": {
+          "type": "string"
+        },
+        "messages": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Message"
+          }
+        }
+      },
+      "required": [
+        "platform",
+        "url",
+        "title",
+        "chatId",
+        "model",
+        "userName",
+        "userHandle",
+        "userEmail",
+        "messages"
+      ],
+      "additionalProperties": false
+    },
+    "ExportFile": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "mime": {
+              "type": "string",
+              "minLength": 1
+            },
+            "text": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "name",
+            "mime",
+            "text"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "mime": {
+              "type": "string",
+              "minLength": 1
+            },
+            "b64": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "name",
+            "mime",
+            "b64"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "RpcError": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "$ref": "#/$defs/ErrorCode"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object"
+        }
+      },
+      "required": [
+        "code",
+        "message"
+      ],
+      "additionalProperties": false
+    },
+    "RpcRequest": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "op": {
+          "$ref": "#/$defs/Op"
+        },
+        "platform": {
+          "$ref": "#/$defs/Platform"
+        },
+        "args": {
+          "type": "object"
+        }
+      },
+      "required": [
+        "id",
+        "op",
+        "platform",
+        "args"
+      ],
+      "additionalProperties": false
+    },
+    "RpcResponse": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string"
+            },
+            "id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "ok": {
+              "const": true
+            },
+            "data": {}
+          },
+          "required": [
+            "id",
+            "ok",
+            "data"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string"
+            },
+            "id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "ok": {
+              "const": false
+            },
+            "error": {
+              "$ref": "#/$defs/RpcError"
+            }
+          },
+          "required": [
+            "id",
+            "ok",
+            "error"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "ChatsListArgs": {
+      "type": "object",
+      "properties": {
+        "cursor": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        },
+        "query": {
+          "type": "string"
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    },
+    "ChatsListResult": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Chat"
+          }
+        },
+        "nextCursor": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "items",
+        "nextCursor"
+      ],
+      "additionalProperties": false
+    },
+    "ChatsGetArgs": {
+      "type": "object",
+      "properties": {
+        "chatId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "chatId"
+      ],
+      "additionalProperties": false
+    },
+    "ChatsGetResult": {
+      "$ref": "#/$defs/ExportPayload"
+    },
+    "ChatsExportArgs": {
+      "type": "object",
+      "properties": {
+        "chatId": {
+          "type": "string"
+        },
+        "formats": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ExportFormat"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "chatId",
+        "formats"
+      ],
+      "additionalProperties": false
+    },
+    "ChatsExportResult": {
+      "type": "object",
+      "properties": {
+        "files": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ExportFile"
+          }
+        },
+        "payload": {
+          "$ref": "#/$defs/ExportPayload"
+        }
+      },
+      "required": [
+        "files",
+        "payload"
+      ],
+      "additionalProperties": false
+    },
+    "ChatsCreateArgs": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string",
+          "minLength": 1
+        },
+        "title": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "text"
+      ],
+      "additionalProperties": false
+    },
+    "ChatsCreateResult": {
+      "$ref": "#/$defs/Chat"
+    },
+    "ChatsDeleteArgs": {
+      "type": "object",
+      "properties": {
+        "chatId": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "chatId"
+      ],
+      "additionalProperties": false
+    },
+    "ChatsDeleteResult": {
+      "type": "object",
+      "properties": {
+        "deleted": {
+          "const": true
+        },
+        "chatId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "deleted"
+      ],
+      "additionalProperties": false
+    },
+    "WsHello": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "hello"
+        },
+        "v": {
+          "const": 1
+        },
+        "key": {
+          "type": "string",
+          "minLength": 1
+        },
+        "browserId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "browserLabel": {
+          "type": "string"
+        },
+        "extVersion": {
+          "type": "string"
+        },
+        "platformsEnabled": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Platform"
+          },
+          "uniqueItems": true
+        },
+        "allowDestructive": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "type",
+        "v",
+        "key",
+        "browserId",
+        "browserLabel",
+        "extVersion",
+        "platformsEnabled"
+      ],
+      "additionalProperties": false
+    },
+    "WsWelcome": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "welcome"
+        },
+        "v": {
+          "const": 1
+        },
+        "browserId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "serverVersion": {
+          "type": "string"
+        },
+        "bound": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "type",
+        "v",
+        "browserId",
+        "serverVersion",
+        "bound"
+      ],
+      "additionalProperties": false
+    },
+    "WsSettings": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "settings"
+        },
+        "platformsEnabled": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Platform"
+          },
+          "uniqueItems": true
+        },
+        "allowDestructive": {
+          "type": "boolean"
+        },
+        "browserLabel": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "platformsEnabled"
+      ],
+      "additionalProperties": false
+    },
+    "WsError": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "error"
+        },
+        "code": {
+          "$ref": "#/$defs/ErrorCode"
+        },
+        "message": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "code",
+        "message"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

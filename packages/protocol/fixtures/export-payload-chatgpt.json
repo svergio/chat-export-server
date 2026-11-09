@@ -1,0 +1,29 @@
+{
+  "platform": "chatgpt",
+  "url": "https://chatgpt.com/c/6912a4f0-1c2b-8003-9a7e-3f5d2c1b0a99",
+  "title": "[ce-test] Postgres partitioning",
+  "chatId": "6912a4f0-1c2b-8003-9a7e-3f5d2c1b0a99",
+  "model": "GPT-5",
+  "userName": "Sergio",
+  "userHandle": "",
+  "userEmail": "user@example.com",
+  "messages": [
+    {
+      "role": "user",
+      "roleTag": "user",
+      "text": "How do I partition a Postgres table by month?",
+      "links": []
+    },
+    {
+      "role": "assistant",
+      "roleTag": "gpt-5",
+      "text": "Use declarative partitioning:\n\n```sql\nCREATE TABLE events (id bigint, ts timestamptz) PARTITION BY RANGE (ts);\n```",
+      "links": [
+        { "text": "PostgreSQL docs", "href": "https://www.postgresql.org/docs/current/ddl-partitioning.html" }
+      ],
+      "sources": [
+        { "title": "Table Partitioning", "url": "https://www.postgresql.org/docs/current/ddl-partitioning.html" }
+      ]
+    }
+  ]
+}

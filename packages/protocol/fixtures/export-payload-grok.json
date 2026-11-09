@@ -1,0 +1,27 @@
+{
+  "platform": "grok",
+  "url": "https://grok.com/c/a3c1e2f4-9b8d-4e7f-8a6b-5c4d3e2f1a0b",
+  "title": "[ce-test] ClickHouse TTL",
+  "chatId": "a3c1e2f4-9b8d-4e7f-8a6b-5c4d3e2f1a0b",
+  "model": "Grok 4",
+  "userName": "Sergio",
+  "userHandle": "svergio",
+  "userEmail": "",
+  "messages": [
+    {
+      "role": "user",
+      "roleTag": "user",
+      "text": "How do I set a TTL on a ClickHouse table?",
+      "links": []
+    },
+    {
+      "role": "assistant",
+      "roleTag": "grok-4",
+      "text": "Add `TTL ts + INTERVAL 30 DAY` to the table definition.",
+      "links": [],
+      "sources": [
+        { "title": "ClickHouse TTL", "url": "https://clickhouse.com/docs/guides/developer/ttl" }
+      ]
+    }
+  ]
+}

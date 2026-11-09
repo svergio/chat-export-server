@@ -1,0 +1,97 @@
+[
+  {
+    "op": "chats.list",
+    "request": { "type": "rpc", "id": "r1", "op": "chats.list", "platform": "chatgpt", "args": { "cursor": null, "limit": 20, "query": "ce-test" } },
+    "response": {
+      "type": "rpc.result",
+      "id": "r1",
+      "ok": true,
+      "data": {
+        "items": [
+          {
+            "platform": "chatgpt",
+            "chatId": "6912a4f0-1c2b-8003-9a7e-3f5d2c1b0a99",
+            "title": "[ce-test] Postgres partitioning",
+            "url": "https://chatgpt.com/c/6912a4f0-1c2b-8003-9a7e-3f5d2c1b0a99",
+            "updatedAt": "2026-11-09T14:12:03.120Z"
+          }
+        ],
+        "nextCursor": null
+      }
+    }
+  },
+  {
+    "op": "chats.get",
+    "request": { "id": "r2", "op": "chats.get", "platform": "grok", "args": { "chatId": "a3c1e2f4-9b8d-4e7f-8a6b-5c4d3e2f1a0b" } },
+    "response": {
+      "id": "r2",
+      "ok": true,
+      "data": {
+        "platform": "grok",
+        "url": "https://grok.com/c/a3c1e2f4-9b8d-4e7f-8a6b-5c4d3e2f1a0b",
+        "title": "[ce-test] ClickHouse TTL",
+        "chatId": "a3c1e2f4-9b8d-4e7f-8a6b-5c4d3e2f1a0b",
+        "model": "",
+        "userName": "",
+        "userHandle": "",
+        "userEmail": "",
+        "messages": [{ "role": "user", "roleTag": "user", "text": "hi" }]
+      }
+    }
+  },
+  {
+    "op": "chats.export",
+    "request": { "type": "chat-export-rpc", "id": "r3", "op": "chats.export", "platform": "copilot", "args": { "chatId": "", "formats": ["md", "pdf"] } },
+    "response": {
+      "id": "r3",
+      "ok": true,
+      "data": {
+        "files": [
+          { "name": "copilot-git-rebase-onto-2026-11-09.md", "mime": "text/markdown;charset=utf-8", "text": "# Git rebase onto\n" },
+          { "name": "copilot-git-rebase-onto-2026-11-09.pdf", "mime": "application/pdf", "b64": "JVBERi0xLjcK" }
+        ],
+        "payload": {
+          "platform": "copilot",
+          "url": "https://github.com/copilot/c/0f1e2d3c-4b5a-6978-8a9b-0c1d2e3f4a5b",
+          "title": "Git rebase onto",
+          "chatId": "0f1e2d3c-4b5a-6978-8a9b-0c1d2e3f4a5b",
+          "model": "",
+          "userName": "",
+          "userHandle": "",
+          "userEmail": "",
+          "messages": []
+        }
+      }
+    }
+  },
+  {
+    "op": "chats.create",
+    "request": { "id": "r4", "op": "chats.create", "platform": "grok-x", "args": { "text": "[ce-test] ping", "title": "[ce-test] ping" } },
+    "response": {
+      "id": "r4",
+      "ok": true,
+      "data": {
+        "platform": "grok-x",
+        "chatId": "1987654321098765432",
+        "title": "[ce-test] ping",
+        "url": "https://x.com/i/grok?conversation=1987654321098765432",
+        "updatedAt": "2026-11-09T15:00:00Z"
+      }
+    }
+  },
+  {
+    "op": "chats.delete",
+    "request": { "id": "r5", "op": "chats.delete", "platform": "chatgpt", "args": { "chatId": "6912a4f0-1c2b-8003-9a7e-3f5d2c1b0a99" } },
+    "response": { "id": "r5", "ok": true, "data": { "deleted": true, "chatId": "6912a4f0-1c2b-8003-9a7e-3f5d2c1b0a99" } }
+  },
+  {
+    "op": "chats.delete",
+    "request": { "id": "r6", "op": "chats.delete", "platform": "grok", "args": { "chatId": "a3c1e2f4-9b8d-4e7f-8a6b-5c4d3e2f1a0b" } },
+    "response": { "id": "r6", "ok": false, "error": { "code": "DESTRUCTIVE_DISABLED", "message": "allowDestructive is off" } }
+  },
+  {
+    "op": "chats.create",
+    "request": { "id": "r7", "op": "chats.create", "platform": "copilot", "args": { "text": "hello" } },
+    "response": { "id": "r7", "ok": false, "error": { "code": "HOST_ERROR", "message": "not implemented" } }
+  }
+]

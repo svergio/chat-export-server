@@ -1,0 +1,25 @@
+{
+  "platform": "copilot",
+  "url": "https://github.com/copilot/c/0f1e2d3c-4b5a-6978-8a9b-0c1d2e3f4a5b",
+  "title": "[ce-test] Git rebase onto",
+  "chatId": "0f1e2d3c-4b5a-6978-8a9b-0c1d2e3f4a5b",
+  "model": "Claude Sonnet",
+  "userName": "Svwergio_mel",
+  "userHandle": "svergio",
+  "userEmail": "",
+  "messages": [
+    {
+      "role": "user",
+      "roleTag": "user",
+      "text": "How does git rebase --onto work?",
+      "links": []
+    },
+    {
+      "role": "assistant",
+      "roleTag": "claude-sonnet",
+      "text": "`git rebase --onto <newbase> <upstream> <branch>` replays commits after `<upstream>` onto `<newbase>`.",
+      "links": [],
+      "sources": []
+    }
+  ]
+}

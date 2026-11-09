@@ -1,0 +1,29 @@
+{
+  "WsHello": {
+    "type": "hello",
+    "v": 1,
+    "key": "cek_live_0123456789abcdef0123456789abcdef",
+    "browserId": "b-7f3a9c2e",
+    "browserLabel": "Chrome Personal",
+    "extVersion": "1.6.0",
+    "platformsEnabled": ["chatgpt", "grok", "grok-x", "copilot"],
+    "allowDestructive": false
+  },
+  "WsWelcome": {
+    "type": "welcome",
+    "v": 1,
+    "browserId": "b-7f3a9c2e",
+    "serverVersion": "0.1.0",
+    "bound": true
+  },
+  "WsSettings": {
+    "type": "settings",
+    "platformsEnabled": ["chatgpt", "grok"],
+    "allowDestructive": true
+  },
+  "WsError": {
+    "type": "error",
+    "code": "UNAUTHORIZED",
+    "message": "invalid key"
+  }
+}

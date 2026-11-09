@@ -1,0 +1,23 @@
+{
+  "name": "@chat-export/protocol",
+  "version": "1.0.0",
+  "description": "Wire contract (v1) between chat-export-server and the Chat Export extension.",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./schema.json": "./schemas/protocol.schema.json",
+    "./fixtures/*": "./fixtures/*"
+  },
+  "files": [
+    "src",
+    "schemas",
+    "fixtures"
+  ],
+  "scripts": {
+    "test": "node --test \"test/**/*.test.js\"",
+    "schema": "node scripts/emit-schema.mjs"
+  },
+  "license": "ISC"
+}

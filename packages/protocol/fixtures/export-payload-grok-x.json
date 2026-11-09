@@ -1,0 +1,36 @@
+{
+  "platform": "grok-x",
+  "url": "https://x.com/i/grok?conversation=1987654321098765432",
+  "title": "[ce-test] Node streams",
+  "chatId": "1987654321098765432",
+  "model": "Grok 4",
+  "userName": "Sergio",
+  "userHandle": "@svergio",
+  "userEmail": "",
+  "messages": [
+    {
+      "role": "system",
+      "roleTag": "sys",
+      "text": "Searched 12 web pages",
+      "links": [],
+      "sources": [
+        { "title": "Node.js Streams", "url": "https://nodejs.org/api/stream.html" }
+      ]
+    },
+    {
+      "role": "user",
+      "roleTag": "user",
+      "text": "Explain backpressure in Node streams.",
+      "links": []
+    },
+    {
+      "role": "assistant",
+      "roleTag": "grok-4",
+      "text": "Backpressure happens when `write()` returns false; wait for `drain`.",
+      "links": [
+        { "text": "stream.Writable", "href": "https://nodejs.org/api/stream.html#class-streamwritable" }
+      ],
+      "sources": []
+    }
+  ]
+}

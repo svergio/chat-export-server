@@ -1,0 +1,13 @@
+{
+  "items": [
+    {
+      "platform": "grok",
+      "chatId": "a3c1e2f4-9b8d-4e7f-8a6b-5c4d3e2f1a0b",
+      "title": "[ce-test] ClickHouse TTL",
+      "url": "https://grok.com/c/a3c1e2f4-9b8d-4e7f-8a6b-5c4d3e2f1a0b",
+      "updatedAt": "2026-11-09T12:00:00Z",
+      "createdAt": "2026-11-09T11:58:12Z"
+    }
+  ],
+  "nextCursor": null
+}

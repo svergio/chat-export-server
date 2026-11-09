@@ -1,0 +1,27 @@
+{
+  "items": [
+    {
+      "platform": "chatgpt",
+      "chatId": "6912a4f0-1c2b-8003-9a7e-3f5d2c1b0a99",
+      "title": "[ce-test] Postgres partitioning",
+      "url": "https://chatgpt.com/c/6912a4f0-1c2b-8003-9a7e-3f5d2c1b0a99",
+      "updatedAt": "2026-11-09T14:12:03.120Z",
+      "createdAt": "2026-11-09T14:10:41.000Z"
+    },
+    {
+      "platform": "chatgpt",
+      "chatId": "6911f7aa-55e0-8003-b1c4-7d2e9f0a1b22",
+      "title": "Regex for Russian addresses",
+      "url": "https://chatgpt.com/c/6911f7aa-55e0-8003-b1c4-7d2e9f0a1b22",
+      "updatedAt": "2026-11-08T19:44:51.000Z"
+    },
+    {
+      "platform": "chatgpt",
+      "chatId": "690ff001-0000-8003-aaaa-000000000001",
+      "title": "Untitled",
+      "url": "https://chatgpt.com/c/690ff001-0000-8003-aaaa-000000000001",
+      "updatedAt": null
+    }
+  ],
+  "nextCursor": "20"
+}
