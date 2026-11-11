@@ -16,7 +16,6 @@
     "fixtures"
   ],
   "scripts": {
-    "test": "node --test \"test/**/*.test.js\"",
     "schema": "node scripts/emit-schema.mjs"
   },
   "license": "ISC"

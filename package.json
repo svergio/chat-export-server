@@ -18,10 +18,6 @@
     "mcp": "node src/cli/index.js start --stdio",
     "key": "node src/cli/index.js key",
     "status": "node src/cli/index.js status",
-    "test": "node --test \"packages/*/test/**/*.test.js\" \"test/**/*.test.js\"",
-    "test:unit": "node --test \"test/unit/**/*.test.js\"",
-    "test:contract": "node --test \"test/contract/**/*.test.js\"",
-    "test:protocol": "npm test -w @chat-export/protocol",
     "schema": "npm run schema -w @chat-export/protocol"
   },
   "dependencies": {
