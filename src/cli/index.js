@@ -7,7 +7,7 @@ function usage() {
   return `chat-export-server ${PKG_VERSION}
 
 Usage:
-  chat-export-server start [--stdio] [--port N] [--home DIR]
+  chat-export-server start [--stdio] [--port N] [--home DIR] [--headless] [--dashboard] [--admin-user USER] [--admin-pass PASS]
   chat-export-server key new
   chat-export-server key rotate
   chat-export-server key list
@@ -27,6 +27,10 @@ function parseArgs(argv) {
     if (a === '--stdio') out.flags.stdio = true;
     else if (a === '--port') out.flags.port = Number(args[++i]);
     else if (a === '--home') out.flags.home = args[++i];
+    else if (a === '--headless') out.flags.headless = true;
+    else if (a === '--dashboard') out.flags.dashboard = true;
+    else if (a === '--admin-user') out.flags.adminUser = args[++i];
+    else if (a === '--admin-pass') out.flags.adminPass = args[++i];
     else if (a === '--id') out.flags.id = args[++i];
     else if (a === '--token') out.flags.token = args[++i];
     else if (a === '--label') out.flags.label = args[++i];
@@ -46,14 +50,21 @@ async function main() {
   const home = parsed.flags.home || resolveHome();
 
   if (parsed.cmd === 'start') {
+    const dashOpts = {};
+    if (parsed.flags.headless) dashOpts.enabled = false;
+    else if (parsed.flags.dashboard) dashOpts.enabled = true;
+    if (parsed.flags.adminUser) dashOpts.username = parsed.flags.adminUser;
+    if (parsed.flags.adminPass !== undefined) dashOpts.password = parsed.flags.adminPass;
     const server = await startServer({
       home,
       stdio: Boolean(parsed.flags.stdio),
-      port: parsed.flags.port
+      port: parsed.flags.port,
+      dashboard: Object.keys(dashOpts).length ? dashOpts : undefined
     });
     const log = (...xs) => process.stderr.write(xs.join(' ') + '\n');
+    const dashNote = server.dashboardEnabled ? ', dashboard /dashboard' : ', dashboard off (headless)';
     log(
-      `chat-export-server listening on http://${server.host}:${server.port} (ws /ws|/ext, mcp /mcp)`
+      `chat-export-server listening on http://${server.host}:${server.port} (ws /ws|/ext, mcp /mcp${dashNote})`
     );
     if (parsed.flags.stdio) log('MCP stdio transport attached');
 

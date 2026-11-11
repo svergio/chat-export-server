@@ -41,6 +41,15 @@ function resolveHomePath(spec) {
   return path.resolve(spec);
 }
 
+export function normalizeDashboard(raw) {
+  return {
+    enabled: raw?.enabled !== false,
+    username:
+      typeof raw?.username === 'string' && raw.username.trim() ? raw.username.trim() : 'admin',
+    password: typeof raw?.password === 'string' ? raw.password : 'changeme'
+  };
+}
+
 export function normalizeRegisteredBrowsers(raw) {
   if (!Array.isArray(raw)) return [];
   return raw
@@ -75,6 +84,7 @@ export function defaultConfig(home) {
     database: normalizeDatabase(),
     logging: normalizeLogging({}, p),
     registeredBrowsers: [],
+    dashboard: normalizeDashboard(),
     settings: {
       platformsEnabled: [...PLATFORMS],
       allowDestructive: false
@@ -99,6 +109,7 @@ export function loadConfig(home = resolveHome()) {
     database: normalizeDatabase(raw.database),
     logging: normalizeLogging(raw.logging, p),
     registeredBrowsers: normalizeRegisteredBrowsers(raw.registeredBrowsers),
+    dashboard: normalizeDashboard(raw.dashboard),
     settings: {
       platformsEnabled: Array.isArray(raw.settings?.platformsEnabled)
         ? raw.settings.platformsEnabled.filter((x) => PLATFORMS.includes(x))
@@ -125,6 +136,7 @@ export function saveConfig(home, config) {
     database: normalizeDatabase(config.database),
     logging: normalizeLogging(config.logging, p),
     registeredBrowsers: normalizeRegisteredBrowsers(config.registeredBrowsers),
+    dashboard: normalizeDashboard(config.dashboard),
     settings: {
       platformsEnabled: config.settings?.platformsEnabled || [...PLATFORMS],
       allowDestructive: Boolean(config.settings?.allowDestructive)

@@ -5,6 +5,7 @@ import { handleMcpHttp } from './mcp/http.js';
 import { startStdioMcp } from './mcp/stdio.js';
 import { resolveHome } from './core/paths.js';
 import { ALERT_CODES } from './core/logger.js';
+import { createDashboardApi } from './dashboard-api.js';
 
 const PKG_VERSION = '0.1.0';
 
@@ -20,12 +21,28 @@ async function readJsonBody(req) {
 }
 
 /**
- * @param {{ home?: string, stdio?: boolean, host?: string, port?: number }} [opts]
+ * @param {{
+ *   home?: string,
+ *   stdio?: boolean,
+ *   host?: string,
+ *   port?: number,
+ *   dashboard?: { enabled?: boolean, username?: string, password?: string }
+ * }} [opts]
  */
 export async function startServer(opts = {}) {
   const home = opts.home || resolveHome();
   const core = new ServerCore({ home, serverVersion: PKG_VERSION });
+  if (opts.dashboard) {
+    core.config.dashboard = {
+      ...core.config.dashboard,
+      ...(opts.dashboard.enabled !== undefined ? { enabled: Boolean(opts.dashboard.enabled) } : {}),
+      ...(opts.dashboard.username ? { username: opts.dashboard.username } : {}),
+      ...(opts.dashboard.password !== undefined ? { password: opts.dashboard.password } : {})
+    };
+  }
   core.ensureAuthState();
+  const startedAt = Date.now();
+  const handleDashboard = createDashboardApi({ core, startedAt });
   const hub = new BrowserHub({
     serverVersion: PKG_VERSION,
     rpcTimeoutMs: core.config.rpcTimeoutMs,
@@ -83,6 +100,7 @@ export async function startServer(opts = {}) {
         return;
       }
       if (await handleMcpHttp(req, res, core, url)) return;
+      if (await handleDashboard(req, res, url)) return;
       res.writeHead(404, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ error: { message: 'not found' } }));
     } catch (err) {
@@ -113,7 +131,9 @@ export async function startServer(opts = {}) {
     httpServer,
     stdio,
     host: typeof addr === 'object' && addr ? addr.address : host,
-    port: typeof addr === 'object' && addr ? addr.port : port,
+    port: typeof addr === 'object' && addr ? addr.port :     port,
+    startedAt,
+    dashboardEnabled: core.config.dashboard?.enabled !== false,
     async close() {
       hub.close();
       if (stdio) {
