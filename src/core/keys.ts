@@ -153,6 +153,9 @@ export function updateCursorMcpConfig(
 export function writeMcpTokenArtifacts(home: string, token: string, opts: McpArtifactOptions = {}) {
   const tokenPath = opts.tokenPath || path.join(home, 'mcp-token.txt');
   writeSecretFile(tokenPath, token + '\n');
-  const mcpConfig = updateCursorMcpConfig(token, opts);
+  if (process.env.CHAT_EXPORT_SKIP_MCP_CONFIG === '1') {
+    return { tokenPath, mcpConfig: { updated: false, filePath: null } };
+  }
+  const mcpConfig = updateCursorMcpConfig(token, { ...opts, searchDirs: [home, ...(opts.searchDirs || [])] });
   return { tokenPath, mcpConfig };
 }
