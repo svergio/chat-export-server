@@ -26,15 +26,36 @@ import { toProtocolError } from './errors.js';
 import { resolveHome } from './paths.js';
 import { openDatabase, describeDatabase } from './db/index.js';
 import { ChatCacheManager } from './chat-cache.js';
-import { createLogger } from './logger.js';
+import { createLogger, type FileLogger } from './logger.js';
+import type { BrowserHub } from '../hub/browser-hub.js';
+import type { DatabaseAdapter, LoadedConfig, Row } from '../types.js';
 
 const KNOWN_PROTOCOL_OPS = new Set(Object.keys(OP_SCHEMAS));
 
+export interface ServerCoreOptions {
+  home?: string;
+  hub?: BrowserHub | null;
+  serverVersion?: string;
+  db?: DatabaseAdapter | null;
+  logger?: FileLogger;
+}
+
+export interface CallOpOptions {
+  confirm?: boolean;
+}
+
+type OpArgs = Record<string, any>;
+
 export class ServerCore {
-  /**
-   * @param {{ home?: string, hub?: import('../hub/browser-hub.js').BrowserHub, serverVersion?: string }} [opts]
-   */
-  constructor(opts = {}) {
+  home: string;
+  config: LoadedConfig;
+  hub: BrowserHub | null;
+  serverVersion: string;
+  _db: DatabaseAdapter | null;
+  _chatCache: ChatCacheManager | null;
+  logger: FileLogger;
+
+  constructor(opts: ServerCoreOptions = {}) {
     this.home = opts.home || resolveHome();
     this.config = loadConfig(this.home);
     this.hub = opts.hub || null;
@@ -44,13 +65,13 @@ export class ServerCore {
     this.logger = opts.logger || createLogger(this.config, () => this._db || null);
   }
 
-  get chatCache() {
+  get chatCache(): ChatCacheManager {
     if (!this._chatCache) this._chatCache = new ChatCacheManager(this.db, this);
     return this._chatCache;
   }
 
   /** Opened and migrated on first use so one-shot CLI commands do not touch the database. */
-  get db() {
+  get db(): DatabaseAdapter {
     if (!this._db) {
       this._db = openDatabase(this.config);
       if (this.logger) this.logger._db = () => this._db;
@@ -58,23 +79,23 @@ export class ServerCore {
     return this._db;
   }
 
-  close() {
+  close(): void {
     if (!this._db) return;
     const db = this._db;
     this._db = null;
     db.close();
   }
 
-  reloadConfig() {
+  reloadConfig(): LoadedConfig {
     this.config = loadConfig(this.home);
     return this.config;
   }
 
-  setHub(hub) {
+  setHub(hub: BrowserHub | null): void {
     this.hub = hub;
   }
 
-  verifyBearer(token) {
+  verifyBearer(token: string | null | undefined): boolean {
     return this.verifyMcpBearer(token);
   }
 
@@ -84,8 +105,8 @@ export class ServerCore {
     return token;
   }
 
-  verifyMcpBearer(token) {
-    if (!isMcpToken(token)) return false;
+  verifyMcpBearer(token: string | null | undefined): boolean {
+    if (!token || !isMcpToken(token)) return false;
     const rows = this.db.all(
       'SELECT id, salt, hash FROM mcp_tokens WHERE revoked_at IS NULL ORDER BY created_at DESC, id DESC'
     );
@@ -97,7 +118,7 @@ export class ServerCore {
     return false;
   }
 
-  authorizeBrowserHello(hello, meta = {}) {
+  authorizeBrowserHello(hello: any, meta: { remoteAddress?: string } = {}) {
     if (!isBrowserToken(hello?.key)) return null;
     const rows = this.db.all(
       'SELECT browser_id, label, salt, hash, fingerprint, host_ip, permissions_json, status, connected_at, updated_at, tabs_json FROM browsers ORDER BY browser_id'
@@ -155,11 +176,11 @@ export class ServerCore {
     };
   }
 
-  audit(event) {
+  audit(event: Record<string, unknown>) {
     return appendAudit(this.config.paths.audit, event);
   }
 
-  readAudit(limit) {
+  readAudit(limit?: number) {
     return readAuditLines(this.config.paths.audit, limit);
   }
 
@@ -178,13 +199,13 @@ export class ServerCore {
     };
   }
 
-  updateServerSettings(patch) {
+  updateServerSettings(patch: { platformsEnabled?: string[]; allowDestructive?: boolean }) {
     this.config = updateSettings(this.home, patch);
     this.audit({ action: 'settings.update', settings: this.config.settings });
     return this.config.settings;
   }
 
-  browserEnroll(input, meta = {}) {
+  browserEnroll(input: any, meta: { hostIp?: string } = {}) {
     const browserId = String(input?.browserId || '').trim();
     const key = String(input?.key || '').trim();
     if (!browserId) {
@@ -241,7 +262,7 @@ export class ServerCore {
     }
   }
 
-  updateBrowserPresence(session, meta = {}) {
+  updateBrowserPresence(session: any, meta: { hostIp?: string } = {}): void {
     const browserId = String(session?.browserId || '').trim();
     if (!browserId) return;
     const permissions = {
@@ -274,7 +295,7 @@ export class ServerCore {
     );
   }
 
-  markBrowserOffline(browserId) {
+  markBrowserOffline(browserId: string | null | undefined): void {
     if (!browserId) return;
     this.db.run('UPDATE browsers SET status = ?, updated_at = ? WHERE browser_id = ?', [
       'offline',
@@ -321,17 +342,17 @@ export class ServerCore {
     });
   }
 
-  browsersBind(browserId) {
-    this.#requireHub();
-    const status = this.hub.bind(browserId);
+  browsersBind(browserId: string) {
+    const hub = this.#requireHub();
+    const status = hub.bind(browserId);
     this.audit({ action: 'browsers.bind', browserId, ok: true });
     return status;
   }
 
   browsersStatus() {
-    this.#requireHub();
+    const hub = this.#requireHub();
     return {
-      ...this.hub.status(),
+      ...hub.status(),
       browsers: this.browsersList()
     };
   }
@@ -354,15 +375,9 @@ export class ServerCore {
     };
   }
 
-  /**
-   * @param {string} op
-   * @param {string} platform
-   * @param {object} args
-   * @param {{ confirm?: boolean }} [mcpOpts]
-   */
-  async callOp(op, platform, args = {}, mcpOpts = {}) {
-    this.#requireHub();
-    const browser = this.hub.getBound();
+  async callOp(op: string, platform: string, args: OpArgs = {}, mcpOpts: CallOpOptions = {}): Promise<any> {
+    const hub = this.#requireHub();
+    const browser = hub.getBound();
     if (!browser) {
       throw new ProtocolError(ERROR_CODES.NOT_BOUND, 'no browser bound');
     }
@@ -383,7 +398,7 @@ export class ServerCore {
       assertCreateAllowed(op, browser);
       assertProjectsAllowed(op, browser, { confirm: mcpOpts.confirm });
       assertDestructiveAllowed(op, this.config.settings, browser, { confirm: mcpOpts.confirm });
-    } catch (err) {
+    } catch (err: any) {
       this.audit({
         action: op,
         platform,
@@ -396,7 +411,7 @@ export class ServerCore {
     }
 
     try {
-      const data = await this.hub.rpc({ op, platform, args });
+      const data = await hub.rpc({ op, platform, args });
       if (op === 'chats.export') {
         const written = writeExportFiles(
           resolveExportDir(this.config),
@@ -440,7 +455,7 @@ export class ServerCore {
     }
   }
 
-  async chatsList(platform, args) {
+  async chatsList(platform: string, args?: OpArgs) {
     const input = args && typeof args === 'object' ? { ...args } : {};
     const includeProjectChats = input.includeProjectChats !== false;
     delete input.includeProjectChats;
@@ -449,74 +464,74 @@ export class ServerCore {
     return mergeProjectChats(this, platform, base);
   }
 
-  containersList(platform, args) {
+  containersList(platform: string, args?: OpArgs) {
     return this.callOp('containers.list', platform, args || {});
   }
 
-  containersChats(platform, args) {
+  containersChats(platform: string, args?: OpArgs) {
     return this.callOp('containers.chats', platform, args || {});
   }
 
-  containersCreate(platform, args) {
+  containersCreate(platform: string, args?: OpArgs) {
     return this.callOp('containers.create', platform, args || {});
   }
 
-  containersDelete(platform, args, mcpOpts) {
+  containersDelete(platform: string, args?: OpArgs, mcpOpts?: CallOpOptions) {
     return this.callOp('containers.delete', platform, args || {}, mcpOpts || {});
   }
 
-  containersMoveChat(platform, args) {
+  containersMoveChat(platform: string, args?: OpArgs) {
     return this.callOp('containers.move_chat', platform, args || {});
   }
 
-  chatsGet(platform, args) {
+  chatsGet(platform: string, args?: OpArgs) {
     return this.callOp('chats.get', platform, args || {});
   }
 
-  chatsExport(platform, args) {
+  chatsExport(platform: string, args?: OpArgs) {
     return this.callOp('chats.export', platform, args || {});
   }
 
-  chatsCreate(platform, args) {
+  chatsCreate(platform: string, args?: OpArgs) {
     return this.callOp('chats.create', platform, args || {});
   }
 
-  chatsDelete(platform, args, mcpOpts) {
+  chatsDelete(platform: string, args?: OpArgs, mcpOpts?: CallOpOptions) {
     return this.callOp('chats.delete', platform, args || {}, mcpOpts || {});
   }
 
-  chatOutline(platform, args) {
+  chatOutline(platform: string, args?: OpArgs) {
     return this.chatCache.chatOutline(platform, args || {});
   }
 
-  chatRead(platform, args) {
+  chatRead(platform: string, args?: OpArgs) {
     return this.chatCache.chatRead(platform, args || {});
   }
 
-  chatCacheSync(args) {
+  chatCacheSync(args?: OpArgs) {
     return this.chatCache.sync(args || {});
   }
 
-  chatCacheRead(args) {
+  chatCacheRead(args?: OpArgs) {
     return this.chatCache.read(args || {});
   }
 
-  chatCacheAppend(args) {
+  chatCacheAppend(args?: OpArgs) {
     return this.chatCache.append(args || {});
   }
 
-  chatCacheUpdateBlock(args) {
+  chatCacheUpdateBlock(args?: OpArgs) {
     return this.chatCache.updateBlock(args || {});
   }
 
-  chatCacheDelete(args) {
+  chatCacheDelete(args?: OpArgs) {
     return this.chatCache.remove(args || {});
   }
 
-  mcpErrorContext(platform) {
+  mcpErrorContext(platform?: string | null) {
     const browser = this.hub ? this.hub.getBound() : null;
     const browserId = browser?.browserId || null;
-    let activeTabsOnPlatform = [];
+    let activeTabsOnPlatform: any[] = [];
     if (browser?.tabs && platform) {
       activeTabsOnPlatform = browser.tabs.filter((tab) => tab.platform === platform);
     }
@@ -536,7 +551,24 @@ export class ServerCore {
     };
   }
 
-  logMcpToolResult(tool, { platform, duration_ms, ok, code, message, detail }) {
+  logMcpToolResult(
+    tool: string,
+    {
+      platform,
+      duration_ms,
+      ok,
+      code,
+      message,
+      detail
+    }: {
+      platform?: string | null;
+      duration_ms?: number;
+      ok?: boolean;
+      code?: string | null;
+      message?: string;
+      detail?: unknown;
+    }
+  ): void {
     const browser = this.hub ? this.hub.getBound() : null;
     this.logger.metric({
       component: 'mcp',
@@ -551,7 +583,7 @@ export class ServerCore {
     });
   }
 
-  #insertMcpToken({ rotate, label }) {
+  #insertMcpToken({ rotate, label }: { rotate: boolean; label?: string }) {
     const token = generateMcpToken();
     const hashed = hashKey(token);
     const now = new Date().toISOString();
@@ -577,14 +609,15 @@ export class ServerCore {
     };
   }
 
-  #requireHub() {
+  #requireHub(): BrowserHub {
     if (!this.hub) {
       throw new ProtocolError(ERROR_CODES.HOST_ERROR, 'browser hub not attached');
     }
+    return this.hub;
   }
 }
 
-function summarizeArgs(op, args) {
+function summarizeArgs(op: string, args: any): Record<string, unknown> {
   if (!args || typeof args !== 'object') return {};
   if (op === 'chats.create') return { title: args.title, textLen: String(args.text || '').length };
   if (op === 'chats.export') return { chatId: args.chatId, formats: args.formats };
@@ -606,10 +639,10 @@ function summarizeArgs(op, args) {
   return { chatId: args.chatId };
 }
 
-async function mergeProjectChats(core, platform, base) {
+async function mergeProjectChats(core: ServerCore, platform: string, base: any) {
   const items = [...(base?.items || [])];
-  const seen = new Set(items.map((c) => c?.chatId).filter(Boolean));
-  let containers;
+  const seen = new Set<string>(items.map((c: any) => c?.chatId).filter(Boolean));
+  let containers: any;
   try {
     containers = await core.callOp('containers.list', platform, { limit: 100 });
   } catch {
@@ -617,11 +650,11 @@ async function mergeProjectChats(core, platform, base) {
   }
   for (const container of containers?.items || []) {
     if (!container?.containerId) continue;
-    let cursor = null;
+    let cursor: string | null = null;
     do {
-      const pageArgs = { containerId: container.containerId, limit: 100 };
+      const pageArgs: OpArgs = { containerId: container.containerId, limit: 100 };
       if (cursor) pageArgs.cursor = cursor;
-      let page;
+      let page: any;
       try {
         page = await core.callOp('containers.chats', platform, pageArgs);
       } catch {
@@ -644,10 +677,10 @@ async function mergeProjectChats(core, platform, base) {
   return { items, nextCursor: base?.nextCursor ?? null };
 }
 
-function parseJson(value, fallback) {
+function parseJson(value: unknown, fallback: any): any {
   if (!value) return fallback;
   try {
-    return JSON.parse(value);
+    return JSON.parse(String(value));
   } catch {
     return fallback;
   }

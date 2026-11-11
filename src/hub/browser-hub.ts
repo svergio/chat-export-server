@@ -1,5 +1,7 @@
 import { randomUUID } from 'node:crypto';
-import { WebSocketServer } from 'ws';
+import type { IncomingMessage, Server as HttpServer } from 'node:http';
+import type { Duplex } from 'node:stream';
+import { WebSocketServer, type WebSocket } from 'ws';
 import {
   ERROR_CODES,
   PROTOCOL_VERSION,
@@ -9,46 +11,77 @@ import {
   validateRpcResponse
 } from '@chat-export/protocol';
 
-/**
- * WebSocket registry for extension browsers on the same HTTP server.
- */
+export interface BrowserSession {
+  browserId: string;
+  browserLabel: string;
+  extVersion?: string;
+  platformsEnabled: string[];
+  allowCreate: boolean;
+  allowDestructive: boolean;
+  allowProjects: boolean;
+  tabs: any[];
+  connectedAt: string;
+  ws: WebSocket;
+}
+
+export type PublicBrowser = Omit<BrowserSession, 'ws'> & { bound: boolean };
+
+export interface HelloAuth {
+  browserId: string;
+  browserLabel?: string;
+  fingerprint?: string;
+  hostIp?: string;
+  permissions?: { allowCreate?: boolean; allowDestructive?: boolean; allowProjects?: boolean };
+  tabs?: any[];
+}
+
+export interface BrowserHubOptions {
+  serverVersion: string;
+  rpcTimeoutMs?: number;
+  authorizeHello: (hello: any, meta?: { remoteAddress?: string }) => HelloAuth | null;
+  onPresence?: (session: BrowserSession, meta?: { remoteAddress?: string; hostIp?: string }) => void;
+  onDisconnect?: (browserId: string) => void;
+  onAudit?: (event: Record<string, unknown>) => void;
+}
+
+interface PendingRpc {
+  resolve: (value: any) => void;
+  reject: (reason: unknown) => void;
+  timer: NodeJS.Timeout;
+  browserId: string;
+}
+
+// WebSocket registry for extension browsers on the same HTTP server.
 export class BrowserHub {
-  /**
-   * @param {{
-   *   serverVersion: string,
-   *   rpcTimeoutMs?: number,
-   *   authorizeHello: (hello: object, meta?: { remoteAddress?: string }) => object | null,
-   *   onPresence?: (session: object, meta?: { remoteAddress?: string }) => void,
-   *   onDisconnect?: (browserId: string) => void,
-   *   onAudit?: (event: object) => void
-   * }} opts
-   */
-  constructor(opts) {
+  serverVersion: string;
+  rpcTimeoutMs: number;
+  authorizeHello: BrowserHubOptions['authorizeHello'];
+  onPresence: NonNullable<BrowserHubOptions['onPresence']>;
+  onDisconnect: NonNullable<BrowserHubOptions['onDisconnect']>;
+  onAudit: NonNullable<BrowserHubOptions['onAudit']>;
+  browsers = new Map<string, BrowserSession>();
+  boundBrowserId: string | null = null;
+  pending = new Map<string, PendingRpc>();
+  wss: WebSocketServer | null = null;
+  _onUpgrade: ((req: IncomingMessage, socket: Duplex, head: Buffer) => void) | null = null;
+  _httpServer: HttpServer | null = null;
+
+  constructor(opts: BrowserHubOptions) {
     this.serverVersion = opts.serverVersion;
     this.rpcTimeoutMs = opts.rpcTimeoutMs ?? 60_000;
     this.authorizeHello = opts.authorizeHello;
     this.onPresence = opts.onPresence || (() => {});
     this.onDisconnect = opts.onDisconnect || (() => {});
     this.onAudit = opts.onAudit || (() => {});
-    /** @type {Map<string, object>} */
-    this.browsers = new Map();
-    /** @type {string | null} */
-    this.boundBrowserId = null;
-    /** @type {Map<string, { resolve: Function, reject: Function, timer: NodeJS.Timeout, browserId: string }>} */
-    this.pending = new Map();
-    this.wss = null;
   }
 
-  /**
-   * @param {import('node:http').Server} httpServer
-   * @param {{ path?: string, aliasPaths?: string[] }} [opts]
-   */
-  attach(httpServer, opts = {}) {
+  attach(httpServer: HttpServer, opts: { path?: string; aliasPaths?: string[] } = {}): this {
     const path = opts.path || '/ws';
     const aliases = opts.aliasPaths || ['/ext'];
     const paths = new Set([path, ...aliases.filter(Boolean)]);
-    this.wss = new WebSocketServer({ noServer: true });
-    this.wss.on('connection', (ws, req) => this.#onConnection(ws, req));
+    const wss = new WebSocketServer({ noServer: true });
+    this.wss = wss;
+    wss.on('connection', (ws, req) => this.#onConnection(ws, req));
     this._onUpgrade = (req, socket, head) => {
       let pathname = '/';
       try {
@@ -58,8 +91,8 @@ export class BrowserHub {
         return;
       }
       if (!paths.has(pathname)) return;
-      this.wss.handleUpgrade(req, socket, head, (ws) => {
-        this.wss.emit('connection', ws, req);
+      wss.handleUpgrade(req, socket, head, (ws) => {
+        wss.emit('connection', ws, req);
       });
     };
     httpServer.on('upgrade', this._onUpgrade);
@@ -67,7 +100,7 @@ export class BrowserHub {
     return this;
   }
 
-  close() {
+  close(): void {
     for (const [id, p] of this.pending) {
       clearTimeout(p.timer);
       p.reject(new ProtocolError(ERROR_CODES.TIMEOUT, 'hub closing'));
@@ -93,11 +126,11 @@ export class BrowserHub {
     }
   }
 
-  listBrowsers() {
+  listBrowsers(): PublicBrowser[] {
     return [...this.browsers.values()].map((b) => this.#publicBrowser(b));
   }
 
-  bind(browserId) {
+  bind(browserId: string) {
     if (!browserId || !this.browsers.has(browserId)) {
       throw new ProtocolError(ERROR_CODES.NOT_BOUND, 'browser not connected: ' + browserId);
     }
@@ -105,7 +138,7 @@ export class BrowserHub {
     return this.status();
   }
 
-  unbind() {
+  unbind(): void {
     this.boundBrowserId = null;
   }
 
@@ -119,16 +152,13 @@ export class BrowserHub {
     };
   }
 
-  getBound() {
+  getBound(): BrowserSession | null {
     if (!this.boundBrowserId) return null;
     return this.browsers.get(this.boundBrowserId) || null;
   }
 
-  /**
-   * Forward RPC to the bound browser.
-   * @param {{ op: string, platform: string, args: object, id?: string }} req
-   */
-  async rpc(req) {
+  // Forward RPC to the bound browser.
+  async rpc(req: { op: string; platform: string; args?: object; id?: string }): Promise<any> {
     const browser = this.getBound();
     if (!browser) {
       throw new ProtocolError(ERROR_CODES.NOT_BOUND, 'no browser bound');
@@ -142,7 +172,7 @@ export class BrowserHub {
       args: req.args || {}
     };
 
-    return new Promise((resolve, reject) => {
+    return new Promise<any>((resolve, reject) => {
       const timer = setTimeout(() => {
         this.pending.delete(id);
         reject(new ProtocolError(ERROR_CODES.TIMEOUT, 'rpc timeout after ' + this.rpcTimeoutMs + 'ms'));
@@ -158,7 +188,7 @@ export class BrowserHub {
           return;
         }
         browser.ws.send(JSON.stringify(frame));
-      } catch (err) {
+      } catch (err: any) {
         clearTimeout(timer);
         this.pending.delete(id);
         reject(new ProtocolError(ERROR_CODES.HOST_ERROR, err.message || String(err)));
@@ -166,7 +196,7 @@ export class BrowserHub {
     });
   }
 
-  #publicBrowser(b) {
+  #publicBrowser(b: BrowserSession): PublicBrowser {
     return {
       browserId: b.browserId,
       browserLabel: b.browserLabel,
@@ -181,13 +211,12 @@ export class BrowserHub {
     };
   }
 
-  #onConnection(ws, req) {
-    /** @type {string | null} */
-    let browserId = null;
+  #onConnection(ws: WebSocket, req: IncomingMessage): void {
+    let browserId: string | null = null;
     let helloDone = false;
 
     ws.on('message', (data) => {
-      let msg;
+      let msg: any;
       try {
         msg = JSON.parse(String(data));
       } catch {
@@ -215,8 +244,9 @@ export class BrowserHub {
           return;
         }
 
-        browserId = auth.browserId || msg.browserId;
-        const existing = this.browsers.get(browserId);
+        const sessionId: string = auth.browserId || msg.browserId;
+        browserId = sessionId;
+        const existing = this.browsers.get(sessionId);
         if (existing && existing.ws !== ws) {
           try {
             existing.ws.close();
@@ -225,8 +255,8 @@ export class BrowserHub {
           }
         }
 
-        const session = {
-          browserId,
+        const session: BrowserSession = {
+          browserId: sessionId,
           browserLabel: auth.browserLabel || msg.browserLabel,
           extVersion: msg.extVersion,
           platformsEnabled: [...msg.platformsEnabled],
@@ -237,26 +267,26 @@ export class BrowserHub {
           connectedAt: new Date().toISOString(),
           ws
         };
-        this.browsers.set(browserId, session);
+        this.browsers.set(sessionId, session);
         this.onPresence(session, { remoteAddress: auth.hostIp || req?.socket?.remoteAddress || '' });
         helloDone = true;
 
         if (!this.boundBrowserId) {
-          this.boundBrowserId = browserId;
+          this.boundBrowserId = sessionId;
         }
 
         const welcome = {
           type: WS_TYPES.WELCOME,
           v: PROTOCOL_VERSION,
-          browserId,
+          browserId: sessionId,
           serverVersion: this.serverVersion,
-          bound: this.boundBrowserId === browserId
+          bound: this.boundBrowserId === sessionId
         };
         ws.send(JSON.stringify(welcome));
         this.onAudit({
           action: 'ws.hello',
           ok: true,
-          browserId,
+          browserId: sessionId,
           browserLabel: session.browserLabel
         });
         return;
@@ -303,13 +333,13 @@ export class BrowserHub {
     });
   }
 
-  #handleSettings(browserId, msg, ws) {
+  #handleSettings(browserId: string | null, msg: any, ws: WebSocket): void {
     const check = validate('WsSettings', msg);
     if (!check.valid) {
       this.#sendError(ws, ERROR_CODES.BAD_REQUEST, check.errors[0]?.message || 'invalid settings', msg.id);
       return;
     }
-    const session = this.browsers.get(browserId);
+    const session = browserId ? this.browsers.get(browserId) : undefined;
     if (!session) return;
     session.platformsEnabled = [...msg.platformsEnabled];
     if (msg.allowCreate !== undefined) session.allowCreate = Boolean(msg.allowCreate);
@@ -326,20 +356,20 @@ export class BrowserHub {
     });
   }
 
-  #handleTabs(browserId, msg, ws) {
+  #handleTabs(browserId: string | null, msg: any, ws: WebSocket): void {
     const check = validate('WsTabs', msg);
     if (!check.valid) {
       this.#sendError(ws, ERROR_CODES.BAD_REQUEST, check.errors[0]?.message || 'invalid tabs', msg.id);
       return;
     }
-    const session = this.browsers.get(browserId);
+    const session = browserId ? this.browsers.get(browserId) : undefined;
     if (!session) return;
     session.tabs = Array.isArray(msg.tabs) ? msg.tabs : [];
     this.onPresence(session);
     this.onAudit({ action: 'ws.tabs', browserId, tabs: session.tabs.length, ok: true });
   }
 
-  #handleRpcResult(msg) {
+  #handleRpcResult(msg: any): void {
     const pending = this.pending.get(msg.id);
     if (!pending) return;
     clearTimeout(pending.timer);
@@ -362,8 +392,8 @@ export class BrowserHub {
     }
   }
 
-  #sendError(ws, code, message, id) {
-    const frame = { type: WS_TYPES.ERROR, code, message };
+  #sendError(ws: WebSocket, code: string, message: string, id?: string): void {
+    const frame: Record<string, unknown> = { type: WS_TYPES.ERROR, code, message };
     if (id) frame.id = id;
     try {
       ws.send(JSON.stringify(frame));

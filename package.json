@@ -5,7 +5,7 @@
   "private": true,
   "type": "module",
   "bin": {
-    "chat-export-server": "./src/cli/index.js"
+    "chat-export-server": "./dist/cli/index.js"
   },
   "workspaces": [
     "packages/*"
@@ -14,10 +14,13 @@
     "node": ">=22.13"
   },
   "scripts": {
-    "start": "node src/cli/index.js start",
-    "mcp": "node src/cli/index.js start --stdio",
-    "key": "node src/cli/index.js key",
-    "status": "node src/cli/index.js status",
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "start": "node dist/cli/index.js start",
+    "dev": "tsx watch src/cli/index.ts start",
+    "mcp": "node dist/cli/index.js start --stdio",
+    "key": "node dist/cli/index.js key",
+    "status": "node dist/cli/index.js status",
     "schema": "npm run schema -w @chat-export/protocol"
   },
   "dependencies": {
@@ -25,6 +28,12 @@
     "@modelcontextprotocol/sdk": "^1.32.2",
     "ws": "^8.18.3",
     "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "@types/ws": "^8.18.2",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
   },
   "repository": {
     "type": "git",

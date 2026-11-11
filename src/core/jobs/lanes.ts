@@ -1,9 +1,36 @@
-import { ERROR_CODES, RETRYABLE_ERROR_CODES, ProtocolError } from '@chat-export/protocol';
+import * as protocol from '@chat-export/protocol';
 import { toProtocolError } from '../errors.js';
+import type { JobPatch, JobRecord, JobStatus, JobStore } from './job-store.js';
+
+const { ERROR_CODES, ProtocolError } = protocol;
 
 export const DEFAULT_BACKOFF_MS = Object.freeze([5_000, 15_000, 45_000]);
 const MAX_ATTEMPTS = 20;
-const RETRYABLE_CODES = new Set(RETRYABLE_ERROR_CODES);
+// The committed protocol package does not export RETRYABLE_ERROR_CODES yet; fall back to the transient codes.
+const RETRYABLE_CODES = new Set<string>(
+  (protocol as any).RETRYABLE_ERROR_CODES ?? [ERROR_CODES.TIMEOUT, 'PLATFORM_BUSY', 'RATE_LIMIT']
+);
+
+export interface LaneContext {
+  jobId: string;
+  checkCancel(): void;
+  setStatus(status: JobStatus): void;
+  progress(progress: Record<string, unknown>): void;
+  saveState(patch: Record<string, unknown>): void;
+  sleep(ms: number): Promise<void>;
+}
+
+export interface LaneHub {
+  onBrowserConnected(cb: (browserId: string) => void): () => void;
+  isOnline(browserId: string): boolean;
+  runInLane<T>(browserId: string, fn: () => Promise<T>): Promise<T>;
+}
+
+export interface LaneSchedulerOptions {
+  store: JobStore;
+  run: (job: JobRecord, ctx: LaneContext) => Promise<unknown>;
+  backoffMs?: number[];
+}
 
 export class JobCancelled extends Error {
   constructor() {
@@ -12,11 +39,11 @@ export class JobCancelled extends Error {
   }
 }
 
-export function isRetryable(err) {
+export function isRetryable(err: any): boolean {
   return Boolean(err && (RETRYABLE_CODES.has(err.code) || err.details?.retryable === true));
 }
 
-function isLaneOffline(err) {
+function isLaneOffline(err: any): boolean {
   return err?.code === ERROR_CODES.NOT_BOUND;
 }
 
@@ -24,59 +51,56 @@ function isLaneOffline(err) {
  * One async loop per browserId: serial inside a lane, parallel across lanes.
  */
 export class LaneScheduler {
-  /**
-   * @param {{
-   *   store: import('./job-store.js').JobStore,
-   *   run: (job: object, ctx: object) => Promise<object>,
-   *   backoffMs?: number[]
-   * }} opts
-   */
-  constructor(opts) {
+  store: JobStore;
+  run: LaneSchedulerOptions['run'];
+  backoffMs: number[];
+  hub: LaneHub | null = null;
+  closed = false;
+  active = new Map<string, Promise<void>>();
+  sleepers = new Set<{ timer?: NodeJS.Timeout; resolve: () => void }>();
+  _off?: () => void;
+
+  constructor(opts: LaneSchedulerOptions) {
     this.store = opts.store;
     this.run = opts.run;
     this.backoffMs = opts.backoffMs || [...DEFAULT_BACKOFF_MS];
-    this.hub = null;
-    this.closed = false;
-    /** @type {Map<string, Promise<void>>} */
-    this.active = new Map();
-    /** @type {Set<{ timer: NodeJS.Timeout, resolve: Function }>} */
-    this.sleepers = new Set();
   }
 
-  attachHub(hub) {
+  attachHub(hub: LaneHub): void {
     this.hub = hub;
     this._off = hub.onBrowserConnected((browserId) => this.kick(browserId));
     for (const browserId of this.store.lanes()) this.kick(browserId);
   }
 
-  kick(browserId) {
-    if (this.closed || !this.hub || this.active.has(browserId)) return;
-    if (!this.hub.isOnline(browserId)) return;
-    const loop = this.#loop(browserId).finally(() => {
+  kick(browserId: string): void {
+    const hub = this.hub;
+    if (this.closed || !hub || this.active.has(browserId)) return;
+    if (!hub.isOnline(browserId)) return;
+    const loop = this.#loop(browserId, hub).finally(() => {
       this.active.delete(browserId);
       if (!this.closed && this.store.laneQueue(browserId).some((j) => j.status === 'queued')) {
-        if (this.hub.isOnline(browserId)) setImmediate(() => this.kick(browserId));
+        if (hub.isOnline(browserId)) setImmediate(() => this.kick(browserId));
       }
     });
     this.active.set(browserId, loop);
   }
 
-  isLaneBusy(browserId) {
+  isLaneBusy(browserId: string): boolean {
     return this.active.has(browserId);
   }
 
-  async #loop(browserId) {
+  async #loop(browserId: string, hub: LaneHub): Promise<void> {
     while (!this.closed) {
       const job = this.store.laneQueue(browserId).find((j) => j.status === 'queued');
       if (!job) return;
-      if (!this.hub.isOnline(browserId)) return;
-      const keepGoing = await this.#runOne(job);
+      if (!hub.isOnline(browserId)) return;
+      const keepGoing = await this.#runOne(job, hub);
       if (!keepGoing) return;
     }
   }
 
-  /** @returns {Promise<boolean>} false when the lane should stop (browser went offline). */
-  async #runOne(job) {
+  // Resolves false when the lane should stop (browser went offline).
+  async #runOne(job: JobRecord, hub: LaneHub): Promise<boolean> {
     const { store } = this;
     let retries = 0;
     while (!this.closed) {
@@ -98,11 +122,11 @@ export class LaneScheduler {
       store.update(job.id, { status: 'running', attempts, error: null, retryAt: null });
       const ctx = this.#ctx(job.id);
       try {
-        const result = await this.hub.runInLane(job.browserId, () => this.run(store.get(job.id), ctx));
+        const result = await hub.runInLane(job.browserId, () => this.run(store.get(job.id) as JobRecord, ctx));
         if (this.closed) return false;
         store.update(job.id, { status: 'done', result: result ?? null });
         return true;
-      } catch (err) {
+      } catch (err: unknown) {
         if (this.closed) return false;
         if (err instanceof JobCancelled) {
           store.update(job.id, { status: 'cancelled' });
@@ -130,33 +154,33 @@ export class LaneScheduler {
     return false;
   }
 
-  #ctx(jobId) {
+  #ctx(jobId: string): LaneContext {
     const store = this.store;
     return {
       jobId,
       checkCancel: () => {
         if (this.closed || store.get(jobId)?.cancelRequested) throw new JobCancelled();
       },
-      setStatus: (status) => {
+      setStatus: (status: JobStatus) => {
         const job = store.get(jobId);
         if (job && job.status !== status) store.update(jobId, { status });
       },
-      progress: (progress) => {
+      progress: (progress: Record<string, unknown>) => {
         const job = store.get(jobId);
-        if (job) store.update(jobId, { progress: { ...job.progress, ...progress } });
+        if (job) store.update(jobId, { progress: { ...job.progress, ...progress } } as JobPatch);
       },
-      saveState: (patch) => {
+      saveState: (patch: Record<string, unknown>) => {
         const job = store.get(jobId);
         if (job) store.update(jobId, { state: { ...job.state, ...patch } });
       },
-      sleep: (ms) => this.sleep(ms)
+      sleep: (ms: number) => this.sleep(ms)
     };
   }
 
-  sleep(ms) {
+  sleep(ms: number): Promise<void> {
     if (this.closed) return Promise.resolve();
-    return new Promise((resolve) => {
-      const entry = { resolve };
+    return new Promise<void>((resolve) => {
+      const entry: { timer?: NodeJS.Timeout; resolve: () => void } = { resolve };
       entry.timer = setTimeout(() => {
         this.sleepers.delete(entry);
         resolve();
@@ -165,24 +189,24 @@ export class LaneScheduler {
     });
   }
 
-  close() {
+  close(): void {
     this.closed = true;
     if (this._off) this._off();
     for (const s of this.sleepers) {
-      clearTimeout(s.timer);
+      if (s.timer) clearTimeout(s.timer);
       s.resolve();
     }
     this.sleepers.clear();
   }
 }
 
-function errorBody(pe, retryable) {
-  const body = { code: pe.code, message: pe.message, retryable: Boolean(retryable) };
+function errorBody(pe: any, retryable: boolean) {
+  const body: Record<string, unknown> = { code: pe.code, message: pe.message, retryable: Boolean(retryable) };
   if (pe.details) body.details = pe.details;
   return body;
 }
 
-export function jobError(job) {
+export function jobError(job: Pick<JobRecord, 'id' | 'error'> | null | undefined) {
   const e = job?.error || { code: ERROR_CODES.HOST_ERROR, message: 'job failed' };
   return new ProtocolError(e.code, e.message, { ...(e.details || {}), job_id: job?.id, retryable: e.retryable });
 }

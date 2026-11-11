@@ -1,6 +1,24 @@
 import { ERROR_CODES, ProtocolError } from '@chat-export/protocol';
 import { lastAssistantReply, isPlaceholderReply } from '../chat-views.js';
-import { isRetryable } from './lanes.js';
+import { isRetryable, type LaneContext } from './lanes.js';
+import type { JobRecord } from './job-store.js';
+import type { ServerCore } from '../server-core.js';
+
+// resolveChatId, chatsSend and the platform.host_state op are provided by the extension-side job runner contract,
+// which is not yet part of the committed ServerCore.
+export type RunnerCore = ServerCore & {
+  resolveChatId(platform: string, chatId: string): Promise<string>;
+  chatsSend(platform: string, args: Record<string, any>): Promise<any>;
+};
+
+interface RunOptions {
+  pollMs?: number;
+}
+
+interface BatchItem {
+  chatId: string;
+  title?: string;
+}
 
 export const TEST_PREFIX = '[ce-test]';
 const DEFAULT_POLL_MS = 800;
@@ -8,13 +26,7 @@ const BATCH_MAX = 500;
 const LIST_PAGE = 100;
 const CHAT_OPTION_KEYS = ['model', 'mode', 'toggles', 'tools', 'files'];
 
-/**
- * @param {import('../server-core.js').ServerCore} core
- * @param {object} job
- * @param {object} ctx lane context (checkCancel, setStatus, progress, saveState, sleep)
- * @param {{ pollMs?: number }} [opts]
- */
-export function runJob(core, job, ctx, opts = {}) {
+export function runJob(core: RunnerCore, job: JobRecord, ctx: LaneContext, opts: RunOptions = {}): Promise<any> {
   switch (job.kind) {
     case 'ask':
       return runAsk(core, job, ctx, opts);
@@ -31,13 +43,13 @@ export function runJob(core, job, ctx, opts = {}) {
   }
 }
 
-function pickChatOptions(input) {
-  const out = {};
+function pickChatOptions(input: Record<string, any>): Record<string, any> {
+  const out: Record<string, any> = {};
   for (const k of CHAT_OPTION_KEYS) if (input[k] !== undefined) out[k] = input[k];
   return out;
 }
 
-async function hostState(core, platform, chatId, cache) {
+async function hostState(core: RunnerCore, platform: string, chatId: string | undefined, cache: { unsupported?: boolean }) {
   if (cache.unsupported) return null;
   try {
     return await core.callOp('platform.host_state', platform, chatId ? { chatId } : {});
@@ -49,7 +61,7 @@ async function hostState(core, platform, chatId, cache) {
   }
 }
 
-function assertNotBusy(state, platform) {
+function assertNotBusy(state: any, platform: string): void {
   if (!state?.busy) return;
   throw new ProtocolError(ERROR_CODES.PLATFORM_BUSY, state.banner || platform + ' is busy', {
     retryable: true,
@@ -57,11 +69,11 @@ function assertNotBusy(state, platform) {
   });
 }
 
-async function runAsk(core, job, ctx, opts) {
+async function runAsk(core: RunnerCore, job: JobRecord, ctx: LaneContext, opts: RunOptions) {
   const { input, platform } = job;
   const pollMs = opts.pollMs ?? DEFAULT_POLL_MS;
-  const cache = {};
-  let state = job.state || {};
+  const cache: { unsupported?: boolean } = {};
+  let state: Record<string, any> = job.state || {};
   if (!state.startedAt) {
     state = { ...state, startedAt: Date.now() };
     ctx.saveState({ startedAt: state.startedAt });
@@ -71,7 +83,7 @@ async function runAsk(core, job, ctx, opts) {
     assertNotBusy(await hostState(core, platform, input.chatId, cache), platform);
     ctx.checkCancel();
     ctx.progress({ current: 'sending' });
-    let chatId;
+    let chatId: string;
     let minAfter = -1;
     let baselineLen = 0;
     if (!input.chatId) {
@@ -121,7 +133,7 @@ async function runAsk(core, job, ctx, opts) {
         if (reply?.text && after > minAfter && grew && !isPlaceholderReply(reply.text)) {
           return { chatId, platform, status: 'done', reply, after, total };
         }
-      } catch (err) {
+      } catch (err: any) {
         if (isRetryable(err) || err?.code === ERROR_CODES.NOT_BOUND) throw err;
       }
     }
@@ -135,27 +147,27 @@ async function runAsk(core, job, ctx, opts) {
   });
 }
 
-function exportArgs(input, chatId) {
-  const args = { chatId, formats: input.formats };
+function exportArgs(input: Record<string, any>, chatId: string) {
+  const args: Record<string, any> = { chatId, formats: input.formats };
   if (input.outDir !== undefined) args.outDir = input.outDir;
   if (input.branch !== undefined) args.branch = input.branch;
   return args;
 }
 
-function runExport(core, job) {
+function runExport(core: RunnerCore, job: JobRecord) {
   return core.chatsExport(job.platform, exportArgs(job.input, job.input.chatId));
 }
 
-async function collectItems(core, platform, input) {
+async function collectItems(core: RunnerCore, platform: string, input: Record<string, any>): Promise<BatchItem[]> {
   if (Array.isArray(input.chatIds) && input.chatIds.length) {
-    return [...new Set(input.chatIds)].slice(0, BATCH_MAX).map((chatId) => ({ chatId }));
+    return [...new Set<string>(input.chatIds)].slice(0, BATCH_MAX).map((chatId) => ({ chatId }));
   }
   const max = Math.min(BATCH_MAX, Math.max(1, Number(input.max) || LIST_PAGE));
-  const items = [];
-  const seen = new Set();
-  let cursor = null;
+  const items: BatchItem[] = [];
+  const seen = new Set<string>();
+  let cursor: string | null = null;
   do {
-    const args = { limit: LIST_PAGE, query: input.query };
+    const args: Record<string, any> = { limit: LIST_PAGE, query: input.query };
     if (input.includeProjectChats === false) args.includeProjectChats = false;
     if (cursor) args.cursor = cursor;
     const page = await core.chatsList(platform, args);
@@ -171,12 +183,12 @@ async function collectItems(core, platform, input) {
   return items;
 }
 
-function itemError(err) {
+function itemError(err: any) {
   return { code: err?.code || ERROR_CODES.HOST_ERROR, message: err?.message || String(err) };
 }
 
 /** Errors that should fail/retry the whole job instead of being recorded per item. */
-function isJobLevelError(err) {
+function isJobLevelError(err: any): boolean {
   return (
     isRetryable(err) ||
     [
@@ -188,23 +200,28 @@ function isJobLevelError(err) {
   );
 }
 
-async function runBatch(core, job, ctx, eachItem) {
-  let items = job.state?.items;
+async function runBatch(
+  core: RunnerCore,
+  job: JobRecord,
+  ctx: LaneContext,
+  eachItem: (item: BatchItem) => Promise<Record<string, unknown>>
+) {
+  let items: BatchItem[] | undefined = job.state?.items;
   if (!items) {
     ctx.progress({ current: 'listing' });
     items = await collectItems(core, job.platform, job.input);
     ctx.saveState({ items, results: [] });
   }
-  const results = [...(job.state?.results || [])];
+  const results: Array<Record<string, any>> = [...(job.state?.results || [])];
   ctx.progress({ total: items.length, done: results.length });
   for (let i = results.length; i < items.length; i++) {
     ctx.checkCancel();
     const item = items[i];
     ctx.progress({ current: item.chatId });
-    let row;
+    let row: Record<string, any>;
     try {
       row = { chatId: item.chatId, ok: true, ...(await eachItem(item)) };
-    } catch (err) {
+    } catch (err: any) {
       if (isJobLevelError(err) && !err?.details?.itemOnly) throw err;
       row = { chatId: item.chatId, ok: false, error: itemError(err) };
     }
@@ -217,14 +234,14 @@ async function runBatch(core, job, ctx, eachItem) {
   return { total: items.length, ok, failed: results.length - ok, items: results };
 }
 
-function runExportBatch(core, job, ctx) {
+function runExportBatch(core: RunnerCore, job: JobRecord, ctx: LaneContext) {
   return runBatch(core, job, ctx, async (item) => {
     const r = await core.chatsExport(job.platform, exportArgs(job.input, item.chatId));
     return { dir: r.dir, paths: r.paths, title: r.title, turns: r.turns };
   });
 }
 
-async function assertTestChat(core, platform, chatId, knownTitle) {
+async function assertTestChat(core: RunnerCore, platform: string, chatId: string, knownTitle?: string) {
   let title = knownTitle;
   if (title === undefined) {
     const payload = await core.chatsGet(platform, { chatId });
@@ -246,18 +263,18 @@ async function assertTestChat(core, platform, chatId, knownTitle) {
   );
 }
 
-async function deleteOne(core, job, chatId, knownTitle) {
+async function deleteOne(core: RunnerCore, job: JobRecord, chatId: string, knownTitle?: string) {
   const { platform, input } = job;
   if (input.testOnly !== false) await assertTestChat(core, platform, chatId, knownTitle);
   return core.chatsDelete(platform, { chatId }, { confirm: input.confirm === true });
 }
 
-async function runDelete(core, job, ctx) {
+async function runDelete(core: RunnerCore, job: JobRecord, ctx: LaneContext) {
   ctx.checkCancel();
   return deleteOne(core, job, job.input.chatId);
 }
 
-function runDeleteBatch(core, job, ctx) {
+function runDeleteBatch(core: RunnerCore, job: JobRecord, ctx: LaneContext) {
   return runBatch(core, job, ctx, async (item) => {
     const r = await deleteOne(core, job, item.chatId, item.title);
     return { deleted: Boolean(r?.deleted) };

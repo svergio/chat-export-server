@@ -1,32 +1,72 @@
 import crypto from 'node:crypto';
 import { ERROR_CODES, ProtocolError } from '@chat-export/protocol';
 import { buildChatOutline, buildChatRead } from './chat-views.js';
+import type { ServerCore } from './server-core.js';
+import type { DatabaseAdapter, Row } from '../types.js';
 
 const AUTO_CACHE_MIN_MESSAGES = 12;
 const AUTO_CACHE_MIN_CHARS = 16000;
 const READ_MAX_CHARS_DEFAULT = 12000;
 
+interface ChatRef {
+  cacheId?: string;
+  platform?: string;
+  chatId?: string;
+}
+
+interface SyncArgs {
+  platform?: string;
+  chatId?: string;
+  browserId?: string;
+  branch?: string;
+  force?: boolean;
+  containerId?: string;
+}
+
+interface ReadArgs extends ChatRef {
+  startTurn?: number;
+  endTurn?: number;
+  blockId?: string;
+  query?: string;
+  maxChars?: number;
+}
+
+interface AppendArgs extends ChatRef {
+  turns?: any[];
+}
+
+interface UpdateBlockArgs extends ChatRef {
+  turnIndex?: number;
+  content?: string;
+  role?: string;
+  resyncFromHost?: boolean;
+}
+
+interface AutoCacheMeta {
+  browserId?: string;
+  platform?: string;
+  chatId?: string;
+  containerId?: string;
+}
+
+type Payload = Record<string, any>;
+
 export class ChatCacheManager {
-  /**
-   * @param {import('./db/sqlite-adapter.js').SqliteAdapter | import('./db/external-adapter.js').ExternalAdapter} db
-   * @param {import('./server-core.js').ServerCore} core
-   */
-  constructor(db, core) {
+  db: DatabaseAdapter;
+  core: ServerCore;
+
+  constructor(db: DatabaseAdapter, core: ServerCore) {
     this.db = db;
     this.core = core;
   }
 
-  cacheIdFor(browserId, platform, chatId) {
+  cacheIdFor(browserId: unknown, platform: unknown, chatId: unknown): string {
     const key = [String(browserId || ''), String(platform || ''), String(chatId || '')].join('\0');
     const digest = crypto.createHash('sha256').update(key).digest('hex').slice(0, 24);
     return 'cc_' + digest;
   }
 
-  /**
-   * @param {object} payload ExportPayload
-   * @param {{ browserId?: string, platform?: string, chatId?: string, containerId?: string, force?: boolean }} meta
-   */
-  async sync({ platform, chatId, browserId, branch = 'active', force = false, containerId } = {}) {
+  async sync({ platform, chatId, browserId, branch = 'active', force = false, containerId }: SyncArgs = {}) {
     const plat = String(platform || '').trim();
     const cid = String(chatId || '').trim();
     if (!plat || !cid) {
@@ -35,7 +75,7 @@ export class ChatCacheManager {
     const boundBrowserId = this.#resolveBrowserId(browserId);
     const cacheId = this.cacheIdFor(boundBrowserId, plat, cid);
 
-    const args = { chatId: cid };
+    const args: Record<string, unknown> = { chatId: cid };
     if (branch) args.branch = branch;
     const raw = await this.core.chatsGet(plat, args);
     const payload = normalizePayload(raw);
@@ -43,16 +83,12 @@ export class ChatCacheManager {
     return { ...stored, browserId: boundBrowserId, branch, refreshed: true, force: Boolean(force) };
   }
 
-  /**
-   * @param {object} payload
-   * @param {{ browserId?: string, platform?: string, chatId?: string, containerId?: string }} meta
-   */
-  autoCacheIfNeeded(payload, meta = {}) {
+  autoCacheIfNeeded(payload: Payload | null | undefined, meta: AutoCacheMeta = {}) {
     if (!payload || !this.#shouldAutoCache(payload)) return null;
     const plat = String(meta.platform || payload.platform || '').trim();
     const cid = String(meta.chatId || payload.chatId || '').trim();
     if (!plat || !cid) return null;
-    let browserId;
+    let browserId: string;
     try {
       browserId = this.#resolveBrowserId(meta.browserId);
     } catch {
@@ -71,7 +107,7 @@ export class ChatCacheManager {
     blockId,
     query,
     maxChars = READ_MAX_CHARS_DEFAULT
-  } = {}) {
+  }: ReadArgs = {}) {
     const row = this.#resolveChatRow({ cacheId, platform, chatId });
     if (!row) {
       throw new ProtocolError(ERROR_CODES.NOT_FOUND, 'cached chat not found');
@@ -83,7 +119,7 @@ export class ChatCacheManager {
     }
 
     let start = startTurn !== undefined ? Number(startTurn) : 0;
-    let end = endTurn !== undefined ? Number(endTurn) : undefined;
+    let end: number | undefined = endTurn !== undefined ? Number(endTurn) : undefined;
     if (blockId) {
       const m = /^b-(\d+)$/.exec(String(blockId).trim());
       if (!m) {
@@ -121,7 +157,7 @@ export class ChatCacheManager {
     };
   }
 
-  append({ cacheId, platform, chatId, turns }) {
+  append({ cacheId, platform, chatId, turns }: AppendArgs) {
     const row = this.#resolveChatRow({ cacheId, platform, chatId });
     if (!row) {
       throw new ProtocolError(ERROR_CODES.NOT_FOUND, 'cached chat not found');
@@ -137,7 +173,7 @@ export class ChatCacheManager {
       const maxRow = db.get('SELECT MAX(turn_index) AS mx FROM cached_chat_blocks WHERE cache_id = ?', [row.cache_id]);
       let next = Number(maxRow?.mx);
       if (!Number.isFinite(next)) next = -1;
-      const out = [];
+      const out: Array<{ turnIndex: number; blockId: string; role: string; revision: number }> = [];
       for (const turn of list) {
         next += 1;
         const content = String(turn?.text ?? turn?.content ?? '');
@@ -184,7 +220,7 @@ export class ChatCacheManager {
     content,
     role,
     resyncFromHost = false
-  } = {}) {
+  }: UpdateBlockArgs = {}) {
     const row = this.#resolveChatRow({ cacheId, platform, chatId });
     if (!row) {
       throw new ProtocolError(ERROR_CODES.NOT_FOUND, 'cached chat not found');
@@ -204,7 +240,7 @@ export class ChatCacheManager {
 
     let nextContent = content !== undefined ? String(content) : block.content;
     let nextRole = role !== undefined ? String(role) : block.role;
-    let rawJson = null;
+    let rawJson: string | null = null;
 
     if (resyncFromHost) {
       const raw = await this.core.chatsGet(row.platform, { chatId: row.chat_id });
@@ -260,7 +296,7 @@ export class ChatCacheManager {
     };
   }
 
-  remove({ cacheId, platform, chatId } = {}) {
+  remove({ cacheId, platform, chatId }: ChatRef = {}) {
     const row = this.#resolveChatRow({ cacheId, platform, chatId });
     if (!row) {
       throw new ProtocolError(ERROR_CODES.NOT_FOUND, 'cached chat not found');
@@ -273,7 +309,7 @@ export class ChatCacheManager {
     return { cacheId: row.cache_id, platform: row.platform, chatId: row.chat_id, removed: true };
   }
 
-  async chatOutline(platform, args = {}) {
+  async chatOutline(platform: string, args: Record<string, any> = {}) {
     const raw = await this.core.chatsGet(platform, args);
     const payload = normalizePayload(raw);
     const auto = this.autoCacheIfNeeded(payload, {
@@ -281,12 +317,15 @@ export class ChatCacheManager {
       chatId: args.chatId || payload.chatId,
       browserId: args.browserId
     });
-    const outline = buildChatOutline(payload, args);
+    const outline: ReturnType<typeof buildChatOutline> & { cache?: Record<string, unknown> } = buildChatOutline(
+      payload,
+      args
+    );
     if (auto) outline.cache = { cacheId: auto.cacheId, autoCached: true, totalTurns: auto.totalTurns };
     return outline;
   }
 
-  async chatRead(platform, args = {}) {
+  async chatRead(platform: string, args: Record<string, any> = {}) {
     const raw = await this.core.chatsGet(platform, args);
     const payload = normalizePayload(raw);
     const auto = this.autoCacheIfNeeded(payload, {
@@ -294,12 +333,19 @@ export class ChatCacheManager {
       chatId: args.chatId || payload.chatId,
       browserId: args.browserId
     });
-    const read = buildChatRead(payload, args);
+    const read: ReturnType<typeof buildChatRead> & { cache?: Record<string, unknown> } = buildChatRead(payload, args);
     if (auto) read.cache = { cacheId: auto.cacheId, autoCached: true, totalTurns: auto.totalTurns };
     return read;
   }
 
-  #persistPayload(cacheId, browserId, platform, chatId, payload, { containerId } = {}) {
+  #persistPayload(
+    cacheId: string,
+    browserId: string,
+    platform: string,
+    chatId: string,
+    payload: Payload,
+    { containerId }: { containerId?: string } = {}
+  ) {
     const messages = Array.isArray(payload?.messages) ? payload.messages : [];
     const now = new Date().toISOString();
     let totalChars = 0;
@@ -347,7 +393,7 @@ export class ChatCacheManager {
         ]
       );
 
-      messages.forEach((m, turnIndex) => {
+      messages.forEach((m: any, turnIndex: number) => {
         const content = String(m?.text || '');
         totalChars += content.length;
         const role = String(m?.role || 'assistant');
@@ -386,7 +432,7 @@ export class ChatCacheManager {
     };
   }
 
-  #readFts(cacheId, query, maxChars, row) {
+  #readFts(cacheId: string, query: string, maxChars: number, row: Row) {
     const match = buildFtsMatch(query);
     const hits = this.db.all(
       `SELECT b.turn_index, b.block_id, b.role, b.content, b.revision, b.updated_at,
@@ -421,7 +467,7 @@ export class ChatCacheManager {
     };
   }
 
-  #resolveChatRow({ cacheId, platform, chatId }) {
+  #resolveChatRow({ cacheId, platform, chatId }: ChatRef): Row | null {
     if (cacheId) {
       return this.db.get(
         'SELECT cache_id, browser_id, platform, chat_id, title, total_turns, total_chars, updated_at FROM cached_chats WHERE cache_id = ?',
@@ -440,7 +486,7 @@ export class ChatCacheManager {
     return rows[0] || null;
   }
 
-  #resolveBrowserId(browserId) {
+  #resolveBrowserId(browserId: unknown): string {
     const explicit = String(browserId || '').trim();
     if (explicit) return explicit;
     const browser = this.core.hub?.getBound?.();
@@ -450,7 +496,7 @@ export class ChatCacheManager {
     return browser.browserId;
   }
 
-  #shouldAutoCache(payload) {
+  #shouldAutoCache(payload: Payload): boolean {
     const messages = Array.isArray(payload?.messages) ? payload.messages : [];
     if (messages.length >= AUTO_CACHE_MIN_MESSAGES) return true;
     let total = 0;
@@ -462,13 +508,13 @@ export class ChatCacheManager {
   }
 }
 
-function normalizePayload(data) {
+function normalizePayload(data: any): Payload {
   if (!data || typeof data !== 'object') return {};
   if (data.payload && typeof data.payload === 'object') return data.payload;
   return data;
 }
 
-function formatBlock(row) {
+function formatBlock(row: Row) {
   return {
     turnIndex: row.turn_index,
     blockId: row.block_id,
@@ -480,10 +526,10 @@ function formatBlock(row) {
   };
 }
 
-function sliceBlocksToCharLimit(blocks, maxChars) {
+function sliceBlocksToCharLimit(blocks: Row[], maxChars: number) {
   let totalChars = 0;
   let truncated = false;
-  const out = [];
+  const out: Row[] = [];
   for (const row of blocks) {
     const content = String(row.content || '');
     const snippet = row.snippet;
@@ -510,7 +556,7 @@ function sliceBlocksToCharLimit(blocks, maxChars) {
   return { blocks: out, totalChars, truncated };
 }
 
-function buildFtsMatch(query) {
+function buildFtsMatch(query: unknown): string {
   const tokens = String(query)
     .trim()
     .split(/\s+/)
@@ -522,7 +568,7 @@ function buildFtsMatch(query) {
   return tokens.map((t) => '"' + t.replace(/"/g, '""') + '"').join(' AND ');
 }
 
-function clampInt(value, min, max, fallback) {
+function clampInt(value: unknown, min: number, max: number, fallback: number): number {
   const n = Number(value);
   if (!Number.isFinite(n)) return fallback;
   return Math.min(max, Math.max(min, Math.trunc(n)));

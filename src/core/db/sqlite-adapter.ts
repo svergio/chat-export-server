@@ -1,7 +1,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { DatabaseSync } from 'node:sqlite';
+import { DatabaseSync, type StatementSync } from 'node:sqlite';
 import { SCHEMA_VERSION, schemaStatements } from './schema.js';
+import type { DatabaseAdapter, Row, RunResult, SqlParam } from '../../types.js';
 
 export const SQLITE_PRAGMAS = Object.freeze([
   'PRAGMA journal_mode = WAL',
@@ -10,24 +11,24 @@ export const SQLITE_PRAGMAS = Object.freeze([
   'PRAGMA busy_timeout = 5000'
 ]);
 
-function normalizeParam(value) {
+function normalizeParam(value: SqlParam): any {
   if (value === undefined) return null;
   if (typeof value === 'boolean') return value ? 1 : 0;
   return value;
 }
 
-export class SqliteAdapter {
-  /**
-   * @param {{ file: string }} opts file path or ':memory:'
-   */
-  constructor(opts) {
-    this.driver = 'sqlite';
+export class SqliteAdapter implements DatabaseAdapter {
+  driver = 'sqlite';
+  file: string;
+  rowOrder = 'rowid';
+  depth = 0;
+  closed = false;
+  statements = new Map<string, StatementSync>();
+  db: DatabaseSync;
+
+  // opts.file is a file path or ':memory:'
+  constructor(opts: { file: string }) {
     this.file = opts.file;
-    this.rowOrder = 'rowid';
-    this.depth = 0;
-    this.closed = false;
-    /** @type {Map<string, import('node:sqlite').StatementSync>} */
-    this.statements = new Map();
     if (this.file !== ':memory:') {
       fs.mkdirSync(path.dirname(this.file), { recursive: true, mode: 0o700 });
     }
@@ -42,11 +43,11 @@ export class SqliteAdapter {
     }
   }
 
-  describe() {
+  describe(): { driver: string; file: string } {
     return { driver: this.driver, file: this.file };
   }
 
-  #prepare(sql) {
+  #prepare(sql: string): StatementSync {
     let stmt = this.statements.get(sql);
     if (!stmt) {
       stmt = this.db.prepare(sql);
@@ -55,25 +56,25 @@ export class SqliteAdapter {
     return stmt;
   }
 
-  exec(sql) {
+  exec(sql: string): void {
     this.db.exec(sql);
   }
 
-  run(sql, params = []) {
+  run(sql: string, params: SqlParam[] = []): RunResult {
     const info = this.#prepare(sql).run(...params.map(normalizeParam));
     return { changes: Number(info.changes), lastInsertRowid: info.lastInsertRowid };
   }
 
-  get(sql, params = []) {
-    return this.#prepare(sql).get(...params.map(normalizeParam)) || null;
+  get(sql: string, params: SqlParam[] = []): Row | null {
+    return (this.#prepare(sql).get(...params.map(normalizeParam)) as Row | undefined) || null;
   }
 
-  all(sql, params = []) {
-    return this.#prepare(sql).all(...params.map(normalizeParam));
+  all(sql: string, params: SqlParam[] = []): Row[] {
+    return this.#prepare(sql).all(...params.map(normalizeParam)) as Row[];
   }
 
   /** Nested calls become savepoints so callers can compose transactions freely. */
-  transaction(fn) {
+  transaction<T>(fn: (db: DatabaseAdapter) => T): T {
     const nested = this.depth > 0;
     const name = 'sp_' + this.depth;
     this.db.exec(nested ? 'SAVEPOINT ' + name : 'BEGIN IMMEDIATE');
@@ -90,14 +91,14 @@ export class SqliteAdapter {
     }
   }
 
-  migrate() {
+  migrate(): void {
     this.transaction(() => {
       for (const stmt of schemaStatements({ fts: true })) this.db.exec(stmt);
       this.db.exec('PRAGMA user_version = ' + SCHEMA_VERSION);
     });
   }
 
-  close() {
+  close(): void {
     if (this.closed) return;
     this.closed = true;
     this.statements.clear();
@@ -105,6 +106,6 @@ export class SqliteAdapter {
   }
 }
 
-export function createSqliteAdapter(opts) {
+export function createSqliteAdapter(opts: { file: string }): SqliteAdapter {
   return new SqliteAdapter(opts);
 }

@@ -3,7 +3,7 @@ import { startServer, PKG_VERSION } from '../server.js';
 import { ServerCore } from '../core/server-core.js';
 import { resolveHome } from '../core/paths.js';
 
-function usage() {
+function usage(): string {
   return `chat-export-server ${PKG_VERSION}
 
 Usage:
@@ -19,9 +19,30 @@ Env:
 `;
 }
 
-function parseArgs(argv) {
+interface CliFlags {
+  stdio?: boolean;
+  port?: number;
+  home?: string;
+  headless?: boolean;
+  dashboard?: boolean;
+  adminUser?: string;
+  adminPass?: string;
+  id?: string;
+  token?: string;
+  label?: string;
+  help?: boolean;
+}
+
+interface ParsedArgs {
+  cmd: string | undefined;
+  sub: string | undefined;
+  flags: CliFlags;
+  positionals: string[];
+}
+
+function parseArgs(argv: string[]): ParsedArgs {
   const args = argv.slice(2);
-  const out = { cmd: args[0], sub: args[1], flags: {}, positionals: [] };
+  const out: ParsedArgs = { cmd: args[0], sub: args[1], flags: {}, positionals: [] };
   for (let i = 1; i < args.length; i++) {
     const a = args[i];
     if (a === '--stdio') out.flags.stdio = true;
@@ -40,7 +61,7 @@ function parseArgs(argv) {
   return out;
 }
 
-async function main() {
+async function main(): Promise<void> {
   const parsed = parseArgs(process.argv);
   if (!parsed.cmd || parsed.flags.help) {
     process.stdout.write(usage());
@@ -50,7 +71,7 @@ async function main() {
   const home = parsed.flags.home || resolveHome();
 
   if (parsed.cmd === 'start') {
-    const dashOpts = {};
+    const dashOpts: { enabled?: boolean; username?: string; password?: string } = {};
     if (parsed.flags.headless) dashOpts.enabled = false;
     else if (parsed.flags.dashboard) dashOpts.enabled = true;
     if (parsed.flags.adminUser) dashOpts.username = parsed.flags.adminUser;
@@ -61,7 +82,7 @@ async function main() {
       port: parsed.flags.port,
       dashboard: Object.keys(dashOpts).length ? dashOpts : undefined
     });
-    const log = (...xs) => process.stderr.write(xs.join(' ') + '\n');
+    const log = (...xs: unknown[]) => process.stderr.write(xs.join(' ') + '\n');
     const dashNote = server.dashboardEnabled ? ', dashboard /dashboard' : ', dashboard off (headless)';
     log(
       `chat-export-server listening on http://${server.host}:${server.port} (ws /ws|/ext, mcp /mcp${dashNote})`
@@ -134,7 +155,7 @@ async function main() {
   process.exit(1);
 }
 
-main().catch((err) => {
+main().catch((err: any) => {
   process.stderr.write((err?.stack || err?.message || String(err)) + '\n');
   process.exit(1);
 });

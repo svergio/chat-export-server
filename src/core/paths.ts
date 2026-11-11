@@ -1,12 +1,13 @@
 import os from 'node:os';
 import path from 'node:path';
+import type { HomePaths } from '../types.js';
 
-export function resolveHome(env = process.env) {
+export function resolveHome(env: NodeJS.ProcessEnv = process.env): string {
   if (env.CHAT_EXPORT_HOME) return path.resolve(env.CHAT_EXPORT_HOME);
   return path.join(os.homedir(), '.chat-export');
 }
 
-export function pathsFor(home) {
+export function pathsFor(home: string): HomePaths {
   const logsDir = path.join(home, 'logs');
   return {
     home,

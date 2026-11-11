@@ -1,19 +1,25 @@
 import { z } from 'zod';
+import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { PLATFORMS, EXPORT_FORMATS, ERROR_CODES } from '@chat-export/protocol';
 import { toProtocolError } from '../core/errors.js';
+import type { ServerCore } from '../core/server-core.js';
 
-const Platform = z.enum(/** @type {[string, ...string[]]} */ ([...PLATFORMS]));
-const ExportFormat = z.enum(/** @type {[string, ...string[]]} */ ([...EXPORT_FORMATS]));
+type ToolArgs = Record<string, any>;
+type ToolHandler = (args: any) => Promise<unknown> | unknown;
+type ErrorContext = { platform?: string | null; duration_ms?: number };
 
-const RETRYABLE_CODES = new Set([ERROR_CODES.TIMEOUT, ERROR_CODES.HOST_ERROR, ERROR_CODES.NOT_BOUND]);
+const Platform = z.enum([...PLATFORMS] as [string, ...string[]]);
+const ExportFormat = z.enum([...EXPORT_FORMATS] as [string, ...string[]]);
 
-function okResult(data) {
+const RETRYABLE_CODES = new Set<string>([ERROR_CODES.TIMEOUT, ERROR_CODES.HOST_ERROR, ERROR_CODES.NOT_BOUND]);
+
+function okResult(data: unknown) {
   return {
     content: [{ type: 'text', text: JSON.stringify(data, null, 2) }]
   };
 }
 
-function hintForError(code, platform) {
+function hintForError(code: string, platform?: string | null): string | null {
   if (code === ERROR_CODES.NOT_BOUND) return 'Call browsers_bind with a connected browserId from browsers_list';
   if (code === ERROR_CODES.UNAUTHORIZED) return 'Check MCP cem_ token and browser ceb_ token enrollment';
   if (code === ERROR_CODES.PLATFORM_DISABLED) {
@@ -32,9 +38,9 @@ function hintForError(code, platform) {
   return null;
 }
 
-function detailedErrorBody(core, tool, err, ctx) {
+function detailedErrorBody(core: ServerCore, tool: string, err: unknown, ctx: ErrorContext) {
   const pe = toProtocolError(err);
-  const platform = ctx.platform || pe.details?.platform || null;
+  const platform = ctx.platform || (pe.details as Record<string, any> | undefined)?.platform || null;
   const context = core.mcpErrorContext(platform);
   const code = pe.code || ERROR_CODES.HOST_ERROR;
   return {
@@ -56,7 +62,7 @@ function detailedErrorBody(core, tool, err, ctx) {
   };
 }
 
-function detailedErrResult(core, tool, err, ctx) {
+function detailedErrResult(core: ServerCore, tool: string, err: unknown, ctx: ErrorContext) {
   const body = detailedErrorBody(core, tool, err, ctx);
   return {
     isError: true,
@@ -64,8 +70,8 @@ function detailedErrResult(core, tool, err, ctx) {
   };
 }
 
-function withDetailedMcpTool(tool, core, handler) {
-  return async (args) => {
+function withDetailedMcpTool(tool: string, core: ServerCore, handler: ToolHandler) {
+  return async (args: any) => {
     const started = Date.now();
     const platform = typeof args?.platform === 'string' ? args.platform : null;
     try {
@@ -89,16 +95,18 @@ function withDetailedMcpTool(tool, core, handler) {
   };
 }
 
-function registerDetailedTool(server, core, name, meta, handler) {
-  server.registerTool(name, meta, withDetailedMcpTool(name, core, handler));
+function registerDetailedTool(
+  server: McpServer,
+  core: ServerCore,
+  name: string,
+  meta: { description: string; inputSchema: Record<string, any> },
+  handler: ToolHandler
+): void {
+  server.registerTool(name, meta, withDetailedMcpTool(name, core, handler) as any);
 }
 
-/**
- * Register MCP tools on an McpServer against ServerCore.
- * @param {import('@modelcontextprotocol/sdk/server/mcp.js').McpServer} server
- * @param {import('../core/server-core.js').ServerCore} core
- */
-export function registerTools(server, core) {
+// Register MCP tools on an McpServer against ServerCore.
+export function registerTools(server: McpServer, core: ServerCore): void {
   registerDetailedTool(
     server,
     core,
@@ -163,7 +171,7 @@ export function registerTools(server, core) {
       }
     },
     async ({ platform, cursor, limit, query, includeProjectChats }) => {
-      const args = {};
+      const args: ToolArgs = {};
       if (cursor !== undefined) args.cursor = cursor;
       if (limit !== undefined) args.limit = limit;
       if (query !== undefined) args.query = query;
@@ -215,7 +223,7 @@ export function registerTools(server, core) {
       }
     },
     async ({ platform, text, title }) => {
-      const args = { text };
+      const args: ToolArgs = { text };
       if (title !== undefined) args.title = title;
       return core.chatsCreate(platform, args);
     }
@@ -324,8 +332,8 @@ export function registerTools(server, core) {
     query: z.string().optional()
   };
 
-  function pickContainersListArgs(input) {
-    const args = {};
+  function pickContainersListArgs(input: ToolArgs): ToolArgs {
+    const args: ToolArgs = {};
     if (input.cursor !== undefined) args.cursor = input.cursor;
     if (input.limit !== undefined) args.limit = input.limit;
     if (input.query !== undefined) args.query = input.query;
@@ -368,7 +376,7 @@ export function registerTools(server, core) {
       }
     },
     async ({ platform, containerId, cursor, limit }) => {
-      const args = { containerId };
+      const args: ToolArgs = { containerId };
       if (cursor !== undefined) args.cursor = cursor;
       if (limit !== undefined) args.limit = limit;
       return core.containersChats(platform, args);
@@ -389,7 +397,7 @@ export function registerTools(server, core) {
       }
     },
     async ({ platform, name, description, instructions }) => {
-      const args = { name };
+      const args: ToolArgs = { name };
       if (description !== undefined) args.description = description;
       if (instructions !== undefined) args.instructions = instructions;
       return core.containersCreate(platform, args);
@@ -411,7 +419,7 @@ export function registerTools(server, core) {
       }
     },
     async ({ platform, containerId, name, confirm }) => {
-      const args = { containerId, confirm: confirm === true };
+      const args: ToolArgs = { containerId, confirm: confirm === true };
       if (name !== undefined) args.name = name;
       return core.containersDelete(platform, args, { confirm: confirm === true });
     }
@@ -430,7 +438,7 @@ export function registerTools(server, core) {
       }
     },
     async ({ platform, chatId, containerId }) => {
-      const args = { chatId };
+      const args: ToolArgs = { chatId };
       if (containerId !== undefined) args.containerId = containerId;
       return core.containersMoveChat(platform, args);
     }

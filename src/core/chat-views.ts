@@ -1,15 +1,31 @@
+type ChatMessage = Record<string, any>;
+type ChatPayload = { chatId?: string; platform?: string; title?: string; messages?: ChatMessage[] } | null | undefined;
+
+export interface OutlineTurn {
+  i: number;
+  role: string;
+  chars: number;
+  preview: string;
+  thinkingChars?: number;
+}
+
+export interface ReadTurn {
+  i: number;
+  role: string;
+  text: string;
+  chars: number;
+  truncated?: boolean;
+  thinkingChars?: number;
+}
+
 const PREVIEW_DEFAULT = 120;
 const READ_MAX_CHARS_DEFAULT = 4000;
 const READ_MAX_TURNS = 10;
 
-/**
- * @param {object} payload ExportPayload-like
- * @param {{ previewChars?: number }} [opts]
- */
-export function buildChatOutline(payload, opts = {}) {
+export function buildChatOutline(payload: ChatPayload, opts: { previewChars?: number } = {}) {
   const previewChars = clampInt(opts.previewChars, 40, 300, PREVIEW_DEFAULT);
   const messages = Array.isArray(payload?.messages) ? payload.messages : [];
-  const turns = messages.map((m, i) => {
+  const turns = messages.map((m, i): OutlineTurn => {
     const text = String(m?.text || '');
     const thinkingChars =
       typeof m?.thinkingChars === 'number'
@@ -17,7 +33,7 @@ export function buildChatOutline(payload, opts = {}) {
         : typeof m?.thinking === 'string'
           ? m.thinking.length
           : 0;
-    const row = {
+    const row: OutlineTurn = {
       i,
       role: m?.role || 'assistant',
       chars: text.length,
@@ -35,11 +51,7 @@ export function buildChatOutline(payload, opts = {}) {
   };
 }
 
-/**
- * @param {object} payload
- * @param {{ start?: number, end?: number, maxChars?: number }} [opts]
- */
-export function buildChatRead(payload, opts = {}) {
+export function buildChatRead(payload: ChatPayload, opts: { start?: number; end?: number; maxChars?: number } = {}) {
   const messages = Array.isArray(payload?.messages) ? payload.messages : [];
   const total = messages.length;
   let start = resolveIndex(opts.start, total, 0);
@@ -65,7 +77,7 @@ export function buildChatRead(payload, opts = {}) {
     end = start + READ_MAX_TURNS - 1;
   }
   const maxChars = clampInt(opts.maxChars, 200, 20000, READ_MAX_CHARS_DEFAULT);
-  const turns = [];
+  const turns: ReadTurn[] = [];
   for (let i = start; i <= end; i++) {
     const m = messages[i];
     const full = String(m?.text || '');
@@ -77,7 +89,7 @@ export function buildChatRead(payload, opts = {}) {
         : typeof m?.thinking === 'string'
           ? m.thinking.length
           : 0;
-    const row = {
+    const row: ReadTurn = {
       i,
       role: m?.role || 'assistant',
       text,
@@ -99,11 +111,8 @@ export function buildChatRead(payload, opts = {}) {
   };
 }
 
-/**
- * Last assistant turn for chat_ask done response.
- * @param {object} payload
- */
-export function lastAssistantReply(payload) {
+// Last assistant turn for chat_ask done response.
+export function lastAssistantReply(payload: ChatPayload) {
   const messages = Array.isArray(payload?.messages) ? payload.messages : [];
   for (let i = messages.length - 1; i >= 0; i--) {
     const m = messages[i];
@@ -115,7 +124,7 @@ export function lastAssistantReply(payload) {
           : typeof m.thinking === 'string'
             ? m.thinking.length
             : 0;
-      const reply = { i, role: 'assistant', text };
+      const reply: { i: number; role: string; text: string; thinkingChars?: number } = { i, role: 'assistant', text };
       if (thinkingChars > 0) reply.thinkingChars = thinkingChars;
       return { reply, after: i, total: messages.length };
     }
@@ -123,7 +132,7 @@ export function lastAssistantReply(payload) {
   return { reply: null, after: -1, total: messages.length };
 }
 
-export function isPlaceholderReply(text) {
+export function isPlaceholderReply(text: unknown): boolean {
   const t = String(text || '').trim();
   if (!t) return true;
   // Streaming / status stubs only — short final answers (e.g. SEND_OK) are valid.
@@ -136,20 +145,20 @@ export function isPlaceholderReply(text) {
   return false;
 }
 
-function truncate(text, n) {
+function truncate(text: unknown, n: number): string {
   const s = String(text || '');
   if (s.length <= n) return s;
   return s.slice(0, Math.max(0, n - 1)) + '…';
 }
 
-function clampInt(value, min, max, fallback) {
+function clampInt(value: unknown, min: number, max: number, fallback: number): number {
   const n = Number(value);
   if (!Number.isFinite(n)) return fallback;
   return Math.min(max, Math.max(min, Math.trunc(n)));
 }
 
 /** Negative indexes count from the end (Python-style). */
-function resolveIndex(value, total, fallback) {
+function resolveIndex(value: unknown, total: number, fallback: number): number {
   const n = Number(value);
   if (!Number.isFinite(n)) return fallback;
   let idx = Math.trunc(n);

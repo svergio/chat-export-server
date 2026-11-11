@@ -2,21 +2,32 @@
 
 Local MCP server for the Chat Export browser extension. Lists, exports, creates, and deletes your own chats on ChatGPT, Grok, X Grok, and GitHub Copilot through the extension in your browser. Everything stays on `127.0.0.1`.
 
-## Install
+The server is written in TypeScript (ESM, Node 22.13+). The browser extension stays plain vanilla JS/MV3 and is not part of this build; the wire contract in `packages/protocol` is plain JS and unchanged.
+
+## Install and build
 
 ```sh
 npm install
-npm link   # optional: puts `chat-export-server` on your PATH
+npm run build   # tsc -> dist/
+npm link        # optional: puts `chat-export-server` on your PATH (bin -> dist/cli/index.js)
 ```
 
-Requires Node 20+.
+Requires Node 22.13+ (built-in `node:sqlite`).
+
+| Script | Purpose |
+| --- | --- |
+| `npm run build` | compile `src/**/*.ts` to `dist/` |
+| `npm run typecheck` | `tsc --noEmit` |
+| `npm start` | run the compiled server (`node dist/cli/index.js start`) |
+| `npm run dev` | run from TypeScript sources with reload (`tsx watch src/cli/index.ts start`) |
+| `npm run mcp` | compiled server with stdio MCP attached |
 
 ## Quick start
 
 ```sh
 # 1) Create a local API key (printed once; only a hash is stored)
 chat-export-server key new
-# or: node src/cli/index.js key new
+# or: node dist/cli/index.js key new
 
 # 2) Start HTTP + WebSocket hub + Streamable MCP
 chat-export-server start
@@ -88,7 +99,7 @@ From this repo without linking:
     "chat-export": {
       "command": "node",
       "args": [
-        "/ABS/PATH/projects/chat-export-server/src/cli/index.js",
+        "/ABS/PATH/projects/chat-export-server/dist/cli/index.js",
         "start",
         "--stdio"
       ]
@@ -116,19 +127,25 @@ From this repo without linking:
 ```text
 packages/protocol/   wire contract v1 (schemas, fixtures) — frozen
 packages/faq.md      shared FAQ wording
-src/core/            config, keys, settings gates, audit, export files
+src/core/            config, keys, settings gates, audit, export files, db, jobs, chat cache
 src/hub/             WS BrowserHub (bind, RPC timeouts)
 src/mcp/             MCP tools + stdio + HTTP Streamable
 src/cli/             chat-export-server CLI
-test/                unit + contract (mock extension)
+src/dashboard-api.ts /dashboard/api + static files from dashboard/public (submodule)
+src/protocol.d.ts    local typings for the plain-JS @chat-export/protocol package
+dist/                tsc output (gitignored)
 ```
 
 ## Development
 
 ```sh
 npm install
-npm test
+npm run typecheck
+npm run build
+npm run dev
 ```
+
+`dashboard/` is a git submodule (React + Vite UI built to `dashboard/public`); the server only serves those static files, so run `git submodule update --init` after cloning.
 
 ## FAQ
 

@@ -1,4 +1,5 @@
 import http from 'node:http';
+import type { AddressInfo } from 'node:net';
 import { ServerCore } from './core/server-core.js';
 import { BrowserHub } from './hub/browser-hub.js';
 import { handleMcpHttp } from './mcp/http.js';
@@ -9,27 +10,26 @@ import { createDashboardApi } from './dashboard-api.js';
 
 const PKG_VERSION = '0.1.0';
 
-function isLoopbackAddress(address) {
+export interface StartServerOptions {
+  home?: string;
+  stdio?: boolean;
+  host?: string;
+  port?: number;
+  dashboard?: { enabled?: boolean; username?: string; password?: string };
+}
+
+function isLoopbackAddress(address: string): boolean {
   return address === '127.0.0.1' || address === '::1' || address === '::ffff:127.0.0.1';
 }
 
-async function readJsonBody(req) {
-  const chunks = [];
+async function readJsonBody(req: http.IncomingMessage): Promise<any> {
+  const chunks: Buffer[] = [];
   for await (const chunk of req) chunks.push(chunk);
   if (!chunks.length) return {};
   return JSON.parse(Buffer.concat(chunks).toString('utf8'));
 }
 
-/**
- * @param {{
- *   home?: string,
- *   stdio?: boolean,
- *   host?: string,
- *   port?: number,
- *   dashboard?: { enabled?: boolean, username?: string, password?: string }
- * }} [opts]
- */
-export async function startServer(opts = {}) {
+export async function startServer(opts: StartServerOptions = {}) {
   const home = opts.home || resolveHome();
   const core = new ServerCore({ home, serverVersion: PKG_VERSION });
   if (opts.dashboard) {
@@ -46,10 +46,10 @@ export async function startServer(opts = {}) {
   const hub = new BrowserHub({
     serverVersion: PKG_VERSION,
     rpcTimeoutMs: core.config.rpcTimeoutMs,
-    authorizeHello: (hello, meta) => core.authorizeBrowserHello(hello, meta),
+    authorizeHello: (hello: any, meta?: { remoteAddress?: string }) => core.authorizeBrowserHello(hello, meta),
     onPresence: (session, meta) => core.updateBrowserPresence(session, meta),
     onDisconnect: (browserId) => core.markBrowserOffline(browserId),
-    onAudit: (event) => {
+    onAudit: (event: Record<string, any>) => {
       core.audit(event);
       if (event?.ok === false && event?.code && ALERT_CODES.has(event.code)) {
         core.logger.alert({
@@ -103,7 +103,7 @@ export async function startServer(opts = {}) {
       if (await handleDashboard(req, res, url)) return;
       res.writeHead(404, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ error: { message: 'not found' } }));
-    } catch (err) {
+    } catch (err: any) {
       if (!res.headersSent) {
         res.writeHead(500, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ error: { message: 'internal error' } }));
@@ -114,24 +114,24 @@ export async function startServer(opts = {}) {
 
   hub.attach(httpServer, { path: '/ws' });
 
-  await new Promise((resolve, reject) => {
+  await new Promise<void>((resolve, reject) => {
     httpServer.once('error', reject);
     httpServer.listen(port, host, () => resolve());
   });
 
-  let stdio = null;
+  let stdio: Awaited<ReturnType<typeof startStdioMcp>> | null = null;
   if (opts.stdio) {
     stdio = await startStdioMcp(core);
   }
 
-  const addr = httpServer.address();
+  const addr = httpServer.address() as AddressInfo | string | null;
   return {
     core,
     hub,
     httpServer,
     stdio,
     host: typeof addr === 'object' && addr ? addr.address : host,
-    port: typeof addr === 'object' && addr ? addr.port :     port,
+    port: typeof addr === 'object' && addr ? addr.port : port,
     startedAt,
     dashboardEnabled: core.config.dashboard?.enabled !== false,
     async close() {
@@ -140,7 +140,7 @@ export async function startServer(opts = {}) {
         await stdio.transport.close().catch(() => {});
         await stdio.server.close().catch(() => {});
       }
-      await new Promise((resolve) => httpServer.close(() => resolve()));
+      await new Promise<void>((resolve) => httpServer.close(() => resolve()));
       core.close();
     }
   };

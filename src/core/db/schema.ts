@@ -2,7 +2,15 @@ export const SCHEMA_VERSION = 1;
 
 export const DEFAULT_AUTOINCREMENT_PK = 'INTEGER PRIMARY KEY AUTOINCREMENT';
 
-export function schemaStatements({ metricsIdColumn = DEFAULT_AUTOINCREMENT_PK, fts = true } = {}) {
+export interface SchemaOptions {
+  metricsIdColumn?: string;
+  fts?: boolean;
+}
+
+export function schemaStatements({
+  metricsIdColumn = DEFAULT_AUTOINCREMENT_PK,
+  fts = true
+}: SchemaOptions = {}): string[] {
   const statements = [
     `CREATE TABLE IF NOT EXISTS mcp_tokens (
       id TEXT PRIMARY KEY,
