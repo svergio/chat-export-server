@@ -81,6 +81,78 @@ chat-export-server key list
 chat-export-server status
 ```
 
+## Configuration
+
+### Environment variables
+
+| Variable | Purpose |
+|----------|---------|
+| `CHAT_EXPORT_HOME` | Data directory (default `~/.chat-export`) |
+| `CHAT_EXPORT_DB_DRIVER` | DB driver override (`sqlite` default) |
+| `CHAT_EXPORT_DB_URL` | DB URL when not using default SQLite path |
+| `CHAT_EXPORT_SKIP_MCP_CONFIG` | Set `1` to skip auto-writing Cursor MCP config on `key new` |
+
+### `config.json` (under `CHAT_EXPORT_HOME`)
+
+Created on first start. Example (secrets redacted):
+
+```json
+{
+  "host": "127.0.0.1",
+  "port": 8765,
+  "exportDir": "~/.chat-export/exports",
+  "rpcTimeoutMs": 60000,
+  "dashboard": {
+    "enabled": true,
+    "username": "admin",
+    "password": "changeme"
+  },
+  "registeredBrowsers": [],
+  "settings": {
+    "platformsEnabled": ["chatgpt", "grok", "grok-x", "copilot", "claude"],
+    "allowDestructive": false
+  }
+}
+```
+
+Change **`dashboard.password`** before exposing the host beyond loopback. Server listens on **`127.0.0.1:8765`** by default (`/health`, `/mcp`, `/ws`, `/dashboard/`).
+
+### Tokens
+
+| Prefix | Used by |
+|--------|---------|
+| `cek_` / `cem_` | MCP and CLI (`Authorization: Bearer …` on `/mcp`) |
+| `ceb_` | Chrome extension WebSocket (`/ws`); enroll via CLI or [dashboard](https://github.com/svergio/chat-export-dashboard) |
+
+Only **hashes** of MCP keys are stored in `keys.json` (mode `600`). Plaintext is shown once at `chat-export-server key new`.
+
+### Detached daemon (maintainer workspace)
+
+In the Chat Export maintainer tree, `tmp-scripts/ensure-daemon.mjs` can keep `chat-export-server` running on `:8765`, write `~/.chat-export/server.pid`, and optionally sync `Bearer cem_…` into `.cursor/mcp.json` (`--sync-mcp-json`). Equivalent manual start: `chat-export-server start`.
+
+### Cursor MCP (`~/.cursor/mcp.json` or project `.cursor/mcp.json`)
+
+HTTP (server already running):
+
+```json
+{
+  "mcpServers": {
+    "chat-export": {
+      "url": "http://127.0.0.1:8765/mcp",
+      "headers": {
+        "Authorization": "Bearer cem_YOUR_KEY_HERE"
+      }
+    }
+  }
+}
+```
+
+**Profiles:** expose the full tool surface (`chats_*`, `jobs_*`, `chat_cache_*`, `projects_*`) for IDE agents. A **small** read-focused subset (list/get/export, browsers, platforms) is documented on the [wiki MCP tools page](https://github.com/svergio/chat-export-extension/wiki/MCP-Tools-and-Profiles) — match your client’s token budget. Open WebUI via **mcpo** can proxy the same HTTP endpoint if your setup uses an OpenAPI bridge on another port.
+
+After MCP is configured, run **`browsers_bind`** so tools target your connected Chrome profile.
+
+Extension bridge settings: [chat-export-extension README](https://github.com/svergio/chat-export-extension#configuration).
+
 ## Background jobs
 
 Long work (`chat_ask`, export, bulk delete) uses per-browser lanes:
@@ -169,7 +241,6 @@ dashboard/           git submodule → chat-export-dashboard
 ## Support the project
 
 - **Tip (fiat):** [DonationAlerts — svwergio_mel](https://www.donationalerts.com/r/svwergio_mel)
-- **Crypto (optional):** if maintainers publish receive-only addresses, they appear in project docs — always specify network (e.g. USDT TRC-20). Wrong chain = lost funds. No addresses are required to use the software.
 
 Tips are voluntary; they do not purchase support SLAs or private builds.
 
@@ -178,6 +249,10 @@ Tips are voluntary; they do not purchase support SLAs or private builds.
 - No telemetry; no external servers for core operation.
 - Only **your** chats, from **your** browser session.
 - Shared wording: [packages/faq.md](packages/faq.md).
+
+## Contributing
+
+See [extension CONTRIBUTING.md](https://github.com/svergio/chat-export-extension/blob/main/CONTRIBUTING.md) (protocol `PLATFORMS`, server MCP, config) and [wiki Contributing](https://github.com/svergio/chat-export-extension/wiki/Contributing).
 
 ## License
 
