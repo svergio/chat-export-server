@@ -1,6 +1,7 @@
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import type { IncomingMessage, ServerResponse } from 'node:http';
+import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ProtocolError } from '@chat-export/protocol';
@@ -96,6 +97,39 @@ async function readJsonBody(req: IncomingMessage): Promise<JsonBody | null> {
 
 function dashboardEnabled(core: ServerCore): boolean {
   return core.config.dashboard?.enabled !== false;
+}
+
+function collectProcessResources(uptimeMs: number, dbInfo: Record<string, unknown>): {
+  rssMb: number;
+  heapUsedMb: number;
+  heapTotalMb: number;
+  dbSizeBytes: number;
+  walSizeBytes: number;
+  loadAvg: number[];
+  uptimeMs: number;
+} {
+  const mem = process.memoryUsage();
+  const dbFile = typeof dbInfo.file === 'string' ? dbInfo.file : null;
+  let dbSizeBytes = 0;
+  let walSizeBytes = 0;
+  if (dbFile && dbFile !== ':memory:') {
+    try {
+      if (fs.existsSync(dbFile)) dbSizeBytes = fs.statSync(dbFile).size;
+      const wal = `${dbFile}-wal`;
+      if (fs.existsSync(wal)) walSizeBytes = fs.statSync(wal).size;
+    } catch {
+      /* ignore stat errors */
+    }
+  }
+  return {
+    rssMb: Math.round((mem.rss / 1048576) * 10) / 10,
+    heapUsedMb: Math.round((mem.heapUsed / 1048576) * 10) / 10,
+    heapTotalMb: Math.round((mem.heapTotal / 1048576) * 10) / 10,
+    dbSizeBytes,
+    walSizeBytes,
+    loadAvg: os.loadavg().map((n) => Math.round(n * 100) / 100),
+    uptimeMs
+  };
 }
 
 function jobSummary(job: JobRecord | null) {
@@ -272,7 +306,8 @@ export function createDashboardApi(deps: { core: ServerCore; startedAt: number }
           avgMs: r.avg_ms != null ? Math.round(Number(r.avg_ms)) : null
         })),
         queue,
-        hub
+        hub,
+        resources: collectProcessResources(uptimeMs, dbInfo as Record<string, unknown>)
       });
       return true;
     }
