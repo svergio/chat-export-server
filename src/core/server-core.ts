@@ -65,7 +65,7 @@ export class ServerCore {
     this.home = opts.home || resolveHome();
     this.config = loadConfig(this.home);
     this.hub = opts.hub || null;
-    this.serverVersion = opts.serverVersion || '0.1.0';
+    this.serverVersion = opts.serverVersion || '1.0.1';
     this._db = opts.db || null;
     this._chatCache = null;
     this._jobs = null;
