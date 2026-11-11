@@ -10,6 +10,12 @@ type ErrorContext = { platform?: string | null; duration_ms?: number };
 
 const Platform = z.enum([...PLATFORMS] as [string, ...string[]]);
 const ExportFormat = z.enum([...EXPORT_FORMATS] as [string, ...string[]]);
+const JobKind = z.enum(['ask', 'export', 'export_batch', 'delete', 'delete_batch']);
+const FileRef = z.object({
+  path: z.string().min(1),
+  name: z.string().optional(),
+  mime: z.string().optional()
+});
 
 const RETRYABLE_CODES = new Set<string>([ERROR_CODES.TIMEOUT, ERROR_CODES.HOST_ERROR, ERROR_CODES.NOT_BOUND]);
 
@@ -458,6 +464,77 @@ export function registerTools(server: McpServer, core: ServerCore): void {
       }
     },
     async ({ platform, chatId, confirm }) => core.chatsDelete(platform, { chatId }, { confirm })
+  );
+
+  registerDetailedTool(
+    server,
+    core,
+    'jobs_enqueue',
+    {
+      description:
+        'Enqueue a background job on the bound browser lane (ask, export, export_batch, delete, delete_batch). Returns job_id immediately.',
+      inputSchema: {
+        kind: JobKind,
+        platform: Platform,
+        browserId: z.string().optional(),
+        prompt: z.string().optional(),
+        chatId: z.string().optional(),
+        title: z.string().optional(),
+        timeout_s: z.number().int().min(10).max(300).optional(),
+        model: z.string().optional(),
+        mode: z.string().optional(),
+        toggles: z.array(z.string()).optional(),
+        tools: z.array(z.string()).optional(),
+        files: z.array(FileRef).optional(),
+        chatIds: z.array(z.string()).optional(),
+        query: z.string().optional(),
+        max: z.number().int().positive().optional(),
+        formats: z.array(ExportFormat).optional(),
+        outDir: z.string().optional(),
+        branch: z.string().optional(),
+        confirm: z.boolean().optional(),
+        testOnly: z.boolean().optional()
+      }
+    },
+    async (input) => core.jobs.enqueue(input)
+  );
+
+  registerDetailedTool(
+    server,
+    core,
+    'jobs_status',
+    {
+      description: 'Get status, progress, result or error for a job_id from jobs_enqueue.',
+      inputSchema: { job_id: z.string().min(1) }
+    },
+    async ({ job_id }) => core.jobs.status(job_id)
+  );
+
+  registerDetailedTool(
+    server,
+    core,
+    'jobs_list',
+    {
+      description: 'List jobs with optional filters (newest first).',
+      inputSchema: {
+        status: z.string().optional(),
+        kind: JobKind.optional(),
+        browserId: z.string().optional(),
+        limit: z.number().int().min(1).max(200).optional()
+      }
+    },
+    async (input) => core.jobs.list(input)
+  );
+
+  registerDetailedTool(
+    server,
+    core,
+    'jobs_cancel',
+    {
+      description: 'Cancel a queued job immediately or request cancel for a running job.',
+      inputSchema: { job_id: z.string().min(1) }
+    },
+    async ({ job_id }) => core.jobs.cancel(job_id)
   );
 }
 

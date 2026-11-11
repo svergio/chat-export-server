@@ -66,7 +66,7 @@ export class ChatCacheManager {
     return 'cc_' + digest;
   }
 
-  async sync({ platform, chatId, browserId, branch = 'active', force = false, containerId }: SyncArgs = {}) {
+  async sync({ platform, chatId, browserId, branch, force = false, containerId }: SyncArgs = {}) {
     const plat = String(platform || '').trim();
     const cid = String(chatId || '').trim();
     if (!plat || !cid) {
@@ -75,8 +75,8 @@ export class ChatCacheManager {
     const boundBrowserId = this.#resolveBrowserId(browserId);
     const cacheId = this.cacheIdFor(boundBrowserId, plat, cid);
 
+    // Protocol ChatsGetArgs allows only chatId; the extension defaults branch to active when omitted.
     const args: Record<string, unknown> = { chatId: cid };
-    if (branch) args.branch = branch;
     const raw = await this.core.chatsGet(plat, args);
     const payload = normalizePayload(raw);
     const stored = this.#persistPayload(cacheId, boundBrowserId, plat, cid, payload, { containerId });

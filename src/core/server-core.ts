@@ -27,6 +27,8 @@ import { resolveHome } from './paths.js';
 import { openDatabase, describeDatabase } from './db/index.js';
 import { ChatCacheManager } from './chat-cache.js';
 import { createLogger, type FileLogger } from './logger.js';
+import { JobManager, type JobManagerOptions } from './jobs/job-manager.js';
+import { loadFiles, type FileRef } from './attachments.js';
 import type { BrowserHub } from '../hub/browser-hub.js';
 import type { DatabaseAdapter, LoadedConfig, Row } from '../types.js';
 
@@ -53,6 +55,7 @@ export class ServerCore {
   serverVersion: string;
   _db: DatabaseAdapter | null;
   _chatCache: ChatCacheManager | null;
+  _jobs: JobManager | null;
   logger: FileLogger;
 
   constructor(opts: ServerCoreOptions = {}) {
@@ -62,7 +65,17 @@ export class ServerCore {
     this.serverVersion = opts.serverVersion || '0.1.0';
     this._db = opts.db || null;
     this._chatCache = null;
+    this._jobs = null;
     this.logger = opts.logger || createLogger(this.config, () => this._db || null);
+  }
+
+  get jobs(): JobManager {
+    if (!this._jobs) this._jobs = new JobManager(this);
+    return this._jobs;
+  }
+
+  startJobLanes(hub: BrowserHub, opts?: JobManagerOptions): void {
+    this.jobs.attachHub(hub);
   }
 
   get chatCache(): ChatCacheManager {
@@ -80,6 +93,10 @@ export class ServerCore {
   }
 
   close(): void {
+    if (this._jobs) {
+      this._jobs.close();
+      this._jobs = null;
+    }
     if (!this._db) return;
     const db = this._db;
     this._db = null;
@@ -493,7 +510,40 @@ export class ServerCore {
   }
 
   chatsCreate(platform: string, args?: OpArgs) {
-    return this.callOp('chats.create', platform, args || {});
+    const input = args && typeof args === 'object' ? this.#withLoadedFiles({ ...args }) : {};
+    return this.callOp('chats.create', platform, input);
+  }
+
+  chatsSend(platform: string, args?: OpArgs) {
+    const input = args && typeof args === 'object' ? this.#withLoadedFiles({ ...args }) : {};
+    return this.callOp('chats.send', platform, input);
+  }
+
+  async resolveChatId(platform: string, chatId: string): Promise<string> {
+    const id = String(chatId || '').trim();
+    if (!id) throw new ProtocolError(ERROR_CODES.BAD_REQUEST, 'chatId required');
+    try {
+      await this.chatsGet(platform, { chatId: id });
+      return id;
+    } catch (err: any) {
+      const code = err?.code;
+      if (code !== ERROR_CODES.NOT_FOUND && code !== ERROR_CODES.HOST_ERROR && code !== ERROR_CODES.TIMEOUT) {
+        throw err;
+      }
+    }
+    const page = await this.chatsList(platform, { query: id, limit: 30 });
+    for (const item of page?.items || []) {
+      if (item?.chatId === id) return id;
+      if (item?.title && String(item.title).includes(id)) return String(item.chatId);
+    }
+    throw new ProtocolError(ERROR_CODES.NOT_FOUND, 'chat not found: ' + id);
+  }
+
+  #withLoadedFiles(args: OpArgs): OpArgs {
+    if (!Array.isArray(args.files) || !args.files.length) return args;
+    const first = args.files[0];
+    if (!first || typeof first !== 'object' || !('path' in first)) return args;
+    return { ...args, files: loadFiles(args.files as FileRef[], { home: this.home }) };
   }
 
   chatsDelete(platform: string, args?: OpArgs, mcpOpts?: CallOpOptions) {
