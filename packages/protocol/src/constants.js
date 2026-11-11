@@ -3,7 +3,8 @@ export const PROTOCOL_VERSION = 1;
 /** @typedef {'chatgpt' | 'grok' | 'grok-x' | 'copilot' | 'claude'} Platform */
 export const PLATFORMS = Object.freeze(['chatgpt', 'grok', 'grok-x', 'copilot', 'claude']);
 
-/** @typedef {'chats.list' | 'chats.get' | 'chats.export' | 'chats.create' | 'chats.delete' |
+/** @typedef {'chats.list' | 'chats.get' | 'chats.export' | 'chats.create' | 'chats.delete' | 'chats.send' |
+ *   'platform.host_state' |
  *   'containers.list' | 'containers.chats' | 'containers.create' | 'containers.delete' | 'containers.move_chat'} Op */
 export const OPS = Object.freeze([
   'chats.list',
@@ -11,6 +12,8 @@ export const OPS = Object.freeze([
   'chats.export',
   'chats.create',
   'chats.delete',
+  'chats.send',
+  'platform.host_state',
   'containers.list',
   'containers.chats',
   'containers.create',
@@ -28,7 +31,7 @@ export const ROLES = Object.freeze(['user', 'assistant', 'system']);
 /**
  * @typedef {'PLATFORM_DISABLED' | 'NOT_BOUND' | 'CONFIRM_REQUIRED' | 'DESTRUCTIVE_DISABLED' |
  *   'CREATE_DISABLED' | 'PROJECTS_DISABLED' | 'UNAUTHORIZED' | 'TIMEOUT' |
- *   'HOST_ERROR' | 'NOT_FOUND' | 'BAD_REQUEST'} ErrorCode
+ *   'HOST_ERROR' | 'NOT_FOUND' | 'BAD_REQUEST' | 'INVALID_ARGS' | 'PLATFORM_BUSY' | 'RATE_LIMIT'} ErrorCode
  */
 export const ERROR_CODES = Object.freeze({
   PLATFORM_DISABLED: 'PLATFORM_DISABLED',
@@ -41,8 +44,13 @@ export const ERROR_CODES = Object.freeze({
   TIMEOUT: 'TIMEOUT',
   HOST_ERROR: 'HOST_ERROR',
   NOT_FOUND: 'NOT_FOUND',
-  BAD_REQUEST: 'BAD_REQUEST'
+  BAD_REQUEST: 'BAD_REQUEST',
+  INVALID_ARGS: 'INVALID_ARGS',
+  PLATFORM_BUSY: 'PLATFORM_BUSY',
+  RATE_LIMIT: 'RATE_LIMIT'
 });
+
+export const RETRYABLE_ERROR_CODES = Object.freeze(['PLATFORM_BUSY', 'RATE_LIMIT']);
 
 export const WS_TYPES = Object.freeze({
   HELLO: 'hello',
