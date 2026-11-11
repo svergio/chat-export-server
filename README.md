@@ -85,12 +85,45 @@ chat-export-server status
 
 ### Environment variables
 
+Copy [`.env.example`](.env.example) to `.env` in the server directory (or set `CHAT_EXPORT_ENV_FILE`). Container and process env override `config.json` where noted.
+
 | Variable | Purpose |
 |----------|---------|
-| `CHAT_EXPORT_HOME` | Data directory (default `~/.chat-export`) |
+| `CHAT_EXPORT_HOME` | Data directory (default `~/.chat-export`; `/data` in Docker) |
+| `CHAT_EXPORT_HOST` | Bind address (`127.0.0.1` locally; use `0.0.0.0` in containers) |
+| `CHAT_EXPORT_PORT` | HTTP port (default `8765`) |
+| `CHAT_EXPORT_ALLOWED_HOSTS` | Extra `Host` header names allowed (comma-separated) |
+| `CHAT_EXPORT_DASHBOARD_ENABLED` | `true` / `false` |
+| `CHAT_EXPORT_ADMIN_USER` / `CHAT_EXPORT_ADMIN_PASS` | Dashboard login (overrides `config.json`) |
+| `CHAT_EXPORT_MCP_TOKEN` | Optional preset `cem_…` token hash on start |
+| `CHAT_EXPORT_BROWSER_TOKENS` | `browserId:ceb_…[:label]` comma list for auto-enroll |
+| `CHAT_EXPORT_ALLOW_DESTRUCTIVE` | `true` / `false` |
 | `CHAT_EXPORT_DB_DRIVER` | DB driver override (`sqlite` default) |
 | `CHAT_EXPORT_DB_URL` | DB URL when not using default SQLite path |
 | `CHAT_EXPORT_SKIP_MCP_CONFIG` | Set `1` to skip auto-writing Cursor MCP config on `key new` |
+
+### Docker and Colima
+
+This repo ships a **multi-stage** [`Dockerfile`](Dockerfile) (Node 22 Alpine, non-root user, `CHAT_EXPORT_HOME=/data`, listen `0.0.0.0:8765`, `/health` check). **Docker Desktop is not required** — use [Colima](https://github.com/abiosoft/colima) on macOS:
+
+```sh
+colima start
+docker context use colima   # or: docker --context colima …
+cp .env.example .env        # set CHAT_EXPORT_ADMIN_PASS at minimum
+docker --context colima compose build
+docker --context colima compose up -d
+curl -sS http://127.0.0.1:8765/health
+```
+
+Published only on **`127.0.0.1:8765`**. Persistent data: Compose volume `chat-export-data` → `/data`.
+
+Stop when finished so a local `chat-export-server` daemon can reclaim the port:
+
+```sh
+docker --context colima compose down
+```
+
+Optional **split stack** (nginx serves dashboard static, proxies `/dashboard/api`, `/mcp`, `/ws`, `/ext`, `/enroll`, `/health` to the server): build from the maintainer tree `chat-export-dashboard/Dockerfile` and `projects/Chat Export/docker-compose.yml` (see [dashboard repo](https://github.com/svergio/chat-export-dashboard)).
 
 ### `config.json` (under `CHAT_EXPORT_HOME`)
 
