@@ -1,6 +1,17 @@
 import type { IncomingMessage } from 'node:http';
 
 const LOOPBACK_HOSTNAMES = new Set(['localhost', '127.0.0.1', '[::1]', '::1']);
+
+function extraAllowedHostnames(): Set<string> {
+  const raw = process.env.CHAT_EXPORT_ALLOWED_HOSTS;
+  if (!raw || !String(raw).trim()) return new Set();
+  return new Set(
+    String(raw)
+      .split(',')
+      .map((s) => s.trim().toLowerCase())
+      .filter(Boolean)
+  );
+}
 const EXTENSION_ORIGIN_RE = /^(chrome-extension|moz-extension):\/\/[a-z0-9-]+$/i;
 
 export function hostnameOfHostHeader(value: string | undefined): string {
@@ -18,6 +29,7 @@ export function isAllowedHostHeader(req: IncomingMessage, boundHost: string): bo
   const name = hostnameOfHostHeader(req.headers.host);
   if (!name) return false;
   if (LOOPBACK_HOSTNAMES.has(name)) return true;
+  if (extraAllowedHostnames().has(name)) return true;
   return name === String(boundHost || '').toLowerCase();
 }
 

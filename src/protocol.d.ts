@@ -1,7 +1,16 @@
 // Local typings for the plain-JS workspace package; keep in sync with packages/protocol/src.
 declare module '@chat-export/protocol' {
   export const PROTOCOL_VERSION: number;
-  export const PLATFORMS: readonly ['chatgpt', 'grok', 'grok-x', 'copilot', 'claude'];
+  export const PLATFORMS: readonly [
+    'chatgpt',
+    'grok',
+    'grok-x',
+    'copilot',
+    'claude',
+    'qwen',
+    'deepseek',
+    'perplexity'
+  ];
   export const OPS: readonly string[];
   export const DESTRUCTIVE_OPS: readonly string[];
   export const EXPORT_FORMATS: readonly ['md', 'yaml', 'json', 'html', 'pdf'];

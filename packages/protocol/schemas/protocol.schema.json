@@ -61,7 +61,10 @@
         "grok",
         "grok-x",
         "copilot",
-        "claude"
+        "claude",
+        "qwen",
+        "deepseek",
+        "perplexity"
       ]
     },
     "Op": {
