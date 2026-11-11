@@ -93,5 +93,105 @@
     "op": "chats.create",
     "request": { "id": "r7", "op": "chats.create", "platform": "copilot", "args": { "text": "hello" } },
     "response": { "id": "r7", "ok": false, "error": { "code": "HOST_ERROR", "message": "not implemented" } }
+  },
+  {
+    "op": "containers.list",
+    "request": { "id": "r8", "op": "containers.list", "platform": "claude", "args": { "limit": 20 } },
+    "response": {
+      "id": "r8",
+      "ok": true,
+      "data": {
+        "items": [
+          {
+            "platform": "claude",
+            "containerId": "proj-01",
+            "containerType": "project",
+            "title": "Work",
+            "url": "https://claude.ai/project/proj-01"
+          }
+        ],
+        "nextCursor": null
+      }
+    }
+  },
+  {
+    "op": "containers.chats",
+    "request": {
+      "id": "r9",
+      "op": "containers.chats",
+      "platform": "claude",
+      "args": { "containerId": "proj-01", "limit": 50 }
+    },
+    "response": {
+      "id": "r9",
+      "ok": true,
+      "data": {
+        "items": [
+          {
+            "platform": "claude",
+            "chatId": "chat-in-proj",
+            "title": "Inside project",
+            "url": "https://claude.ai/chat/chat-in-proj",
+            "updatedAt": "2026-11-09T12:00:00.000Z",
+            "containerType": "project",
+            "containerId": "proj-01",
+            "containerTitle": "Work"
+          }
+        ],
+        "nextCursor": null
+      }
+    }
+  },
+  {
+    "op": "containers.create",
+    "request": {
+      "id": "r10",
+      "op": "containers.create",
+      "platform": "chatgpt",
+      "args": { "name": "Parebrik", "description": "notes" }
+    },
+    "response": {
+      "id": "r10",
+      "ok": true,
+      "data": {
+        "platform": "chatgpt",
+        "containerId": "g-p-new",
+        "containerType": "project",
+        "title": "Parebrik"
+      }
+    }
+  },
+  {
+    "op": "containers.move_chat",
+    "request": {
+      "id": "r11",
+      "op": "containers.move_chat",
+      "platform": "grok",
+      "args": { "chatId": "a3c1e2f4-9b8d-4e7f-8a6b-5c4d3e2f1a0b", "containerId": "proj-grok-1" }
+    },
+    "response": {
+      "id": "r11",
+      "ok": true,
+      "data": {
+        "platform": "grok",
+        "chatId": "a3c1e2f4-9b8d-4e7f-8a6b-5c4d3e2f1a0b",
+        "title": "[ce-test] ClickHouse TTL",
+        "url": "https://grok.com/c/a3c1e2f4-9b8d-4e7f-8a6b-5c4d3e2f1a0b",
+        "updatedAt": "2026-11-09T14:12:03.120Z",
+        "containerType": "project",
+        "containerId": "proj-grok-1",
+        "containerTitle": "Ksenon"
+      }
+    }
+  },
+  {
+    "op": "containers.delete",
+    "request": {
+      "id": "r12",
+      "op": "containers.delete",
+      "platform": "chatgpt",
+      "args": { "containerId": "g-p-old", "confirm": true }
+    },
+    "response": { "id": "r12", "ok": true, "data": { "deleted": true, "containerId": "g-p-old" } }
   }
 ]

@@ -3,10 +3,22 @@ export const PROTOCOL_VERSION = 1;
 /** @typedef {'chatgpt' | 'grok' | 'grok-x' | 'copilot' | 'claude'} Platform */
 export const PLATFORMS = Object.freeze(['chatgpt', 'grok', 'grok-x', 'copilot', 'claude']);
 
-/** @typedef {'chats.list' | 'chats.get' | 'chats.export' | 'chats.create' | 'chats.delete'} Op */
-export const OPS = Object.freeze(['chats.list', 'chats.get', 'chats.export', 'chats.create', 'chats.delete']);
+/** @typedef {'chats.list' | 'chats.get' | 'chats.export' | 'chats.create' | 'chats.delete' |
+ *   'containers.list' | 'containers.chats' | 'containers.create' | 'containers.delete' | 'containers.move_chat'} Op */
+export const OPS = Object.freeze([
+  'chats.list',
+  'chats.get',
+  'chats.export',
+  'chats.create',
+  'chats.delete',
+  'containers.list',
+  'containers.chats',
+  'containers.create',
+  'containers.delete',
+  'containers.move_chat'
+]);
 
-export const DESTRUCTIVE_OPS = Object.freeze(['chats.delete']);
+export const DESTRUCTIVE_OPS = Object.freeze(['chats.delete', 'containers.delete']);
 
 /** @typedef {'md' | 'yaml' | 'json' | 'html' | 'pdf'} ExportFormat */
 export const EXPORT_FORMATS = Object.freeze(['md', 'yaml', 'json', 'html', 'pdf']);

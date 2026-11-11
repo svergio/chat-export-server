@@ -23,6 +23,26 @@
     "chats.delete": {
       "args": "ChatsDeleteArgs",
       "result": "ChatsDeleteResult"
+    },
+    "containers.list": {
+      "args": "ContainersListArgs",
+      "result": "ContainersListResult"
+    },
+    "containers.chats": {
+      "args": "ContainersChatsArgs",
+      "result": "ChatsListResult"
+    },
+    "containers.create": {
+      "args": "ContainersCreateArgs",
+      "result": "ContainersCreateResult"
+    },
+    "containers.delete": {
+      "args": "ContainersDeleteArgs",
+      "result": "ContainersDeleteResult"
+    },
+    "containers.move_chat": {
+      "args": "ContainersMoveChatArgs",
+      "result": "ContainersMoveChatResult"
     }
   },
   "$defs": {
@@ -43,7 +63,12 @@
         "chats.get",
         "chats.export",
         "chats.create",
-        "chats.delete"
+        "chats.delete",
+        "containers.list",
+        "containers.chats",
+        "containers.create",
+        "containers.delete",
+        "containers.move_chat"
       ]
     },
     "ExportFormat": {
@@ -204,6 +229,18 @@
             "null"
           ],
           "format": "date-time"
+        },
+        "containerType": {
+          "type": "string",
+          "enum": [
+            "project"
+          ]
+        },
+        "containerId": {
+          "type": "string"
+        },
+        "containerTitle": {
+          "type": "string"
         }
       },
       "required": [
@@ -212,6 +249,48 @@
         "title",
         "url",
         "updatedAt"
+      ],
+      "additionalProperties": false
+    },
+    "Container": {
+      "type": "object",
+      "properties": {
+        "platform": {
+          "$ref": "#/$defs/Platform"
+        },
+        "containerId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "containerType": {
+          "type": "string",
+          "enum": [
+            "project"
+          ]
+        },
+        "title": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        },
+        "chatCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "updatedAt": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "platform",
+        "containerId",
+        "containerType",
+        "title"
       ],
       "additionalProperties": false
     },
@@ -423,6 +502,12 @@
         },
         "query": {
           "type": "string"
+        },
+        "includeProjectChats": {
+          "type": "boolean"
+        },
+        "containerId": {
+          "type": "string"
         }
       },
       "required": [],
@@ -551,6 +636,152 @@
         "deleted"
       ],
       "additionalProperties": false
+    },
+    "ContainersListArgs": {
+      "type": "object",
+      "properties": {
+        "cursor": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        },
+        "query": {
+          "type": "string"
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    },
+    "ContainersListResult": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Container"
+          }
+        },
+        "nextCursor": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "items",
+        "nextCursor"
+      ],
+      "additionalProperties": false
+    },
+    "ContainersChatsArgs": {
+      "type": "object",
+      "properties": {
+        "containerId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "cursor": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        }
+      },
+      "required": [
+        "containerId"
+      ],
+      "additionalProperties": false
+    },
+    "ContainersCreateArgs": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string"
+        },
+        "instructions": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "additionalProperties": false
+    },
+    "ContainersCreateResult": {
+      "$ref": "#/$defs/Container"
+    },
+    "ContainersDeleteArgs": {
+      "type": "object",
+      "properties": {
+        "containerId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "name": {
+          "type": "string"
+        },
+        "confirm": {
+          "const": true
+        }
+      },
+      "required": [
+        "containerId",
+        "confirm"
+      ],
+      "additionalProperties": false
+    },
+    "ContainersDeleteResult": {
+      "type": "object",
+      "properties": {
+        "deleted": {
+          "const": true
+        },
+        "containerId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "deleted"
+      ],
+      "additionalProperties": false
+    },
+    "ContainersMoveChatArgs": {
+      "type": "object",
+      "properties": {
+        "chatId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "containerId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "chatId"
+      ],
+      "additionalProperties": false
+    },
+    "ContainersMoveChatResult": {
+      "$ref": "#/$defs/Chat"
     },
     "WsHelloCurrent": {
       "type": "object",

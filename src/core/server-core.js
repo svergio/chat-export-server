@@ -440,8 +440,33 @@ export class ServerCore {
     }
   }
 
-  chatsList(platform, args) {
-    return this.callOp('chats.list', platform, args || {});
+  async chatsList(platform, args) {
+    const input = args && typeof args === 'object' ? { ...args } : {};
+    const includeProjectChats = input.includeProjectChats !== false;
+    delete input.includeProjectChats;
+    const base = await this.callOp('chats.list', platform, input);
+    if (!includeProjectChats) return base;
+    return mergeProjectChats(this, platform, base);
+  }
+
+  containersList(platform, args) {
+    return this.callOp('containers.list', platform, args || {});
+  }
+
+  containersChats(platform, args) {
+    return this.callOp('containers.chats', platform, args || {});
+  }
+
+  containersCreate(platform, args) {
+    return this.callOp('containers.create', platform, args || {});
+  }
+
+  containersDelete(platform, args, mcpOpts) {
+    return this.callOp('containers.delete', platform, args || {}, mcpOpts || {});
+  }
+
+  containersMoveChat(platform, args) {
+    return this.callOp('containers.move_chat', platform, args || {});
   }
 
   chatsGet(platform, args) {
@@ -563,8 +588,60 @@ function summarizeArgs(op, args) {
   if (!args || typeof args !== 'object') return {};
   if (op === 'chats.create') return { title: args.title, textLen: String(args.text || '').length };
   if (op === 'chats.export') return { chatId: args.chatId, formats: args.formats };
-  if (op === 'chats.list') return { query: args.query, limit: args.limit };
+  if (op === 'chats.list') {
+    return {
+      query: args.query,
+      limit: args.limit,
+      includeProjectChats: args.includeProjectChats,
+      containerId: args.containerId
+    };
+  }
+  if (op === 'containers.list') return { query: args.query, limit: args.limit };
+  if (op === 'containers.chats') return { containerId: args.containerId, limit: args.limit };
+  if (op === 'containers.create') return { name: args.name };
+  if (op === 'containers.delete') return { containerId: args.containerId, name: args.name };
+  if (op === 'containers.move_chat') {
+    return { chatId: args.chatId, containerId: args.containerId };
+  }
   return { chatId: args.chatId };
+}
+
+async function mergeProjectChats(core, platform, base) {
+  const items = [...(base?.items || [])];
+  const seen = new Set(items.map((c) => c?.chatId).filter(Boolean));
+  let containers;
+  try {
+    containers = await core.callOp('containers.list', platform, { limit: 100 });
+  } catch {
+    return base;
+  }
+  for (const container of containers?.items || []) {
+    if (!container?.containerId) continue;
+    let cursor = null;
+    do {
+      const pageArgs = { containerId: container.containerId, limit: 100 };
+      if (cursor) pageArgs.cursor = cursor;
+      let page;
+      try {
+        page = await core.callOp('containers.chats', platform, pageArgs);
+      } catch {
+        break;
+      }
+      for (const chat of page?.items || []) {
+        if (!chat?.chatId || seen.has(chat.chatId)) continue;
+        seen.add(chat.chatId);
+        items.push({
+          ...chat,
+          containerType: chat.containerType || container.containerType || 'project',
+          containerId: chat.containerId || container.containerId,
+          containerTitle: chat.containerTitle || container.title
+        });
+      }
+      const next = page?.nextCursor || null;
+      cursor = next && next !== cursor ? next : null;
+    } while (cursor);
+  }
+  return { items, nextCursor: base?.nextCursor ?? null };
 }
 
 function parseJson(value, fallback) {

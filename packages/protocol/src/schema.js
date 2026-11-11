@@ -45,8 +45,10 @@ function object(properties, required, extra) {
  * @typedef {{ type?: string, id: string, ok: true, data: any } |
  *   { type?: string, id: string, ok: false, error: RpcError }} RpcResponse
  */
-/** @typedef {{ cursor?: string | null, limit?: number, query?: string }} ChatsListArgs */
+/** @typedef {{ cursor?: string | null, limit?: number, query?: string, includeProjectChats?: boolean, containerId?: string }} ChatsListArgs */
 /** @typedef {{ items: Chat[], nextCursor: string | null }} ChatsListResult */
+/** @typedef {{ platform: import('./constants.js').Platform, containerId: string, containerType: 'project', title: string,
+ *   url?: string, chatCount?: number, updatedAt?: string | null }} Container */
 /** @typedef {{ chatId: string }} ChatsGetArgs */
 /** @typedef {{ chatId: string, formats: import('./constants.js').ExportFormat[] }} ChatsExportArgs */
 /** @typedef {{ files: ExportFile[], payload: ExportPayload }} ChatsExportResult */
@@ -108,9 +110,24 @@ const defs = {
       title: str,
       url: str,
       updatedAt: isoOrNull,
-      createdAt: isoOrNull
+      createdAt: isoOrNull,
+      containerType: { type: 'string', enum: ['project'] },
+      containerId: str,
+      containerTitle: str
     },
     ['platform', 'chatId', 'title', 'url', 'updatedAt']
+  ),
+  Container: object(
+    {
+      platform: ref('Platform'),
+      containerId: nonEmpty,
+      containerType: { type: 'string', enum: ['project'] },
+      title: str,
+      url: str,
+      chatCount: { type: 'integer', minimum: 0 },
+      updatedAt: isoOrNull
+    },
+    ['platform', 'containerId', 'containerType', 'title']
   ),
   ExportPayload: object(
     {
@@ -151,7 +168,9 @@ const defs = {
   ChatsListArgs: object({
     cursor: { type: ['string', 'null'] },
     limit: { type: 'integer', minimum: 1, maximum: LIST_LIMIT_MAX },
-    query: str
+    query: str,
+    includeProjectChats: { type: 'boolean' },
+    containerId: str
   }),
   ChatsListResult: object(
     { items: { type: 'array', items: ref('Chat') }, nextCursor: { type: ['string', 'null'] } },
@@ -171,6 +190,42 @@ const defs = {
   ChatsCreateResult: ref('Chat'),
   ChatsDeleteArgs: object({ chatId: nonEmpty }, ['chatId']),
   ChatsDeleteResult: object({ deleted: { const: true }, chatId: str }, ['deleted']),
+
+  ContainersListArgs: object({
+    cursor: { type: ['string', 'null'] },
+    limit: { type: 'integer', minimum: 1, maximum: LIST_LIMIT_MAX },
+    query: str
+  }),
+  ContainersListResult: object(
+    { items: { type: 'array', items: ref('Container') }, nextCursor: { type: ['string', 'null'] } },
+    ['items', 'nextCursor']
+  ),
+  ContainersChatsArgs: object(
+    {
+      containerId: nonEmpty,
+      cursor: { type: ['string', 'null'] },
+      limit: { type: 'integer', minimum: 1, maximum: LIST_LIMIT_MAX }
+    },
+    ['containerId']
+  ),
+  ContainersCreateArgs: object(
+    { name: nonEmpty, description: str, instructions: str },
+    ['name']
+  ),
+  ContainersCreateResult: ref('Container'),
+  ContainersDeleteArgs: object(
+    { containerId: nonEmpty, name: str, confirm: { const: true } },
+    ['containerId', 'confirm']
+  ),
+  ContainersDeleteResult: object({ deleted: { const: true }, containerId: str }, ['deleted']),
+  ContainersMoveChatArgs: object(
+    {
+      chatId: nonEmpty,
+      containerId: { type: ['string', 'null'] }
+    },
+    ['chatId']
+  ),
+  ContainersMoveChatResult: ref('Chat'),
 
   WsHelloCurrent: object(
     {
@@ -247,7 +302,12 @@ export const OP_SCHEMAS = Object.freeze({
   'chats.get': { args: 'ChatsGetArgs', result: 'ChatsGetResult' },
   'chats.export': { args: 'ChatsExportArgs', result: 'ChatsExportResult' },
   'chats.create': { args: 'ChatsCreateArgs', result: 'ChatsCreateResult' },
-  'chats.delete': { args: 'ChatsDeleteArgs', result: 'ChatsDeleteResult' }
+  'chats.delete': { args: 'ChatsDeleteArgs', result: 'ChatsDeleteResult' },
+  'containers.list': { args: 'ContainersListArgs', result: 'ContainersListResult' },
+  'containers.chats': { args: 'ContainersChatsArgs', result: 'ChatsListResult' },
+  'containers.create': { args: 'ContainersCreateArgs', result: 'ContainersCreateResult' },
+  'containers.delete': { args: 'ContainersDeleteArgs', result: 'ContainersDeleteResult' },
+  'containers.move_chat': { args: 'ContainersMoveChatArgs', result: 'ContainersMoveChatResult' }
 });
 
 export const schema = {
