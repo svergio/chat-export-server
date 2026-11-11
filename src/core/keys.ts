@@ -156,6 +156,9 @@ export function writeMcpTokenArtifacts(home: string, token: string, opts: McpArt
   if (process.env.CHAT_EXPORT_SKIP_MCP_CONFIG === '1') {
     return { tokenPath, mcpConfig: { updated: false, filePath: null } };
   }
-  const mcpConfig = updateCursorMcpConfig(token, { ...opts, searchDirs: [home, ...(opts.searchDirs || [])] });
+  const mcpConfig = updateCursorMcpConfig(token, {
+    ...opts,
+    searchDirs: [...(opts.searchDirs || []), process.cwd()].filter(Boolean)
+  });
   return { tokenPath, mcpConfig };
 }
