@@ -22,9 +22,12 @@
       "CHAT_EXPORT_MCP_TOKEN": {
         "type": "string",
         "title": "MCP Bearer token",
-        "description": "Bearer token from a running chat-export-server (cem_…). Generate with: npx chat-export-server key or chat-export-server key"
+        "description": "Bearer token from a running chat-export-server (cem_\u2026). Generate with: npx chat-export-server key or chat-export-server key"
       }
     },
-    "required": ["CHAT_EXPORT_MCP_TOKEN"]
-  }
+    "required": [
+      "CHAT_EXPORT_MCP_TOKEN"
+    ]
+  },
+  "logo": "assets/logo.png"
 }
