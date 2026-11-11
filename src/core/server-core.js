@@ -25,6 +25,7 @@ import { writeExportFiles } from './export-files.js';
 import { toProtocolError } from './errors.js';
 import { resolveHome } from './paths.js';
 import { openDatabase, describeDatabase } from './db/index.js';
+import { ChatCacheManager } from './chat-cache.js';
 import { createLogger } from './logger.js';
 
 const KNOWN_PROTOCOL_OPS = new Set(Object.keys(OP_SCHEMAS));
@@ -39,7 +40,13 @@ export class ServerCore {
     this.hub = opts.hub || null;
     this.serverVersion = opts.serverVersion || '0.1.0';
     this._db = opts.db || null;
+    this._chatCache = null;
     this.logger = opts.logger || createLogger(this.config, () => this._db || null);
+  }
+
+  get chatCache() {
+    if (!this._chatCache) this._chatCache = new ChatCacheManager(this.db, this);
+    return this._chatCache;
   }
 
   /** Opened and migrated on first use so one-shot CLI commands do not touch the database. */
@@ -451,6 +458,34 @@ export class ServerCore {
 
   chatsDelete(platform, args, mcpOpts) {
     return this.callOp('chats.delete', platform, args || {}, mcpOpts || {});
+  }
+
+  chatOutline(platform, args) {
+    return this.chatCache.chatOutline(platform, args || {});
+  }
+
+  chatRead(platform, args) {
+    return this.chatCache.chatRead(platform, args || {});
+  }
+
+  chatCacheSync(args) {
+    return this.chatCache.sync(args || {});
+  }
+
+  chatCacheRead(args) {
+    return this.chatCache.read(args || {});
+  }
+
+  chatCacheAppend(args) {
+    return this.chatCache.append(args || {});
+  }
+
+  chatCacheUpdateBlock(args) {
+    return this.chatCache.updateBlock(args || {});
+  }
+
+  chatCacheDelete(args) {
+    return this.chatCache.remove(args || {});
   }
 
   mcpErrorContext(platform) {

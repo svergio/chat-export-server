@@ -216,6 +216,102 @@ export function registerTools(server, core) {
     }
   );
 
+  const TurnInput = z.object({
+    role: z.string().optional(),
+    text: z.string().optional(),
+    content: z.string().optional()
+  });
+
+  registerDetailedTool(
+    server,
+    core,
+    'chat_cache_sync',
+    {
+      description:
+        'Fetch a chat from the bound browser and store it in the temp SQLite cache (blocks + FTS5 index).',
+      inputSchema: {
+        platform: Platform,
+        chatId: z.string().min(1),
+        browserId: z.string().optional(),
+        branch: z.string().optional(),
+        force: z.boolean().optional()
+      }
+    },
+    async (input) => core.chatCacheSync(input)
+  );
+
+  registerDetailedTool(
+    server,
+    core,
+    'chat_cache_read',
+    {
+      description:
+        'Read cached chat blocks from SQLite (by turn range, blockId, or FTS query) without hitting the browser.',
+      inputSchema: {
+        cacheId: z.string().optional(),
+        platform: Platform.optional(),
+        chatId: z.string().optional(),
+        startTurn: z.number().int().min(0).optional(),
+        endTurn: z.number().int().min(0).optional(),
+        blockId: z.string().optional(),
+        query: z.string().optional(),
+        maxChars: z.number().int().min(200).max(200000).optional()
+      }
+    },
+    async (input) => core.chatCacheRead(input)
+  );
+
+  registerDetailedTool(
+    server,
+    core,
+    'chat_cache_append',
+    {
+      description: 'Append new turns to an existing cached chat copy (updates FTS and totals).',
+      inputSchema: {
+        cacheId: z.string().optional(),
+        platform: Platform.optional(),
+        chatId: z.string().optional(),
+        turns: z.array(TurnInput).min(1)
+      }
+    },
+    async (input) => core.chatCacheAppend(input)
+  );
+
+  registerDetailedTool(
+    server,
+    core,
+    'chat_cache_update_block',
+    {
+      description:
+        'Update one cached block (bumps revision). Set resyncFromHost to refresh that turn from the live tab.',
+      inputSchema: {
+        cacheId: z.string().optional(),
+        platform: Platform.optional(),
+        chatId: z.string().optional(),
+        turnIndex: z.number().int().min(0),
+        content: z.string().optional(),
+        role: z.string().optional(),
+        resyncFromHost: z.boolean().optional()
+      }
+    },
+    async (input) => core.chatCacheUpdateBlock(input)
+  );
+
+  registerDetailedTool(
+    server,
+    core,
+    'chat_cache_delete',
+    {
+      description: 'Remove a temp cached chat (metadata, blocks, and FTS rows).',
+      inputSchema: {
+        cacheId: z.string().optional(),
+        platform: Platform.optional(),
+        chatId: z.string().optional()
+      }
+    },
+    async (input) => core.chatCacheDelete(input)
+  );
+
   registerDetailedTool(
     server,
     core,
