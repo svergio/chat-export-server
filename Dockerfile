@@ -38,4 +38,5 @@ EXPOSE 8765
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
   CMD node -e "fetch('http://127.0.0.1:8765/health').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
 
-CMD ["node", "dist/cli/index.js", "start"]
+# --stdio lets Glama / mcp-proxy introspect tools; HTTP /health still serves for HEALTHCHECK.
+CMD ["node", "dist/cli/index.js", "start", "--stdio"]
