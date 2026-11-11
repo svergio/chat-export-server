@@ -1,9 +1,11 @@
 import { z } from 'zod';
-import { PLATFORMS, EXPORT_FORMATS } from '@chat-export/protocol';
-import { errorToJson } from '../core/errors.js';
+import { PLATFORMS, EXPORT_FORMATS, ERROR_CODES } from '@chat-export/protocol';
+import { toProtocolError } from '../core/errors.js';
 
 const Platform = z.enum(/** @type {[string, ...string[]]} */ ([...PLATFORMS]));
 const ExportFormat = z.enum(/** @type {[string, ...string[]]} */ ([...EXPORT_FORMATS]));
+
+const RETRYABLE_CODES = new Set([ERROR_CODES.TIMEOUT, ERROR_CODES.HOST_ERROR, ERROR_CODES.NOT_BOUND]);
 
 function okResult(data) {
   return {
@@ -11,12 +13,84 @@ function okResult(data) {
   };
 }
 
-function errResult(err) {
-  const body = errorToJson(err);
+function hintForError(code, platform) {
+  if (code === ERROR_CODES.NOT_BOUND) return 'Call browsers_bind with a connected browserId from browsers_list';
+  if (code === ERROR_CODES.UNAUTHORIZED) return 'Check MCP cem_ token and browser ceb_ token enrollment';
+  if (code === ERROR_CODES.PLATFORM_DISABLED) {
+    return 'Enable the platform in server settings and the extension popup';
+  }
+  if (code === ERROR_CODES.CREATE_DISABLED) return 'Turn on allowCreate in the extension advanced settings';
+  if (code === ERROR_CODES.DESTRUCTIVE_DISABLED) {
+    return 'Enable allowDestructive on server and browser, and pass confirm:true';
+  }
+  if (code === ERROR_CODES.PROJECTS_DISABLED) return 'Enable allowProjects on the bound browser';
+  if (code === ERROR_CODES.TIMEOUT) return 'Retry after the provider UI finishes loading or increase rpcTimeoutS';
+  if (code === ERROR_CODES.HOST_ERROR && platform) {
+    return `Check if ${platform} tab is logged in or inspect recentAlerts`;
+  }
+  if (code === ERROR_CODES.HOST_ERROR) return 'Inspect recentAlerts and server.log for the host error detail';
+  return null;
+}
+
+function detailedErrorBody(core, tool, err, ctx) {
+  const pe = toProtocolError(err);
+  const platform = ctx.platform || pe.details?.platform || null;
+  const context = core.mcpErrorContext(platform);
+  const code = pe.code || ERROR_CODES.HOST_ERROR;
+  return {
+    ok: false,
+    tool,
+    error: {
+      code,
+      message: pe.message,
+      retryable: RETRYABLE_CODES.has(code),
+      browserId: context.browserId,
+      platform: platform || context.platform,
+      activeTabsOnPlatform: context.activeTabsOnPlatform,
+      permissions: context.permissions,
+      recentAlerts: context.recentAlerts,
+      hint: hintForError(code, platform || context.platform),
+      details: pe.details || undefined,
+      duration_ms: ctx.duration_ms
+    }
+  };
+}
+
+function detailedErrResult(core, tool, err, ctx) {
+  const body = detailedErrorBody(core, tool, err, ctx);
   return {
     isError: true,
     content: [{ type: 'text', text: JSON.stringify(body, null, 2) }]
   };
+}
+
+function withDetailedMcpTool(tool, core, handler) {
+  return async (args) => {
+    const started = Date.now();
+    const platform = typeof args?.platform === 'string' ? args.platform : null;
+    try {
+      const data = await handler(args);
+      const duration_ms = Date.now() - started;
+      core.logMcpToolResult(tool, { platform, duration_ms, ok: true });
+      return okResult(data);
+    } catch (err) {
+      const duration_ms = Date.now() - started;
+      const pe = toProtocolError(err);
+      core.logMcpToolResult(tool, {
+        platform,
+        duration_ms,
+        ok: false,
+        code: pe.code,
+        message: pe.message,
+        detail: pe.details || null
+      });
+      return detailedErrResult(core, tool, err, { platform, duration_ms });
+    }
+  };
+}
+
+function registerDetailedTool(server, core, name, meta, handler) {
+  server.registerTool(name, meta, withDetailedMcpTool(name, core, handler));
 }
 
 /**
@@ -25,22 +99,20 @@ function errResult(err) {
  * @param {import('../core/server-core.js').ServerCore} core
  */
 export function registerTools(server, core) {
-  server.registerTool(
+  registerDetailedTool(
+    server,
+    core,
     'browsers_list',
     {
       description: 'List browsers (Chrome profiles) connected via the Chat Export extension.',
       inputSchema: {}
     },
-    async () => {
-      try {
-        return okResult({ browsers: core.browsersList() });
-      } catch (err) {
-        return errResult(err);
-      }
-    }
+    async () => core.browsersList()
   );
 
-  server.registerTool(
+  registerDetailedTool(
+    server,
+    core,
     'browsers_bind',
     {
       description: 'Bind subsequent chat ops to a connected browserId.',
@@ -48,46 +120,34 @@ export function registerTools(server, core) {
         browserId: z.string().min(1).describe('browserId from browsers_list')
       }
     },
-    async ({ browserId }) => {
-      try {
-        return okResult(core.browsersBind(browserId));
-      } catch (err) {
-        return errResult(err);
-      }
-    }
+    async ({ browserId }) => core.browsersBind(browserId)
   );
 
-  server.registerTool(
+  registerDetailedTool(
+    server,
+    core,
     'browsers_status',
     {
       description: 'Show bound browser and connection status.',
       inputSchema: {}
     },
-    async () => {
-      try {
-        return okResult(core.browsersStatus());
-      } catch (err) {
-        return errResult(err);
-      }
-    }
+    async () => core.browsersStatus()
   );
 
-  server.registerTool(
+  registerDetailedTool(
+    server,
+    core,
     'platforms_list',
     {
       description: 'List platforms and whether they are enabled on server and bound browser.',
       inputSchema: {}
     },
-    async () => {
-      try {
-        return okResult(core.platformsList());
-      } catch (err) {
-        return errResult(err);
-      }
-    }
+    async () => core.platformsList()
   );
 
-  server.registerTool(
+  registerDetailedTool(
+    server,
+    core,
     'chats_list',
     {
       description: 'List chats on a platform via the bound browser.',
@@ -99,19 +159,17 @@ export function registerTools(server, core) {
       }
     },
     async ({ platform, cursor, limit, query }) => {
-      try {
-        const args = {};
-        if (cursor !== undefined) args.cursor = cursor;
-        if (limit !== undefined) args.limit = limit;
-        if (query !== undefined) args.query = query;
-        return okResult(await core.chatsList(platform, args));
-      } catch (err) {
-        return errResult(err);
-      }
+      const args = {};
+      if (cursor !== undefined) args.cursor = cursor;
+      if (limit !== undefined) args.limit = limit;
+      if (query !== undefined) args.query = query;
+      return core.chatsList(platform, args);
     }
   );
 
-  server.registerTool(
+  registerDetailedTool(
+    server,
+    core,
     'chats_get',
     {
       description: 'Get one chat as ExportPayload. Empty chatId means the open tab.',
@@ -120,16 +178,12 @@ export function registerTools(server, core) {
         chatId: z.string().describe('chat id, or empty string for current tab')
       }
     },
-    async ({ platform, chatId }) => {
-      try {
-        return okResult(await core.chatsGet(platform, { chatId }));
-      } catch (err) {
-        return errResult(err);
-      }
-    }
+    async ({ platform, chatId }) => core.chatsGet(platform, { chatId })
   );
 
-  server.registerTool(
+  registerDetailedTool(
+    server,
+    core,
     'chats_export',
     {
       description:
@@ -140,16 +194,12 @@ export function registerTools(server, core) {
         formats: z.array(ExportFormat).min(1)
       }
     },
-    async ({ platform, chatId, formats }) => {
-      try {
-        return okResult(await core.chatsExport(platform, { chatId, formats }));
-      } catch (err) {
-        return errResult(err);
-      }
-    }
+    async ({ platform, chatId, formats }) => core.chatsExport(platform, { chatId, formats })
   );
 
-  server.registerTool(
+  registerDetailedTool(
+    server,
+    core,
     'chats_create',
     {
       description: 'Create a new chat on the platform (UI drive in the bound browser).',
@@ -160,17 +210,15 @@ export function registerTools(server, core) {
       }
     },
     async ({ platform, text, title }) => {
-      try {
-        const args = { text };
-        if (title !== undefined) args.title = title;
-        return okResult(await core.chatsCreate(platform, args));
-      } catch (err) {
-        return errResult(err);
-      }
+      const args = { text };
+      if (title !== undefined) args.title = title;
+      return core.chatsCreate(platform, args);
     }
   );
 
-  server.registerTool(
+  registerDetailedTool(
+    server,
+    core,
     'chats_delete',
     {
       description:
@@ -181,12 +229,8 @@ export function registerTools(server, core) {
         confirm: z.boolean().describe('must be true to proceed')
       }
     },
-    async ({ platform, chatId, confirm }) => {
-      try {
-        return okResult(await core.chatsDelete(platform, { chatId }, { confirm }));
-      } catch (err) {
-        return errResult(err);
-      }
-    }
+    async ({ platform, chatId, confirm }) => core.chatsDelete(platform, { chatId }, { confirm })
   );
 }
+
+export { withDetailedMcpTool, detailedErrorBody };

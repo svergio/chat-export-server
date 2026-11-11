@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { PLATFORMS } from '@chat-export/protocol';
 import { pathsFor, resolveHome } from './paths.js';
@@ -12,6 +13,32 @@ export function normalizeDatabase(raw) {
     driver: typeof raw?.driver === 'string' && raw.driver.trim() ? raw.driver.trim() : 'sqlite',
     url: typeof raw?.url === 'string' ? raw.url.trim() : ''
   };
+}
+
+const LOG_LEVELS = new Set(['debug', 'info', 'warn', 'error']);
+
+export function normalizeLogging(raw, paths) {
+  const level = typeof raw?.level === 'string' && LOG_LEVELS.has(raw.level) ? raw.level : 'info';
+  const maxBytes =
+    raw?.maxBytes === undefined || raw?.maxBytes === null || Number.isNaN(Number(raw.maxBytes))
+      ? 10_485_760
+      : Math.max(1024, Number(raw.maxBytes));
+  const filePath =
+    typeof raw?.filePath === 'string' && raw.filePath.trim()
+      ? resolveHomePath(raw.filePath.trim())
+      : paths.serverLog;
+  const alertsFilePath =
+    typeof raw?.alertsFilePath === 'string' && raw.alertsFilePath.trim()
+      ? resolveHomePath(raw.alertsFilePath.trim())
+      : paths.alertsLog;
+  return { filePath, alertsFilePath, level, maxBytes };
+}
+
+function resolveHomePath(spec) {
+  if (spec.startsWith('~/')) {
+    return path.join(os.homedir(), spec.slice(2));
+  }
+  return path.resolve(spec);
 }
 
 export function normalizeRegisteredBrowsers(raw) {
@@ -46,6 +73,7 @@ export function defaultConfig(home) {
     exportDir: p.exportDir,
     rpcTimeoutMs: DEFAULT_RPC_TIMEOUT_MS,
     database: normalizeDatabase(),
+    logging: normalizeLogging({}, p),
     registeredBrowsers: [],
     settings: {
       platformsEnabled: [...PLATFORMS],
@@ -69,6 +97,7 @@ export function loadConfig(home = resolveHome()) {
     exportDir: raw.exportDir || defaults.exportDir,
     rpcTimeoutMs: raw.rpcTimeoutMs === undefined ? defaults.rpcTimeoutMs : Number(raw.rpcTimeoutMs),
     database: normalizeDatabase(raw.database),
+    logging: normalizeLogging(raw.logging, p),
     registeredBrowsers: normalizeRegisteredBrowsers(raw.registeredBrowsers),
     settings: {
       platformsEnabled: Array.isArray(raw.settings?.platformsEnabled)
@@ -81,6 +110,7 @@ export function loadConfig(home = resolveHome()) {
     merged.host = DEFAULT_HOST;
   }
   fs.mkdirSync(merged.exportDir, { recursive: true, mode: 0o700 });
+  fs.mkdirSync(p.logsDir, { recursive: true, mode: 0o700 });
   return { ...merged, home, paths: p };
 }
 
@@ -93,6 +123,7 @@ export function saveConfig(home, config) {
     exportDir: config.exportDir || p.exportDir,
     rpcTimeoutMs: config.rpcTimeoutMs ?? DEFAULT_RPC_TIMEOUT_MS,
     database: normalizeDatabase(config.database),
+    logging: normalizeLogging(config.logging, p),
     registeredBrowsers: normalizeRegisteredBrowsers(config.registeredBrowsers),
     settings: {
       platformsEnabled: config.settings?.platformsEnabled || [...PLATFORMS],
