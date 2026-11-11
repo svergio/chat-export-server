@@ -36,4 +36,5 @@ export {
 export { writeExportFiles } from './export-files.js';
 export { toProtocolError, errorToJson, isProtocolError } from './errors.js';
 export { openDatabase, resolveDatabaseConfig, describeDatabase } from './db/index.js';
+export { createLogger, FileLogger, redactSecrets, ALERT_CODES } from './logger.js';
 export { ServerCore } from './server-core.js';

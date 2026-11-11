@@ -4,6 +4,7 @@ import { BrowserHub } from './hub/browser-hub.js';
 import { handleMcpHttp } from './mcp/http.js';
 import { startStdioMcp } from './mcp/stdio.js';
 import { resolveHome } from './core/paths.js';
+import { ALERT_CODES } from './core/logger.js';
 
 const PKG_VERSION = '0.1.0';
 
@@ -31,12 +32,30 @@ export async function startServer(opts = {}) {
     authorizeHello: (hello, meta) => core.authorizeBrowserHello(hello, meta),
     onPresence: (session, meta) => core.updateBrowserPresence(session, meta),
     onDisconnect: (browserId) => core.markBrowserOffline(browserId),
-    onAudit: (event) => core.audit(event)
+    onAudit: (event) => {
+      core.audit(event);
+      if (event?.ok === false && event?.code && ALERT_CODES.has(event.code)) {
+        core.logger.alert({
+          component: event.action?.startsWith('ws') ? 'ws' : 'hub',
+          code: event.code,
+          message: event.message || event.action || 'hub alert',
+          browser_id: event.browserId || null,
+          detail: { action: event.action }
+        });
+      }
+    }
   });
   core.setHub(hub);
 
   const host = opts.host || core.config.host || '127.0.0.1';
   const port = opts.port ?? core.config.port;
+  core.logger.info({
+    component: 'server',
+    message: 'Chat Export server starting',
+    host,
+    port,
+    version: PKG_VERSION
+  });
 
   const httpServer = http.createServer(async (req, res) => {
     try {

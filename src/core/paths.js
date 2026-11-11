@@ -7,12 +7,16 @@ export function resolveHome(env = process.env) {
 }
 
 export function pathsFor(home) {
+  const logsDir = path.join(home, 'logs');
   return {
     home,
     config: path.join(home, 'config.json'),
     keys: path.join(home, 'keys.json'),
     audit: path.join(home, 'audit.log'),
     exportDir: path.join(home, 'exports'),
-    dbFile: path.join(home, 'data', 'chat-export.db')
+    dbFile: path.join(home, 'data', 'chat-export.db'),
+    logsDir,
+    serverLog: path.join(logsDir, 'server.log'),
+    alertsLog: path.join(logsDir, 'alerts.log')
   };
 }

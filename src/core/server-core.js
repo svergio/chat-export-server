@@ -25,6 +25,7 @@ import { writeExportFiles } from './export-files.js';
 import { toProtocolError } from './errors.js';
 import { resolveHome } from './paths.js';
 import { openDatabase, describeDatabase } from './db/index.js';
+import { createLogger } from './logger.js';
 
 const KNOWN_PROTOCOL_OPS = new Set(Object.keys(OP_SCHEMAS));
 
@@ -38,11 +39,15 @@ export class ServerCore {
     this.hub = opts.hub || null;
     this.serverVersion = opts.serverVersion || '0.1.0';
     this._db = opts.db || null;
+    this.logger = opts.logger || createLogger(this.config, () => this._db || null);
   }
 
   /** Opened and migrated on first use so one-shot CLI commands do not touch the database. */
   get db() {
-    if (!this._db) this._db = openDatabase(this.config);
+    if (!this._db) {
+      this._db = openDatabase(this.config);
+      if (this.logger) this.logger._db = () => this._db;
+    }
     return this._db;
   }
 
@@ -269,6 +274,12 @@ export class ServerCore {
       new Date().toISOString(),
       browserId
     ]);
+    this.logger.alert({
+      component: 'ws',
+      code: 'WS_DISCONNECT',
+      message: 'Browser WebSocket disconnected',
+      browser_id: browserId
+    });
   }
 
   browsersList() {
@@ -440,6 +451,44 @@ export class ServerCore {
 
   chatsDelete(platform, args, mcpOpts) {
     return this.callOp('chats.delete', platform, args || {}, mcpOpts || {});
+  }
+
+  mcpErrorContext(platform) {
+    const browser = this.hub ? this.hub.getBound() : null;
+    const browserId = browser?.browserId || null;
+    let activeTabsOnPlatform = [];
+    if (browser?.tabs && platform) {
+      activeTabsOnPlatform = browser.tabs.filter((tab) => tab.platform === platform);
+    }
+    const permissions = browser
+      ? {
+          allowCreate: browser.allowCreate !== false,
+          allowDestructive: Boolean(browser.allowDestructive),
+          allowProjects: browser.allowProjects !== false
+        }
+      : null;
+    return {
+      browserId,
+      platform: platform || null,
+      activeTabsOnPlatform,
+      permissions,
+      recentAlerts: this.logger.recentAlerts(8)
+    };
+  }
+
+  logMcpToolResult(tool, { platform, duration_ms, ok, code, message, detail }) {
+    const browser = this.hub ? this.hub.getBound() : null;
+    this.logger.metric({
+      component: 'mcp',
+      tool,
+      platform: platform || null,
+      browser_id: browser?.browserId || null,
+      duration_ms,
+      ok,
+      code: code || null,
+      message: message || '',
+      detail
+    });
   }
 
   #insertMcpToken({ rotate, label }) {
