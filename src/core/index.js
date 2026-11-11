@@ -38,3 +38,4 @@ export { toProtocolError, errorToJson, isProtocolError } from './errors.js';
 export { openDatabase, resolveDatabaseConfig, describeDatabase } from './db/index.js';
 export { createLogger, FileLogger, redactSecrets, ALERT_CODES } from './logger.js';
 export { ServerCore } from './server-core.js';
+export { ChatCacheManager } from './chat-cache.js';
