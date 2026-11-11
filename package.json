@@ -1,6 +1,6 @@
 {
   "name": "chat-export-server",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Local MCP server that drives the Chat Export browser extension (ChatGPT, Grok, X Grok, Copilot).",
   "private": true,
   "type": "module",

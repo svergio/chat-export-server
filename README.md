@@ -2,7 +2,7 @@
 
 # chat-export-server
 
-**Local MCP server** for the [Chat Export](https://github.com/svergio/chat-export-extension) Chrome extension. List, read, export, create, delete, and **ask** in your own chats on ChatGPT, Grok, X Grok, Claude, and GitHub Copilot — through the extension in **your** browser. Everything stays on `127.0.0.1`: job queues, SQLite chat cache, audit log, optional [dashboard](https://github.com/svergio/chat-export-dashboard) UI.
+**Local MCP server** for the [Chat Export](https://github.com/svergio/chat-export-extension) Chrome extension. List, read, export, create, delete, and **ask** in your own chats on **eight** web providers (ChatGPT, Grok, X Grok, Claude, GitHub Copilot, Qwen, DeepSeek, Perplexity) — through the extension in **your** browser. Everything stays on `127.0.0.1`: job queues, SQLite chat cache, audit log, optional [dashboard](https://github.com/svergio/chat-export-dashboard) UI.
 
 ## The problem
 
@@ -17,6 +17,9 @@ IDE agents need **structured access** to web LLM sessions without pasting cookie
 | X Grok | same |
 | Claude | same |
 | GitHub Copilot web | same |
+| Qwen (`chat.qwen.ai`) | same |
+| DeepSeek (`chat.deepseek.com`) | same |
+| Perplexity (`perplexity.ai`) | same |
 
 ```mermaid
 flowchart TB

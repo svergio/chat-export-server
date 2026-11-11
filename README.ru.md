@@ -2,7 +2,7 @@
 
 # chat-export-server
 
-**Локальный MCP-сервер** для расширения [Chat Export](https://github.com/svergio/chat-export-extension). Список, чтение, экспорт, создание, удаление и **вопросы** в ваших чатах ChatGPT, Grok, X Grok, Claude и GitHub Copilot — через расширение в **вашем** браузере. Всё на `127.0.0.1`: очереди задач, SQLite-кеш, аудит, опциональный [дашборд](https://github.com/svergio/chat-export-dashboard).
+**Локальный MCP-сервер** для расширения [Chat Export](https://github.com/svergio/chat-export-extension). Список, чтение, экспорт, создание, удаление и **вопросы** в ваших чатах на **восьми** площадках (ChatGPT, Grok, X Grok, Claude, GitHub Copilot, Qwen, DeepSeek, Perplexity) — через расширение в **вашем** браузере. Всё на `127.0.0.1`: очереди задач, SQLite-кеш, аудит, опциональный [дашборд](https://github.com/svergio/chat-export-dashboard).
 
 ## Проблема
 
@@ -17,6 +17,9 @@
 | X Grok | то же |
 | Claude | то же |
 | GitHub Copilot (web) | то же |
+| Qwen | то же |
+| DeepSeek | то же |
+| Perplexity | то же |
 
 ```mermaid
 flowchart TB
