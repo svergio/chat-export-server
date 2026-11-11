@@ -4,7 +4,7 @@ export const PROTOCOL_VERSION = 1;
 export const PLATFORMS = Object.freeze(['chatgpt', 'grok', 'grok-x', 'copilot', 'claude']);
 
 /** @typedef {'chats.list' | 'chats.get' | 'chats.export' | 'chats.create' | 'chats.delete' | 'chats.send' |
- *   'platform.host_state' |
+ *   'platform.capabilities' | 'platform.host_state' |
  *   'containers.list' | 'containers.chats' | 'containers.create' | 'containers.delete' | 'containers.move_chat'} Op */
 export const OPS = Object.freeze([
   'chats.list',
@@ -13,6 +13,7 @@ export const OPS = Object.freeze([
   'chats.create',
   'chats.delete',
   'chats.send',
+  'platform.capabilities',
   'platform.host_state',
   'containers.list',
   'containers.chats',

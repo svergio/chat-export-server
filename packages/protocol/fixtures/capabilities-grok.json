@@ -1,0 +1,20 @@
+{
+  "platform": "grok",
+  "models": [
+    { "id": "fast", "label": "Fast", "kind": "model" },
+    { "id": "expert", "label": "Expert", "kind": "model" }
+  ],
+  "modes": [
+    { "id": "fast", "label": "Fast", "kind": "mode" },
+    { "id": "expert", "label": "Expert", "kind": "mode" }
+  ],
+  "toggles": [],
+  "tools": [],
+  "attach": {
+    "supported": true,
+    "multiple": true,
+    "accept": ["image/*"]
+  },
+  "current": { "model": "fast", "mode": "fast", "toggles": [] },
+  "detectedAt": "2026-11-09T12:00:00.000Z"
+}

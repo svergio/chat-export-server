@@ -69,6 +69,14 @@ export function resolveExportOutDir(outDir: string, homedir = os.homedir()): str
   if (!p) throw new ProtocolError(ERROR_CODES.BAD_REQUEST, 'outDir required');
   if (p.startsWith('~/')) p = path.join(homedir, p.slice(2));
   else if (p === '~') p = homedir;
-  if (!path.isAbsolute(p)) p = path.resolve(p);
-  return p;
+  if (!path.isAbsolute(p)) {
+    throw new ProtocolError(ERROR_CODES.INVALID_ARGS, 'outDir must be an absolute path under HOME');
+  }
+  const resolved = path.resolve(p);
+  const home = path.resolve(homedir);
+  const rel = path.relative(home, resolved);
+  if (rel.startsWith('..') || path.isAbsolute(rel)) {
+    throw new ProtocolError(ERROR_CODES.INVALID_ARGS, 'outDir must be under HOME');
+  }
+  return resolved;
 }

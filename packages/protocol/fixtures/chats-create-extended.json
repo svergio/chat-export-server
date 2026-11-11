@@ -1,0 +1,19 @@
+{
+  "mcp": {
+    "text": "hi",
+    "model": "fast",
+    "files": [{ "path": "/tmp/note.txt", "name": "note.txt" }]
+  },
+  "wire": {
+    "text": "hi",
+    "model": "fast",
+    "files": [
+      {
+        "name": "note.txt",
+        "mime": "text/plain",
+        "size": 10,
+        "b64": "YXR0YWNoLW1lCg=="
+      }
+    ]
+  }
+}

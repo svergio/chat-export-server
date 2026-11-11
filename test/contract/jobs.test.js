@@ -78,8 +78,9 @@ async function mcpClient(core) {
       const r = await client.callTool({ name, arguments: args });
       const body = JSON.parse(r.content[0].text);
       if (r.isError) {
-        const err = new Error(body.message);
-        err.code = body.code;
+        const detail = body.error || body;
+        const err = new Error(detail.message || body.message);
+        err.code = detail.code || body.code;
         err.body = body;
         throw err;
       }
@@ -248,7 +249,7 @@ describe('jobs contract (mock extension)', () => {
     await withServer(async (server) => {
       const { core, port } = server;
       const { key } = core.keyNew();
-      let busyLeft = 2;
+      let busyResponses = 0;
       await connectMockBrowser(port, {
         core,
         key,
@@ -256,7 +257,8 @@ describe('jobs contract (mock extension)', () => {
         onRpc: askHost({
           browserId: 'b-busy',
           hostState: () => {
-            if (busyLeft-- > 0) {
+            if (busyResponses < 2) {
+              busyResponses++;
               return {
                 ok: false,
                 error: { code: 'PLATFORM_BUSY', message: 'Grok is under heavy load', details: { retryable: true } }
@@ -266,7 +268,7 @@ describe('jobs contract (mock extension)', () => {
           }
         })
       });
-      const job = core.jobs.enqueue({ kind: 'ask', platform: 'grok', prompt: 'p' });
+      const job = core.jobs.enqueue({ kind: 'ask', platform: 'grok', browserId: 'b-busy', prompt: 'p' });
       const done = await waitJob(core, job.job_id);
       assert.equal(done.status, 'done', JSON.stringify(done.error));
       assert.equal(done.attempts, 3);
@@ -277,12 +279,12 @@ describe('jobs contract (mock extension)', () => {
     await withServer(async (server) => {
       const { core, port } = server;
       const { key } = core.keyNew();
-      await connectMockBrowser(port, { key, browserId: 'b-on', onRpc: askHost({ browserId: 'b-on' }) });
+      await connectMockBrowser(port, { core, key, browserId: 'b-on', onRpc: askHost({ browserId: 'b-on' }) });
       const job = core.jobs.enqueue({ kind: 'ask', platform: 'grok', browserId: 'b-late', prompt: 'p' });
       assert.equal(job.laneOnline, false);
       await sleep(50);
       assert.equal(core.jobs.status(job.job_id).status, 'queued');
-      await connectMockBrowser(port, { key, browserId: 'b-late', onRpc: askHost({ browserId: 'b-late' }) });
+      await connectMockBrowser(port, { core, key, browserId: 'b-late', onRpc: askHost({ browserId: 'b-late' }) });
       const done = await waitJob(core, job.job_id);
       assert.equal(done.status, 'done');
       assert.equal(done.chatId, 'b-late-c1');

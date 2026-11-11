@@ -232,14 +232,81 @@ const defs = {
   ),
   ChatsGetResult: ref('ExportPayload'),
   ChatsExportArgs: object(
-    { chatId: str, formats: { type: 'array', items: ref('ExportFormat'), minItems: 1, uniqueItems: true } },
+    {
+      chatId: str,
+      formats: { type: 'array', items: ref('ExportFormat'), minItems: 1, uniqueItems: true },
+      branch: { type: 'string', enum: ['active', 'all'] }
+    },
     ['chatId', 'formats']
   ),
   ChatsExportResult: object(
     { files: { type: 'array', items: ref('ExportFile') }, payload: ref('ExportPayload') },
     ['files', 'payload']
   ),
-  ChatsCreateArgs: object({ text: nonEmpty, title: str }, ['text']),
+  Option: object(
+    {
+      id: nonEmpty,
+      label: nonEmpty,
+      kind: { type: 'string', enum: ['model', 'mode', 'toggle', 'tool'] },
+      locked: { type: 'boolean' }
+    },
+    ['id', 'label', 'kind']
+  ),
+  AttachInfo: object(
+    {
+      supported: { type: 'boolean' },
+      multiple: { type: 'boolean' },
+      accept: { type: 'array', items: str, uniqueItems: true },
+      maxFiles: { type: 'integer', minimum: 1 }
+    },
+    ['supported', 'multiple', 'accept']
+  ),
+  Capabilities: object(
+    {
+      platform: ref('Platform'),
+      plan: str,
+      models: { type: 'array', items: ref('Option') },
+      modes: { type: 'array', items: ref('Option') },
+      toggles: { type: 'array', items: ref('Option') },
+      tools: { type: 'array', items: ref('Option') },
+      attach: ref('AttachInfo'),
+      current: object(
+        {
+          model: str,
+          mode: str,
+          toggles: { type: 'array', items: str, uniqueItems: true }
+        },
+        []
+      ),
+      detectedAt: { type: 'string', format: 'date-time' }
+    },
+    ['platform', 'models', 'modes', 'toggles', 'tools', 'attach', 'current', 'detectedAt']
+  ),
+  PlatformCapabilitiesArgs: object({ refresh: { type: 'boolean' } }, []),
+  McpChatsCreateArgs: object(
+    {
+      text: nonEmpty,
+      title: str,
+      model: str,
+      mode: str,
+      toggles: { type: 'array', items: str, uniqueItems: true },
+      tools: { type: 'array', items: nonEmpty },
+      files: { type: 'array', items: ref('FileRef') }
+    },
+    ['text']
+  ),
+  ChatsCreateArgs: object(
+    {
+      text: nonEmpty,
+      title: str,
+      model: str,
+      mode: str,
+      toggles: { type: 'array', items: str, uniqueItems: true },
+      tools: { type: 'array', items: nonEmpty },
+      files: { type: 'array', items: ref('WireFile') }
+    },
+    ['text']
+  ),
   ChatsCreateResult: ref('Chat'),
   ChatsDeleteArgs: object({ chatId: nonEmpty }, ['chatId']),
   ChatsDeleteResult: object({ deleted: { const: true }, chatId: str }, ['deleted']),
@@ -357,6 +424,7 @@ export const OP_SCHEMAS = Object.freeze({
   'chats.create': { args: 'ChatsCreateArgs', result: 'ChatsCreateResult' },
   'chats.delete': { args: 'ChatsDeleteArgs', result: 'ChatsDeleteResult' },
   'chats.send': { args: 'ChatsSendArgs', result: 'ChatsSendResult' },
+  'platform.capabilities': { args: 'PlatformCapabilitiesArgs', result: 'Capabilities' },
   'platform.host_state': { args: 'PlatformHostStateArgs', result: 'PlatformHostStateResult' },
   'containers.list': { args: 'ContainersListArgs', result: 'ContainersListResult' },
   'containers.chats': { args: 'ContainersChatsArgs', result: 'ChatsListResult' },

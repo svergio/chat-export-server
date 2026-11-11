@@ -57,6 +57,7 @@ export class ServerCore {
   _db: DatabaseAdapter | null;
   _chatCache: ChatCacheManager | null;
   _jobs: JobManager | null;
+  _jobOpts?: JobManagerOptions;
   logger: FileLogger;
 
   constructor(opts: ServerCoreOptions = {}) {
@@ -71,11 +72,12 @@ export class ServerCore {
   }
 
   get jobs(): JobManager {
-    if (!this._jobs) this._jobs = new JobManager(this);
+    if (!this._jobs) this._jobs = new JobManager(this, this._jobOpts);
     return this._jobs;
   }
 
   startJobLanes(hub: BrowserHub, opts?: JobManagerOptions): void {
+    this._jobOpts = opts;
     this.jobs.attachHub(hub);
   }
 
@@ -531,6 +533,10 @@ export class ServerCore {
     return this.callOp('chats.send', platform, input);
   }
 
+  platformCapabilities(platform: string, args?: OpArgs) {
+    return this.callOp('platform.capabilities', platform, args || {});
+  }
+
   async resolveChatId(platform: string, chatId: string): Promise<string> {
     const id = String(chatId || '').trim();
     if (!id) throw new ProtocolError(ERROR_CODES.BAD_REQUEST, 'chatId required');
@@ -711,7 +717,16 @@ export class ServerCore {
 
 function summarizeArgs(op: string, args: any): Record<string, unknown> {
   if (!args || typeof args !== 'object') return {};
-  if (op === 'chats.create') return { title: args.title, textLen: String(args.text || '').length };
+  if (op === 'chats.create') {
+    const row: Record<string, unknown> = {
+      title: args.title,
+      textLen: String(args.text || '').length
+    };
+    if (Array.isArray(args.files)) {
+      row.files = args.files.map((f: any) => ({ name: f.name, size: f.size }));
+    }
+    return row;
+  }
   if (op === 'chats.export') return { chatId: args.chatId, formats: args.formats };
   if (op === 'chats.list') {
     return {

@@ -193,5 +193,68 @@
       "args": { "containerId": "g-p-old", "confirm": true }
     },
     "response": { "id": "r12", "ok": true, "data": { "deleted": true, "containerId": "g-p-old" } }
+  },
+  {
+    "op": "chats.send",
+    "request": {
+      "id": "r13",
+      "op": "chats.send",
+      "platform": "grok",
+      "args": { "chatId": "a3c1e2f4-9b8d-4e7f-8a6b-5c4d3e2f1a0b", "text": "follow-up", "mode": "fast" }
+    },
+    "response": {
+      "id": "r13",
+      "ok": true,
+      "data": {
+        "platform": "grok",
+        "chatId": "a3c1e2f4-9b8d-4e7f-8a6b-5c4d3e2f1a0b",
+        "title": "[ce-test] ClickHouse TTL",
+        "url": "https://grok.com/c/a3c1e2f4-9b8d-4e7f-8a6b-5c4d3e2f1a0b",
+        "updatedAt": null
+      }
+    }
+  },
+  {
+    "op": "platform.capabilities",
+    "request": {
+      "id": "r15",
+      "op": "platform.capabilities",
+      "platform": "grok",
+      "args": { "refresh": true }
+    },
+    "response": {
+      "id": "r15",
+      "ok": true,
+      "data": {
+        "platform": "grok",
+        "models": [{ "id": "fast", "label": "Fast", "kind": "model" }],
+        "modes": [{ "id": "fast", "label": "Fast", "kind": "mode" }],
+        "toggles": [],
+        "tools": [],
+        "attach": { "supported": true, "multiple": true, "accept": ["image/*"] },
+        "current": { "model": "fast", "mode": "fast", "toggles": [] },
+        "detectedAt": "2026-11-09T12:00:00.000Z"
+      }
+    }
+  },
+  {
+    "op": "platform.host_state",
+    "request": {
+      "id": "r14",
+      "op": "platform.host_state",
+      "platform": "grok",
+      "args": { "chatId": "a3c1e2f4-9b8d-4e7f-8a6b-5c4d3e2f1a0b" }
+    },
+    "response": {
+      "id": "r14",
+      "ok": true,
+      "data": {
+        "platform": "grok",
+        "generating": false,
+        "busy": false,
+        "banner": null,
+        "composerReady": true
+      }
+    }
   }
 ]

@@ -1,0 +1,16 @@
+{
+  "platform": "chatgpt",
+  "models": [],
+  "modes": [],
+  "toggles": [
+    { "id": "thinking", "label": "Thinking", "kind": "toggle" }
+  ],
+  "tools": [],
+  "attach": {
+    "supported": true,
+    "multiple": true,
+    "accept": ["image/*", "application/pdf"]
+  },
+  "current": { "toggles": [] },
+  "detectedAt": "2026-11-09T12:00:00.000Z"
+}

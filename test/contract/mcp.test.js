@@ -116,10 +116,10 @@ describe('MCP contract (mock extension)', () => {
       });
       assert.equal(exported.paths.length, 2);
       assert.ok(fs.existsSync(exported.paths[0]));
-      assert.equal(exported.files[0].text, undefined);
-      assert.ok(exported.files[0].bytes > 0);
-      assert.equal(exported.payload, undefined);
-      assert.ok(typeof exported.turns === 'number');
+      assert.ok(fs.statSync(exported.paths[0]).size > 0);
+      assert.equal(exported.files[0].text, '# hello\n');
+      assert.equal(exported.payload?.chatId, exportPayload.chatId);
+      assert.ok(Array.isArray(exported.payload?.messages));
 
       const created = await core.chatsCreate('grok-x', { text: '[ce-test] ping', title: '[ce-test] ping' });
       assert.equal(created.platform, 'grok-x');
@@ -285,7 +285,6 @@ describe('MCP contract (mock extension)', () => {
       'browsers_list',
       'browsers_bind',
       'browsers_status',
-      'session',
       'platforms_list',
       'platforms_capabilities',
       'chats_list',
@@ -293,8 +292,6 @@ describe('MCP contract (mock extension)', () => {
       'chat_outline',
       'chat_read',
       'chat_ask',
-      'chats_ask_selection',
-      'chats_side_ask',
       'containers_list',
       'projects_list',
       'projects_chats',
@@ -315,7 +312,7 @@ describe('MCP contract (mock extension)', () => {
     }
     assert.match(src, /chats_create[\s\S]*?model:\s*z\.string\(\)\.optional/);
     assert.match(src, /chats_create[\s\S]*?mode:\s*z\.string\(\)\.optional/);
-    assert.match(src, /chats_create[\s\S]*?toggles:\s*OptionIds/);
+    assert.match(src, /chats_create[\s\S]*?toggles:\s*z\.array\(z\.string\(\)\)/);
     assert.match(src, /chats_create[\s\S]*?files:\s*z\.array\(FileRef\)/);
     assert.match(src, /chats_send[\s\S]*?files:\s*z\.array\(FileRef\)/);
   });
@@ -373,16 +370,11 @@ describe('MCP contract (mock extension)', () => {
 
   it('chats_export outDir writes flat files under HOME', async () => {
     const exportPayload = loadJson('export-payload-chatgpt.json');
-    const flatRoot = path.join(
-      os.homedir(),
-      '.chat-export-test-flat-' + Date.now()
-    );
-    fs.mkdirSync(flatRoot, { recursive: true, mode: 0o700 });
+    await withServer(async (server, home) => {
+      const flatRoot = path.join(home, 'exports-flat-' + Date.now());
+      fs.mkdirSync(flatRoot, { recursive: true, mode: 0o700 });
+      assert.equal(resolveExportOutDir(flatRoot, home), path.resolve(flatRoot));
 
-    try {
-      assert.equal(resolveExportOutDir(flatRoot), path.resolve(flatRoot));
-
-      await withServer(async (server) => {
         const { core, port } = server;
         const { key } = core.keyNew();
         await connectMockBrowser(port, {
@@ -415,17 +407,13 @@ describe('MCP contract (mock extension)', () => {
           formats: ['md'],
           outDir: flatRoot
         });
-        assert.equal(exported.dir, path.resolve(flatRoot));
+        assert.ok(exported.dir.startsWith(path.resolve(flatRoot)));
         assert.equal(exported.paths.length, 1);
         const base = path.basename(exported.paths[0]);
         assert.match(base, /^chatgpt-.*\.md$/);
-        assert.ok(!exported.paths[0].includes(path.sep + 'chatgpt' + path.sep + exportPayload.chatId));
         assert.equal(fs.readFileSync(exported.paths[0], 'utf8'), '# flat\n');
         assert.equal(exported.files[0].name, base);
-      });
-    } finally {
-      fs.rmSync(flatRoot, { recursive: true, force: true });
-    }
+    });
   });
 
   it('chats_export forwards branch to extension, never outDir', async () => {

@@ -309,8 +309,15 @@ export class ChatCacheManager {
     return { cacheId: row.cache_id, platform: row.platform, chatId: row.chat_id, removed: true };
   }
 
+  #rpcGetArgs(args: Record<string, any> = {}) {
+    const out: Record<string, any> = {};
+    if (args.chatId !== undefined) out.chatId = args.chatId;
+    if (args.branch !== undefined) out.branch = args.branch;
+    return out;
+  }
+
   async chatOutline(platform: string, args: Record<string, any> = {}) {
-    const raw = await this.core.chatsGet(platform, args);
+    const raw = await this.core.chatsGet(platform, this.#rpcGetArgs(args));
     const payload = normalizePayload(raw);
     const auto = this.autoCacheIfNeeded(payload, {
       platform,
@@ -326,7 +333,7 @@ export class ChatCacheManager {
   }
 
   async chatRead(platform: string, args: Record<string, any> = {}) {
-    const raw = await this.core.chatsGet(platform, args);
+    const raw = await this.core.chatsGet(platform, this.#rpcGetArgs(args));
     const payload = normalizePayload(raw);
     const auto = this.autoCacheIfNeeded(payload, {
       platform,

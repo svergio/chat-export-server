@@ -167,6 +167,24 @@ export function registerTools(server: McpServer, core: ServerCore): void {
   registerDetailedTool(
     server,
     core,
+    'platforms_capabilities',
+    {
+      description: 'Read composer capabilities (models, modes, toggles, attach) from the bound browser tab.',
+      inputSchema: {
+        platform: Platform,
+        refresh: z.boolean().optional()
+      }
+    },
+    async ({ platform, refresh }) => {
+      const args: ToolArgs = {};
+      if (refresh !== undefined) args.refresh = refresh;
+      return core.platformCapabilities(platform, args);
+    }
+  );
+
+  registerDetailedTool(
+    server,
+    core,
     'chats_list',
     {
       description: 'List chats on a platform via the bound browser.',
@@ -297,13 +315,51 @@ export function registerTools(server: McpServer, core: ServerCore): void {
       inputSchema: {
         platform: Platform,
         text: z.string().min(1),
-        title: z.string().optional()
+        title: z.string().optional(),
+        model: z.string().optional(),
+        mode: z.string().optional(),
+        toggles: z.array(z.string()).optional(),
+        tools: z.array(z.string()).optional(),
+        files: z.array(FileRef).optional()
       }
     },
-    async ({ platform, text, title }) => {
+    async ({ platform, text, title, model, mode, toggles, tools, files }) => {
       const args: ToolArgs = { text };
       if (title !== undefined) args.title = title;
+      if (model !== undefined) args.model = model;
+      if (mode !== undefined) args.mode = mode;
+      if (toggles !== undefined) args.toggles = toggles;
+      if (tools !== undefined) args.tools = tools;
+      if (files !== undefined) args.files = files;
       return core.chatsCreate(platform, args);
+    }
+  );
+
+  registerDetailedTool(
+    server,
+    core,
+    'chats_send',
+    {
+      description: 'Send a follow-up message in an existing chat via the bound browser.',
+      inputSchema: {
+        platform: Platform,
+        chatId: z.string().min(1),
+        text: z.string().min(1),
+        model: z.string().optional(),
+        mode: z.string().optional(),
+        toggles: z.array(z.string()).optional(),
+        tools: z.array(z.string()).optional(),
+        files: z.array(FileRef).optional()
+      }
+    },
+    async ({ platform, chatId, text, model, mode, toggles, tools, files }) => {
+      const args: ToolArgs = { chatId, text };
+      if (model !== undefined) args.model = model;
+      if (mode !== undefined) args.mode = mode;
+      if (toggles !== undefined) args.toggles = toggles;
+      if (tools !== undefined) args.tools = tools;
+      if (files !== undefined) args.files = files;
+      return core.chatsSend(platform, args);
     }
   );
 

@@ -1,0 +1,21 @@
+{
+  "platform": "copilot",
+  "models": [
+    { "id": "claude-sonnet", "label": "Claude Sonnet", "kind": "model" }
+  ],
+  "modes": [
+    { "id": "ask", "label": "Ask", "kind": "mode" },
+    { "id": "agent", "label": "Agent", "kind": "mode", "locked": true }
+  ],
+  "toggles": [
+    { "id": "balance", "label": "Balance", "kind": "toggle" }
+  ],
+  "tools": [],
+  "attach": {
+    "supported": true,
+    "multiple": false,
+    "accept": [".md", ".txt", ".pdf"]
+  },
+  "current": { "model": "claude-sonnet", "mode": "ask", "toggles": ["balance"] },
+  "detectedAt": "2026-11-09T12:00:00.000Z"
+}

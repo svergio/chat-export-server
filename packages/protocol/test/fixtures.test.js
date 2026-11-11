@@ -35,7 +35,7 @@ test('export payload fixture exists and is valid for every platform', () => {
   }
 });
 
-test('capabilities fixture exists and is valid for every platform', { skip: 'no capabilities-*.json fixtures in repo' }, () => {
+test('capabilities fixture exists and is valid for every platform', () => {
   for (const platform of PLATFORMS) {
     const caps = fixture('capabilities-' + platform + '.json');
     assert.equal(caps.platform, platform);
@@ -53,9 +53,7 @@ test('capabilities fixture exists and is valid for every platform', { skip: 'no 
   }
 });
 
-test('chats-create-extended: mcp form uses FileRef, wire form uses WireFile with matching size', {
-  skip: 'chats-create-extended.json fixture not committed'
-}, () => {
+test('chats-create-extended: mcp form uses FileRef, wire form uses WireFile with matching size', () => {
   const { mcp, wire } = fixture('chats-create-extended.json');
   assertOk(validate('McpChatsCreateArgs', mcp), 'mcp');
   assertOk(validate('ChatsCreateArgs', wire), 'wire');

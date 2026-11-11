@@ -28,6 +28,10 @@
       "args": "ChatsSendArgs",
       "result": "ChatsSendResult"
     },
+    "platform.capabilities": {
+      "args": "PlatformCapabilitiesArgs",
+      "result": "Capabilities"
+    },
     "platform.host_state": {
       "args": "PlatformHostStateArgs",
       "result": "PlatformHostStateResult"
@@ -73,6 +77,7 @@
         "chats.create",
         "chats.delete",
         "chats.send",
+        "platform.capabilities",
         "platform.host_state",
         "containers.list",
         "containers.chats",
@@ -794,6 +799,13 @@
           },
           "minItems": 1,
           "uniqueItems": true
+        },
+        "branch": {
+          "type": "string",
+          "enum": [
+            "active",
+            "all"
+          ]
         }
       },
       "required": [
@@ -821,6 +833,190 @@
       ],
       "additionalProperties": false
     },
+    "Option": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "model",
+            "mode",
+            "toggle",
+            "tool"
+          ]
+        },
+        "locked": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "label",
+        "kind"
+      ],
+      "additionalProperties": false
+    },
+    "AttachInfo": {
+      "type": "object",
+      "properties": {
+        "supported": {
+          "type": "boolean"
+        },
+        "multiple": {
+          "type": "boolean"
+        },
+        "accept": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "maxFiles": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "supported",
+        "multiple",
+        "accept"
+      ],
+      "additionalProperties": false
+    },
+    "Capabilities": {
+      "type": "object",
+      "properties": {
+        "platform": {
+          "$ref": "#/$defs/Platform"
+        },
+        "plan": {
+          "type": "string"
+        },
+        "models": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Option"
+          }
+        },
+        "modes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Option"
+          }
+        },
+        "toggles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Option"
+          }
+        },
+        "tools": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Option"
+          }
+        },
+        "attach": {
+          "$ref": "#/$defs/AttachInfo"
+        },
+        "current": {
+          "type": "object",
+          "properties": {
+            "model": {
+              "type": "string"
+            },
+            "mode": {
+              "type": "string"
+            },
+            "toggles": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "uniqueItems": true
+            }
+          },
+          "required": [],
+          "additionalProperties": false
+        },
+        "detectedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "platform",
+        "models",
+        "modes",
+        "toggles",
+        "tools",
+        "attach",
+        "current",
+        "detectedAt"
+      ],
+      "additionalProperties": false
+    },
+    "PlatformCapabilitiesArgs": {
+      "type": "object",
+      "properties": {
+        "refresh": {
+          "type": "boolean"
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    },
+    "McpChatsCreateArgs": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string",
+          "minLength": 1
+        },
+        "title": {
+          "type": "string"
+        },
+        "model": {
+          "type": "string"
+        },
+        "mode": {
+          "type": "string"
+        },
+        "toggles": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "tools": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "files": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/FileRef"
+          }
+        }
+      },
+      "required": [
+        "text"
+      ],
+      "additionalProperties": false
+    },
     "ChatsCreateArgs": {
       "type": "object",
       "properties": {
@@ -830,6 +1026,32 @@
         },
         "title": {
           "type": "string"
+        },
+        "model": {
+          "type": "string"
+        },
+        "mode": {
+          "type": "string"
+        },
+        "toggles": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "tools": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "files": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/WireFile"
+          }
         }
       },
       "required": [

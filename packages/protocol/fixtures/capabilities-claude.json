@@ -1,0 +1,16 @@
+{
+  "platform": "claude",
+  "models": [
+    { "id": "sonnet", "label": "Sonnet", "kind": "model" }
+  ],
+  "modes": [],
+  "toggles": [],
+  "tools": [],
+  "attach": {
+    "supported": true,
+    "multiple": true,
+    "accept": ["image/*", "text/*"]
+  },
+  "current": { "model": "sonnet", "toggles": [] },
+  "detectedAt": "2026-11-09T12:00:00.000Z"
+}

@@ -1,0 +1,18 @@
+{
+  "platform": "grok-x",
+  "models": [],
+  "modes": [
+    { "id": "fast", "label": "Fast", "kind": "mode" }
+  ],
+  "toggles": [
+    { "id": "focused", "label": "Focused", "kind": "toggle" }
+  ],
+  "tools": [],
+  "attach": {
+    "supported": true,
+    "multiple": true,
+    "accept": ["image/*"]
+  },
+  "current": { "mode": "fast", "toggles": [] },
+  "detectedAt": "2026-11-09T12:00:00.000Z"
+}
