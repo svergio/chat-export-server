@@ -14,6 +14,30 @@ export function normalizeDatabase(raw) {
   };
 }
 
+export function normalizeRegisteredBrowsers(raw) {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .map((item) => {
+      if (!item || typeof item !== 'object') return null;
+      const browserId = typeof item.browserId === 'string' ? item.browserId.trim() : '';
+      const key = typeof item.key === 'string' ? item.key.trim() : '';
+      if (!browserId || !key) return null;
+      const browserLabel =
+        typeof item.browserLabel === 'string' && item.browserLabel.trim()
+          ? item.browserLabel.trim()
+          : browserId;
+      return {
+        browserId,
+        key,
+        browserLabel,
+        allowCreate: item.allowCreate === false ? false : true,
+        allowDestructive: Boolean(item.allowDestructive),
+        allowProjects: item.allowProjects === false ? false : true
+      };
+    })
+    .filter(Boolean);
+}
+
 export function defaultConfig(home) {
   const p = pathsFor(home);
   return {
@@ -22,6 +46,7 @@ export function defaultConfig(home) {
     exportDir: p.exportDir,
     rpcTimeoutMs: DEFAULT_RPC_TIMEOUT_MS,
     database: normalizeDatabase(),
+    registeredBrowsers: [],
     settings: {
       platformsEnabled: [...PLATFORMS],
       allowDestructive: false
@@ -44,6 +69,7 @@ export function loadConfig(home = resolveHome()) {
     exportDir: raw.exportDir || defaults.exportDir,
     rpcTimeoutMs: raw.rpcTimeoutMs === undefined ? defaults.rpcTimeoutMs : Number(raw.rpcTimeoutMs),
     database: normalizeDatabase(raw.database),
+    registeredBrowsers: normalizeRegisteredBrowsers(raw.registeredBrowsers),
     settings: {
       platformsEnabled: Array.isArray(raw.settings?.platformsEnabled)
         ? raw.settings.platformsEnabled.filter((x) => PLATFORMS.includes(x))
@@ -67,6 +93,7 @@ export function saveConfig(home, config) {
     exportDir: config.exportDir || p.exportDir,
     rpcTimeoutMs: config.rpcTimeoutMs ?? DEFAULT_RPC_TIMEOUT_MS,
     database: normalizeDatabase(config.database),
+    registeredBrowsers: normalizeRegisteredBrowsers(config.registeredBrowsers),
     settings: {
       platformsEnabled: config.settings?.platformsEnabled || [...PLATFORMS],
       allowDestructive: Boolean(config.settings?.allowDestructive)

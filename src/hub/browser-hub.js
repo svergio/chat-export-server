@@ -17,14 +17,18 @@ export class BrowserHub {
    * @param {{
    *   serverVersion: string,
    *   rpcTimeoutMs?: number,
-   *   verifyKey: (key: string) => boolean,
+   *   authorizeHello: (hello: object, meta?: { remoteAddress?: string }) => object | null,
+   *   onPresence?: (session: object, meta?: { remoteAddress?: string }) => void,
+   *   onDisconnect?: (browserId: string) => void,
    *   onAudit?: (event: object) => void
    * }} opts
    */
   constructor(opts) {
     this.serverVersion = opts.serverVersion;
     this.rpcTimeoutMs = opts.rpcTimeoutMs ?? 60_000;
-    this.verifyKey = opts.verifyKey;
+    this.authorizeHello = opts.authorizeHello;
+    this.onPresence = opts.onPresence || (() => {});
+    this.onDisconnect = opts.onDisconnect || (() => {});
     this.onAudit = opts.onAudit || (() => {});
     /** @type {Map<string, object>} */
     this.browsers = new Map();
@@ -44,7 +48,7 @@ export class BrowserHub {
     const aliases = opts.aliasPaths || ['/ext'];
     const paths = new Set([path, ...aliases.filter(Boolean)]);
     this.wss = new WebSocketServer({ noServer: true });
-    this.wss.on('connection', (ws) => this.#onConnection(ws));
+    this.wss.on('connection', (ws, req) => this.#onConnection(ws, req));
     this._onUpgrade = (req, socket, head) => {
       let pathname = '/';
       try {
@@ -168,13 +172,16 @@ export class BrowserHub {
       browserLabel: b.browserLabel,
       extVersion: b.extVersion,
       platformsEnabled: [...b.platformsEnabled],
+      allowCreate: Boolean(b.allowCreate),
       allowDestructive: Boolean(b.allowDestructive),
+      allowProjects: Boolean(b.allowProjects),
+      tabs: Array.isArray(b.tabs) ? b.tabs : [],
       connectedAt: b.connectedAt,
       bound: this.boundBrowserId === b.browserId
     };
   }
 
-  #onConnection(ws) {
+  #onConnection(ws, req) {
     /** @type {string | null} */
     let browserId = null;
     let helloDone = false;
@@ -200,14 +207,15 @@ export class BrowserHub {
           ws.close();
           return;
         }
-        if (!this.verifyKey(msg.key)) {
+        const auth = this.authorizeHello(msg, { remoteAddress: req?.socket?.remoteAddress || '' });
+        if (!auth) {
           this.#sendError(ws, ERROR_CODES.UNAUTHORIZED, 'invalid key');
           this.onAudit({ action: 'ws.hello', ok: false, code: ERROR_CODES.UNAUTHORIZED });
           ws.close();
           return;
         }
 
-        browserId = msg.browserId;
+        browserId = auth.browserId || msg.browserId;
         const existing = this.browsers.get(browserId);
         if (existing && existing.ws !== ws) {
           try {
@@ -219,14 +227,18 @@ export class BrowserHub {
 
         const session = {
           browserId,
-          browserLabel: msg.browserLabel,
+          browserLabel: auth.browserLabel || msg.browserLabel,
           extVersion: msg.extVersion,
           platformsEnabled: [...msg.platformsEnabled],
+          allowCreate: msg.allowCreate !== undefined ? Boolean(msg.allowCreate) : auth.permissions?.allowCreate !== false,
           allowDestructive: Boolean(msg.allowDestructive),
+          allowProjects: msg.allowProjects !== undefined ? Boolean(msg.allowProjects) : auth.permissions?.allowProjects !== false,
+          tabs: Array.isArray(msg.tabs) ? msg.tabs : auth.tabs || [],
           connectedAt: new Date().toISOString(),
           ws
         };
         this.browsers.set(browserId, session);
+        this.onPresence(session, { remoteAddress: auth.hostIp || req?.socket?.remoteAddress || '' });
         helloDone = true;
 
         if (!this.boundBrowserId) {
@@ -255,6 +267,11 @@ export class BrowserHub {
         return;
       }
 
+      if (msg?.type === WS_TYPES.TABS) {
+        this.#handleTabs(browserId, msg, ws);
+        return;
+      }
+
       if (msg?.type === WS_TYPES.RPC_RESULT || (msg && msg.id && typeof msg.ok === 'boolean')) {
         this.#handleRpcResult(msg);
         return;
@@ -280,6 +297,7 @@ export class BrowserHub {
           const next = this.browsers.keys().next();
           if (!next.done) this.boundBrowserId = next.value;
         }
+        this.onDisconnect(browserId);
         this.onAudit({ action: 'ws.close', browserId });
       }
     });
@@ -294,14 +312,31 @@ export class BrowserHub {
     const session = this.browsers.get(browserId);
     if (!session) return;
     session.platformsEnabled = [...msg.platformsEnabled];
+    if (msg.allowCreate !== undefined) session.allowCreate = Boolean(msg.allowCreate);
     if (msg.allowDestructive !== undefined) session.allowDestructive = Boolean(msg.allowDestructive);
+    if (msg.allowProjects !== undefined) session.allowProjects = Boolean(msg.allowProjects);
     if (typeof msg.browserLabel === 'string') session.browserLabel = msg.browserLabel;
+    this.onPresence(session);
     this.onAudit({
       action: 'ws.settings',
       browserId,
       platformsEnabled: session.platformsEnabled,
+      allowCreate: session.allowCreate,
       allowDestructive: session.allowDestructive
     });
+  }
+
+  #handleTabs(browserId, msg, ws) {
+    const check = validate('WsTabs', msg);
+    if (!check.valid) {
+      this.#sendError(ws, ERROR_CODES.BAD_REQUEST, check.errors[0]?.message || 'invalid tabs', msg.id);
+      return;
+    }
+    const session = this.browsers.get(browserId);
+    if (!session) return;
+    session.tabs = Array.isArray(msg.tabs) ? msg.tabs : [];
+    this.onPresence(session);
+    this.onAudit({ action: 'ws.tabs', browserId, tabs: session.tabs.length, ok: true });
   }
 
   #handleRpcResult(msg) {

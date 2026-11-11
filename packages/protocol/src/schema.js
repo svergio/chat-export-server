@@ -54,13 +54,21 @@ function object(properties, required, extra) {
 /** @typedef {{ chatId: string }} ChatsDeleteArgs */
 /** @typedef {{ deleted: true, chatId?: string }} ChatsDeleteResult */
 /**
- * @typedef {{ type: 'hello', v: 1, key: string, browserId: string, browserLabel: string, extVersion: string,
- *   platformsEnabled: import('./constants.js').Platform[], allowDestructive?: boolean }} WsHello
+ * @typedef {{ tabId: number, platform: import('./constants.js').Platform, url: string,
+ *   chatId: string, title: string, active: boolean }} BrowserTab
+ */
+/**
+ * @typedef {{ type: 'hello', protocolVersion?: 1, v?: 1, key: string, browserId: string,
+ *   browserLabel: string, extVersion: string, platformsEnabled: import('./constants.js').Platform[],
+ *   allowCreate?: boolean, allowDestructive?: boolean, allowProjects?: boolean, tabs?: BrowserTab[] }} WsHello
  */
 /** @typedef {{ type: 'welcome', v: 1, browserId: string, serverVersion: string, bound: boolean }} WsWelcome */
 /**
  * @typedef {{ type: 'settings', platformsEnabled: import('./constants.js').Platform[],
- *   allowDestructive?: boolean, browserLabel?: string }} WsSettings
+ *   allowCreate?: boolean, allowDestructive?: boolean, allowProjects?: boolean, browserLabel?: string }} WsSettings
+ */
+/**
+ * @typedef {{ type: 'tabs', browserId: string, tabs: BrowserTab[] }} WsTabs
  */
 /** @typedef {{ type: 'error', code: import('./constants.js').ErrorCode, message: string, id?: string }} WsError */
 
@@ -69,6 +77,17 @@ const defs = {
   Op: { type: 'string', enum: [...OPS] },
   ExportFormat: { type: 'string', enum: [...EXPORT_FORMATS] },
   ErrorCode: { type: 'string', enum: Object.values(ERROR_CODES) },
+  BrowserTab: object(
+    {
+      tabId: { type: 'integer' },
+      platform: ref('Platform'),
+      url: str,
+      chatId: str,
+      title: str,
+      active: { type: 'boolean' }
+    },
+    ['tabId', 'platform', 'url', 'chatId', 'title', 'active']
+  ),
 
   Link: object({ text: str, href: nonEmpty }, ['text', 'href']),
   Source: object({ title: str, url: nonEmpty }, ['title', 'url']),
@@ -153,7 +172,23 @@ const defs = {
   ChatsDeleteArgs: object({ chatId: nonEmpty }, ['chatId']),
   ChatsDeleteResult: object({ deleted: { const: true }, chatId: str }, ['deleted']),
 
-  WsHello: object(
+  WsHelloCurrent: object(
+    {
+      type: { const: WS_TYPES.HELLO },
+      protocolVersion: { const: PROTOCOL_VERSION },
+      key: nonEmpty,
+      browserId: nonEmpty,
+      browserLabel: str,
+      extVersion: str,
+      platformsEnabled: { type: 'array', items: ref('Platform'), uniqueItems: true },
+      allowCreate: { type: 'boolean' },
+      allowDestructive: { type: 'boolean' },
+      allowProjects: { type: 'boolean' },
+      tabs: { type: 'array', items: ref('BrowserTab') }
+    },
+    ['type', 'protocolVersion', 'key', 'browserId', 'browserLabel', 'extVersion', 'platformsEnabled']
+  ),
+  WsHelloLegacy: object(
     {
       type: { const: WS_TYPES.HELLO },
       v: { const: PROTOCOL_VERSION },
@@ -162,10 +197,16 @@ const defs = {
       browserLabel: str,
       extVersion: str,
       platformsEnabled: { type: 'array', items: ref('Platform'), uniqueItems: true },
-      allowDestructive: { type: 'boolean' }
+      allowCreate: { type: 'boolean' },
+      allowDestructive: { type: 'boolean' },
+      allowProjects: { type: 'boolean' },
+      tabs: { type: 'array', items: ref('BrowserTab') }
     },
     ['type', 'v', 'key', 'browserId', 'browserLabel', 'extVersion', 'platformsEnabled']
   ),
+  WsHello: {
+    oneOf: [ref('WsHelloCurrent'), ref('WsHelloLegacy')]
+  },
   WsWelcome: object(
     {
       type: { const: WS_TYPES.WELCOME },
@@ -180,10 +221,20 @@ const defs = {
     {
       type: { const: WS_TYPES.SETTINGS },
       platformsEnabled: { type: 'array', items: ref('Platform'), uniqueItems: true },
+      allowCreate: { type: 'boolean' },
       allowDestructive: { type: 'boolean' },
+      allowProjects: { type: 'boolean' },
       browserLabel: str
     },
     ['type', 'platformsEnabled']
+  ),
+  WsTabs: object(
+    {
+      type: { const: WS_TYPES.TABS },
+      browserId: nonEmpty,
+      tabs: { type: 'array', items: ref('BrowserTab') }
+    },
+    ['type', 'browserId', 'tabs']
   ),
   WsError: object(
     { type: { const: WS_TYPES.ERROR }, code: ref('ErrorCode'), message: str, id: str },

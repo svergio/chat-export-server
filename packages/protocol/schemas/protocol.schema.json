@@ -32,7 +32,8 @@
         "chatgpt",
         "grok",
         "grok-x",
-        "copilot"
+        "copilot",
+        "claude"
       ]
     },
     "Op": {
@@ -62,12 +63,46 @@
         "NOT_BOUND",
         "CONFIRM_REQUIRED",
         "DESTRUCTIVE_DISABLED",
+        "CREATE_DISABLED",
+        "PROJECTS_DISABLED",
         "UNAUTHORIZED",
         "TIMEOUT",
         "HOST_ERROR",
         "NOT_FOUND",
         "BAD_REQUEST"
       ]
+    },
+    "BrowserTab": {
+      "type": "object",
+      "properties": {
+        "tabId": {
+          "type": "integer"
+        },
+        "platform": {
+          "$ref": "#/$defs/Platform"
+        },
+        "url": {
+          "type": "string"
+        },
+        "chatId": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "active": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "tabId",
+        "platform",
+        "url",
+        "chatId",
+        "title",
+        "active"
+      ],
+      "additionalProperties": false
     },
     "Link": {
       "type": "object",
@@ -517,7 +552,64 @@
       ],
       "additionalProperties": false
     },
-    "WsHello": {
+    "WsHelloCurrent": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "hello"
+        },
+        "protocolVersion": {
+          "const": 1
+        },
+        "key": {
+          "type": "string",
+          "minLength": 1
+        },
+        "browserId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "browserLabel": {
+          "type": "string"
+        },
+        "extVersion": {
+          "type": "string"
+        },
+        "platformsEnabled": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Platform"
+          },
+          "uniqueItems": true
+        },
+        "allowCreate": {
+          "type": "boolean"
+        },
+        "allowDestructive": {
+          "type": "boolean"
+        },
+        "allowProjects": {
+          "type": "boolean"
+        },
+        "tabs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/BrowserTab"
+          }
+        }
+      },
+      "required": [
+        "type",
+        "protocolVersion",
+        "key",
+        "browserId",
+        "browserLabel",
+        "extVersion",
+        "platformsEnabled"
+      ],
+      "additionalProperties": false
+    },
+    "WsHelloLegacy": {
       "type": "object",
       "properties": {
         "type": {
@@ -547,8 +639,20 @@
           },
           "uniqueItems": true
         },
+        "allowCreate": {
+          "type": "boolean"
+        },
         "allowDestructive": {
           "type": "boolean"
+        },
+        "allowProjects": {
+          "type": "boolean"
+        },
+        "tabs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/BrowserTab"
+          }
         }
       },
       "required": [
@@ -561,6 +665,16 @@
         "platformsEnabled"
       ],
       "additionalProperties": false
+    },
+    "WsHello": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/WsHelloCurrent"
+        },
+        {
+          "$ref": "#/$defs/WsHelloLegacy"
+        }
+      ]
     },
     "WsWelcome": {
       "type": "object",
@@ -604,7 +718,13 @@
           },
           "uniqueItems": true
         },
+        "allowCreate": {
+          "type": "boolean"
+        },
         "allowDestructive": {
+          "type": "boolean"
+        },
+        "allowProjects": {
           "type": "boolean"
         },
         "browserLabel": {
@@ -614,6 +734,30 @@
       "required": [
         "type",
         "platformsEnabled"
+      ],
+      "additionalProperties": false
+    },
+    "WsTabs": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "tabs"
+        },
+        "browserId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "tabs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/BrowserTab"
+          }
+        }
+      },
+      "required": [
+        "type",
+        "browserId",
+        "tabs"
       ],
       "additionalProperties": false
     },
