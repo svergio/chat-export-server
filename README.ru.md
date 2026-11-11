@@ -51,6 +51,54 @@ chat-export-server start
 
 Данные: `~/.chat-export` (`CHAT_EXPORT_HOME` для переопределения).
 
+## Настройка
+
+### Переменные окружения
+
+| Переменная | Назначение |
+|------------|------------|
+| `CHAT_EXPORT_HOME` | Каталог данных (по умолчанию `~/.chat-export`) |
+| `CHAT_EXPORT_DB_DRIVER` | Драйвер БД |
+| `CHAT_EXPORT_DB_URL` | URL БД |
+| `CHAT_EXPORT_SKIP_MCP_CONFIG` | `1` — не писать Cursor MCP при `key new` |
+
+### `config.json`
+
+Пример (пароли смените на свои):
+
+```json
+{
+  "host": "127.0.0.1",
+  "port": 8765,
+  "exportDir": "~/.chat-export/exports",
+  "rpcTimeoutMs": 60000,
+  "dashboard": {
+    "enabled": true,
+    "username": "admin",
+    "password": "changeme"
+  },
+  "settings": {
+    "platformsEnabled": ["chatgpt", "grok", "grok-x", "copilot", "claude"],
+    "allowDestructive": false
+  }
+}
+```
+
+Сервер по умолчанию: **`127.0.0.1:8765`** (`/health`, `/mcp`, `/ws`, `/dashboard/`).
+
+### Токены
+
+| Префикс | Кто использует |
+|---------|----------------|
+| `cek_` / `cem_` | MCP и CLI (`Authorization: Bearer …`) |
+| `ceb_` | Расширение Chrome, WebSocket `/ws` |
+
+Хеши MCP-ключей в `keys.json`; plaintext — один раз при `key new`.
+
+Демон в дереве сопровождения: `tmp-scripts/ensure-daemon.mjs` (порт `8765`, опция `--sync-mcp-json` для `.cursor/mcp.json`).
+
+Расширение: [README extension — Настройка](https://github.com/svergio/chat-export-extension#%D0%BD%D0%B0%D1%81%D1%82%D1%80%D0%BE%D0%B9%D0%BA%D0%B0).
+
 ## MCP в Cursor (HTTP)
 
 ```json
@@ -89,9 +137,12 @@ chat-export-server start
 ## Поддержка проекта
 
 - **DonationAlerts:** [svwergio_mel](https://www.donationalerts.com/r/svwergio_mel)
-- **Крипто:** только публичные адреса из документации с указанием сети; проверяйте строку перед отправкой.
 
 Донаты добровольны.
+
+## Участие в разработке
+
+[CONTRIBUTING.md](https://github.com/svergio/chat-export-extension/blob/main/CONTRIBUTING.md) (протокол, MCP, конфиг), [вики](https://github.com/svergio/chat-export-extension/wiki/Contributing-RU).
 
 ## Лицензия
 
