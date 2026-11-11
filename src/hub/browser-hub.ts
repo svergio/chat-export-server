@@ -79,7 +79,10 @@ export class BrowserHub {
     this.onAudit = opts.onAudit || (() => {});
   }
 
-  attach(httpServer: HttpServer, opts: { path?: string; aliasPaths?: string[] } = {}): this {
+  attach(
+    httpServer: HttpServer,
+    opts: { path?: string; aliasPaths?: string[]; verifyUpgrade?: (req: IncomingMessage) => boolean } = {}
+  ): this {
     const path = opts.path || '/ws';
     const aliases = opts.aliasPaths || ['/ext'];
     const paths = new Set([path, ...aliases.filter(Boolean)]);
@@ -95,6 +98,11 @@ export class BrowserHub {
         return;
       }
       if (!paths.has(pathname)) return;
+      if (opts.verifyUpgrade && !opts.verifyUpgrade(req)) {
+        socket.write('HTTP/1.1 403 Forbidden\r\nConnection: close\r\n\r\n');
+        socket.destroy();
+        return;
+      }
       wss.handleUpgrade(req, socket, head, (ws) => {
         wss.emit('connection', ws, req);
       });
