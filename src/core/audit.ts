@@ -1,10 +1,11 @@
 import fs from 'node:fs';
+import { redactSecrets } from './logger.js';
 
 // Append-only JSONL audit log. Never write secrets (Bearer keys).
 export function appendAudit(auditPath: string, event: Record<string, unknown>) {
   const entry = {
     ts: new Date().toISOString(),
-    ...event
+    ...redactSecrets(event)
   };
   fs.mkdirSync(dirOf(auditPath), { recursive: true, mode: 0o700 });
   fs.appendFileSync(auditPath, JSON.stringify(entry) + '\n', { mode: 0o600 });

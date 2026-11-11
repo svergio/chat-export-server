@@ -55,20 +55,61 @@ export function writeExportFiles(
   return { dir, files: written };
 }
 
+function stripDotSegments(s: string): string {
+  return s.replace(/^\.+$/, '_');
+}
+
 function sanitize(s: unknown): string {
-  return String(s).replace(/[^a-zA-Z0-9._-]+/g, '_').slice(0, 80);
+  return stripDotSegments(String(s).replace(/[^a-zA-Z0-9._-]+/g, '_').slice(0, 80));
 }
 
 function sanitizeFileName(name: unknown): string {
   const base = path.basename(String(name || ''));
-  return base.replace(/[^\w.\- ()[\]]+/g, '_').slice(0, 180);
+  return stripDotSegments(base.replace(/[^\w.\- ()[\]]+/g, '_').slice(0, 180));
 }
 
-export function resolveExportOutDir(outDir: string, homedir = os.homedir()): string {
+const ALLOWED_HOME_DOT_DIRS = new Set(['.chat-export']);
+
+function realpathOfExistingAncestor(target: string): string {
+  let current = target;
+  const tail: string[] = [];
+  for (;;) {
+    try {
+      return path.join(fs.realpathSync(current), ...tail.reverse());
+    } catch {
+      const parent = path.dirname(current);
+      if (parent === current) return target;
+      tail.push(path.basename(current));
+      current = parent;
+    }
+  }
+}
+
+function relativeInside(root: string, target: string): string | null {
+  const rel = path.relative(realpathOfExistingAncestor(path.resolve(root)), target);
+  if (!rel || rel.startsWith('..') || path.isAbsolute(rel)) return null;
+  return rel;
+}
+
+export function resolveExportOutDir(outDir: string, homedir = os.homedir(), extraRoots: string[] = []): string {
   let p = String(outDir || '').trim();
   if (!p) throw new ProtocolError(ERROR_CODES.BAD_REQUEST, 'outDir required');
   if (p.startsWith('~/')) p = path.join(homedir, p.slice(2));
   else if (p === '~') p = homedir;
-  if (!path.isAbsolute(p)) p = path.resolve(p);
-  return p;
+  if (!path.isAbsolute(p)) {
+    throw new ProtocolError(ERROR_CODES.BAD_REQUEST, 'outDir must be an absolute path under HOME');
+  }
+  const resolved = realpathOfExistingAncestor(path.resolve(p));
+  for (const root of extraRoots) {
+    if (root && relativeInside(root, resolved) !== null) return resolved;
+  }
+  const rel = relativeInside(homedir, resolved);
+  if (rel === null) {
+    throw new ProtocolError(ERROR_CODES.BAD_REQUEST, 'outDir must be inside HOME');
+  }
+  const first = rel.split(path.sep)[0];
+  if (first.startsWith('.') && !ALLOWED_HOME_DOT_DIRS.has(first)) {
+    throw new ProtocolError(ERROR_CODES.BAD_REQUEST, 'outDir must not be inside a hidden HOME directory');
+  }
+  return resolved;
 }

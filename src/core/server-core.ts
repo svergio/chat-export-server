@@ -1,3 +1,4 @@
+import os from 'node:os';
 import {
   ERROR_CODES,
   ProtocolError,
@@ -405,7 +406,7 @@ export class ServerCore {
     if (op === 'chats.export' && args && typeof args === 'object') {
       const raw = args as Record<string, unknown>;
       if (raw.outDir !== undefined && String(raw.outDir).trim() !== '') {
-        exportRoot = resolveExportOutDir(String(raw.outDir), this.home);
+        exportRoot = resolveExportOutDir(String(raw.outDir), os.homedir(), [this.home, exportRoot]);
       }
       const { outDir: _drop, ...rest } = raw;
       rpcArgs = rest;
