@@ -1,4 +1,6 @@
-export type Platform = 'chatgpt' | 'grok' | 'grok-x' | 'copilot' | 'claude';
+import type { PLATFORMS } from '@chat-export/protocol';
+
+export type Platform = (typeof PLATFORMS)[number];
 
 export interface HomePaths {
   home: string;

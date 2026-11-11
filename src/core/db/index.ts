@@ -10,7 +10,7 @@ interface DatabaseConfigSource {
   database?: Partial<DatabaseConfig>;
 }
 
-export { SCHEMA_VERSION, schemaStatements } from './schema.js';
+export { SCHEMA_COLUMNS, SCHEMA_INDEXES, SCHEMA_VERSION, schemaStatements } from './schema.js';
 export { SqliteAdapter, SQLITE_PRAGMAS } from './sqlite-adapter.js';
 export { createExternalAdapter, redactUrl, REQUIRED_METHODS } from './external-adapter.js';
 

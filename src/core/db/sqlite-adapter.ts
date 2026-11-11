@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { DatabaseSync, type StatementSync } from 'node:sqlite';
-import { SCHEMA_VERSION, schemaStatements } from './schema.js';
+import { SCHEMA_COLUMNS, SCHEMA_INDEXES, SCHEMA_VERSION, schemaStatements } from './schema.js';
 import type { DatabaseAdapter, Row, RunResult, SqlParam } from '../../types.js';
 
 export const SQLITE_PRAGMAS = Object.freeze([
@@ -94,6 +94,13 @@ export class SqliteAdapter implements DatabaseAdapter {
   migrate(): void {
     this.transaction(() => {
       for (const stmt of schemaStatements({ fts: true })) this.db.exec(stmt);
+      for (const { table, column, type } of SCHEMA_COLUMNS) {
+        const columns = this.db.prepare(`PRAGMA table_info(${table})`).all() as Array<{ name: string }>;
+        if (!columns.some((c) => c.name === column)) {
+          this.db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${type}`);
+        }
+      }
+      for (const stmt of SCHEMA_INDEXES) this.db.exec(stmt);
       this.db.exec('PRAGMA user_version = ' + SCHEMA_VERSION);
     });
   }
