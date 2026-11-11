@@ -56,6 +56,16 @@ chat-export-server key list     # fingerprints only
 chat-export-server status
 ```
 
+## Background jobs
+
+Long-running work (ask, export, bulk delete) uses per-browser lanes. MCP tools:
+
+- `jobs_enqueue` — returns `job_id` immediately
+- `jobs_status` — poll until `done` / `error` / `cancelled`
+- `jobs_list`, `jobs_cancel`
+
+Lanes start when you run `chat-export-server start` (not for one-shot CLI). See `projects/Chat Export/docs/post-ts-server-followups.md` for gaps (`chat_ask`, `chats_export async:true`, `platform.host_state`).
+
 ## Cursor MCP config
 
 ### HTTP (server already running)
