@@ -1,4 +1,5 @@
 import http from 'node:http';
+import { createRequire } from 'node:module';
 import type { AddressInfo } from 'node:net';
 import { ServerCore } from './core/server-core.js';
 import { BrowserHub } from './hub/browser-hub.js';
@@ -17,7 +18,8 @@ import {
   readLimitedBody
 } from './core/net-guard.js';
 
-const PKG_VERSION = '0.1.0';
+const require = createRequire(import.meta.url);
+const PKG_VERSION = String((require('../package.json') as { version?: string }).version || '1.0.1');
 
 export interface StartServerOptions {
   home?: string;
