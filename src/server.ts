@@ -20,7 +20,7 @@ import {
 } from './core/net-guard.js';
 
 const require = createRequire(import.meta.url);
-const PKG_VERSION = String((require('../package.json') as { version?: string }).version || '1.0.2');
+const PKG_VERSION = String((require('../package.json') as { version?: string }).version || '1.0.3');
 
 export interface StartServerOptions {
   home?: string;

@@ -10,7 +10,7 @@
 
 ## Why this MCP (for awesome-list reviewers)
 
-Most LLM MCP servers wrap a **vendor HTTP API** (keys, quotas, cloud data path). Chat Export is different: the agent talks MCP to a **local** process; that process drives the **web UIs you are already logged into** via the Chrome extension bridge. No OpenAI/Anthropic/xAI API keys for chat ops, no chat bodies leaving `127.0.0.1`, and delete/create stay off until you opt in (`allowDestructive` + `confirm`). Pair with the [extension zip](https://github.com/svergio/chat-export-extension/releases/tag/v2.0.2); point Cursor (or any MCP client) at `http://127.0.0.1:8765/mcp`.
+Most LLM MCP servers wrap a **vendor HTTP API** (keys, quotas, cloud data path). Chat Export is different: the agent talks MCP to a **local** process; that process drives the **web UIs you are already logged into** via the Chrome extension bridge. No OpenAI/Anthropic/xAI API keys for chat ops, no chat bodies leaving `127.0.0.1`, and delete/create stay off until you opt in (`allowDestructive` + `confirm`). Pair with the [extension zip](https://github.com/svergio/chat-export-extension/releases/tag/v2.0.3); point Cursor (or any MCP client) at `http://127.0.0.1:8765/mcp`.
 
 ## The problem
 

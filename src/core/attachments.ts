@@ -162,6 +162,8 @@ export function loadFiles(
 
 export const EXPORT_RPC_TIMEOUT_MS = 120_000;
 export const EXPORT_HEAVY_RPC_TIMEOUT_MS = 180_000;
+export const SEND_RPC_TIMEOUT_MS = 240_000;
+export const SEND_RPC_TIMEOUT_MAX_MS = 300_000;
 
 export function rpcTimeoutForArgs(baseMs: number, args: Record<string, any> | undefined, op: string): number {
   const base = Number(baseMs) || 60_000;
@@ -169,6 +171,14 @@ export function rpcTimeoutForArgs(baseMs: number, args: Record<string, any> | un
     const formats = Array.isArray(args?.formats) ? args.formats : [];
     const heavy = formats.includes('pdf') || formats.length >= 3 || args?.branch === 'all';
     return Math.max(base, heavy ? EXPORT_HEAVY_RPC_TIMEOUT_MS : EXPORT_RPC_TIMEOUT_MS);
+  }
+  if (op === 'chats.send' || op === 'chats.create') {
+    const fromArgs = Number(args?.timeout_s ?? args?.timeoutS ?? args?.timeoutMs);
+    let floor = SEND_RPC_TIMEOUT_MS;
+    if (Number.isFinite(fromArgs) && fromArgs > 0) {
+      floor = fromArgs > 1000 ? fromArgs : fromArgs * 1000;
+    }
+    return Math.min(Math.max(base, floor), SEND_RPC_TIMEOUT_MAX_MS);
   }
   let bytes = 0;
   if (args?.files) {
