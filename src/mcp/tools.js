@@ -155,14 +155,19 @@ export function registerTools(server, core) {
         platform: Platform,
         cursor: z.string().nullable().optional(),
         limit: z.number().int().min(1).max(100).optional(),
-        query: z.string().optional()
+        query: z.string().optional(),
+        includeProjectChats: z
+          .boolean()
+          .optional()
+          .describe('When true (default), also list chats inside projects via containers.*')
       }
     },
-    async ({ platform, cursor, limit, query }) => {
+    async ({ platform, cursor, limit, query, includeProjectChats }) => {
       const args = {};
       if (cursor !== undefined) args.cursor = cursor;
       if (limit !== undefined) args.limit = limit;
       if (query !== undefined) args.query = query;
+      if (includeProjectChats !== undefined) args.includeProjectChats = includeProjectChats;
       return core.chatsList(platform, args);
     }
   );
@@ -310,6 +315,125 @@ export function registerTools(server, core) {
       }
     },
     async (input) => core.chatCacheDelete(input)
+  );
+
+  const ContainersListInput = {
+    platform: Platform,
+    cursor: z.string().nullable().optional(),
+    limit: z.number().int().min(1).max(100).optional(),
+    query: z.string().optional()
+  };
+
+  function pickContainersListArgs(input) {
+    const args = {};
+    if (input.cursor !== undefined) args.cursor = input.cursor;
+    if (input.limit !== undefined) args.limit = input.limit;
+    if (input.query !== undefined) args.query = input.query;
+    return args;
+  }
+
+  registerDetailedTool(
+    server,
+    core,
+    'projects_list',
+    {
+      description: 'List projects/folders (containers) on a platform via the bound browser.',
+      inputSchema: ContainersListInput
+    },
+    async (input) => core.containersList(input.platform, pickContainersListArgs(input))
+  );
+
+  registerDetailedTool(
+    server,
+    core,
+    'containers_list',
+    {
+      description: 'Alias of projects_list: list projects/folders on a platform.',
+      inputSchema: ContainersListInput
+    },
+    async (input) => core.containersList(input.platform, pickContainersListArgs(input))
+  );
+
+  registerDetailedTool(
+    server,
+    core,
+    'projects_chats',
+    {
+      description: 'List chats inside a specific project/container.',
+      inputSchema: {
+        platform: Platform,
+        containerId: z.string().min(1),
+        cursor: z.string().nullable().optional(),
+        limit: z.number().int().min(1).max(100).optional()
+      }
+    },
+    async ({ platform, containerId, cursor, limit }) => {
+      const args = { containerId };
+      if (cursor !== undefined) args.cursor = cursor;
+      if (limit !== undefined) args.limit = limit;
+      return core.containersChats(platform, args);
+    }
+  );
+
+  registerDetailedTool(
+    server,
+    core,
+    'projects_create',
+    {
+      description: 'Create a project/folder on the platform (requires allowProjects on the browser).',
+      inputSchema: {
+        platform: Platform,
+        name: z.string().min(1),
+        description: z.string().optional(),
+        instructions: z.string().optional()
+      }
+    },
+    async ({ platform, name, description, instructions }) => {
+      const args = { name };
+      if (description !== undefined) args.description = description;
+      if (instructions !== undefined) args.instructions = instructions;
+      return core.containersCreate(platform, args);
+    }
+  );
+
+  registerDetailedTool(
+    server,
+    core,
+    'projects_delete',
+    {
+      description:
+        'Delete a project/folder. Requires confirm:true, allowProjects, and allowDestructive on the browser.',
+      inputSchema: {
+        platform: Platform,
+        containerId: z.string().min(1),
+        name: z.string().optional(),
+        confirm: z.boolean().describe('must be true to proceed')
+      }
+    },
+    async ({ platform, containerId, name, confirm }) => {
+      const args = { containerId, confirm: confirm === true };
+      if (name !== undefined) args.name = name;
+      return core.containersDelete(platform, args, { confirm: confirm === true });
+    }
+  );
+
+  registerDetailedTool(
+    server,
+    core,
+    'projects_move_chat',
+    {
+      description: 'Move a chat into a project (containerId null removes from project).',
+      inputSchema: {
+        platform: Platform,
+        chatId: z.string().min(1),
+        containerId: z.string().nullable().optional()
+      }
+    },
+    async ({ platform, chatId, containerId }) => {
+      const args = { chatId };
+      if (containerId !== undefined) args.containerId = containerId;
+      return core.containersMoveChat(platform, args);
+    }
   );
 
   registerDetailedTool(
