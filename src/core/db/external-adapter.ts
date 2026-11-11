@@ -1,7 +1,7 @@
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import { ERROR_CODES, ProtocolError } from '@chat-export/protocol';
-import { schemaStatements } from './schema.js';
+import { SCHEMA_COLUMNS, SCHEMA_INDEXES, schemaStatements } from './schema.js';
 import type { DatabaseAdapter, Row, SqlParam } from '../../types.js';
 
 export const REQUIRED_METHODS = Object.freeze(['exec', 'run', 'get', 'all', 'transaction', 'migrate', 'close']);
@@ -54,7 +54,7 @@ export interface ExternalAdapter extends DatabaseAdapter {
   inner: any;
 }
 
-// Wraps a synchronous driver module exporting createAdapter({ url, driver, schemaStatements })
+// Wraps a synchronous driver module exporting createAdapter({ url, driver, schemaStatements, schemaColumns, schemaIndexes })
 // so the rest of the server sees the same interface as SqliteAdapter.
 export function createExternalAdapter(opts: { driver?: string; url?: string; home?: string }): ExternalAdapter {
   const { url = '', home } = opts;
@@ -70,7 +70,7 @@ export function createExternalAdapter(opts: { driver?: string; url?: string; hom
   if (typeof factory !== 'function') {
     throw hostError(`external database driver "${driver}" must export createAdapter(options)`, { module: moduleId });
   }
-  const inner = factory({ url, driver, schemaStatements });
+  const inner = factory({ url, driver, schemaStatements, schemaColumns: SCHEMA_COLUMNS, schemaIndexes: SCHEMA_INDEXES });
   const missing = REQUIRED_METHODS.filter((m) => typeof inner?.[m] !== 'function');
   if (missing.length) {
     throw hostError(`external database driver "${driver}" is missing methods: ${missing.join(', ')}`, {
