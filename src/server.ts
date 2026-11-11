@@ -8,7 +8,14 @@ import { resolveHome } from './core/paths.js';
 import { ALERT_CODES } from './core/logger.js';
 import { createDashboardApi } from './dashboard-api.js';
 import type { JobManagerOptions } from './core/jobs/job-manager.js';
-import { BodyTooLargeError, isAllowedHostHeader, isAllowedOrigin, readLimitedBody } from './core/net-guard.js';
+import {
+  BodyTooLargeError,
+  corsHeadersForAllowedOrigin,
+  enrollCorsPreflightHeaders,
+  isAllowedHostHeader,
+  isAllowedOrigin,
+  readLimitedBody
+} from './core/net-guard.js';
 
 const PKG_VERSION = '0.1.0';
 
@@ -31,9 +38,19 @@ async function readJsonBody(req: http.IncomingMessage): Promise<any> {
   return JSON.parse(body.toString('utf8'));
 }
 
-function forbid(res: http.ServerResponse, message: string): void {
-  res.writeHead(403, { 'Content-Type': 'application/json' });
+function forbid(res: http.ServerResponse, message: string, extraHeaders?: Record<string, string>): void {
+  res.writeHead(403, { 'Content-Type': 'application/json', ...extraHeaders });
   res.end(JSON.stringify({ error: { code: 'FORBIDDEN', message } }));
+}
+
+function jsonWithOptionalCors(
+  res: http.ServerResponse,
+  status: number,
+  payload: unknown,
+  cors: Record<string, string> | null
+): void {
+  res.writeHead(status, { 'Content-Type': 'application/json', ...(cors || {}) });
+  res.end(JSON.stringify(payload));
 }
 
 export async function startServer(opts: StartServerOptions = {}) {
@@ -111,24 +128,62 @@ export async function startServer(opts: StartServerOptions = {}) {
         return;
       }
       if (url.pathname === '/enroll') {
+        const enrollCors = corsHeadersForAllowedOrigin(req);
+        if (req.method === 'OPTIONS') {
+          const preflight = enrollCorsPreflightHeaders(req);
+          if (preflight) {
+            res.writeHead(204, preflight);
+            res.end();
+            return;
+          }
+          jsonWithOptionalCors(
+            res,
+            405,
+            { error: { code: 'METHOD_NOT_ALLOWED', message: 'POST required' } },
+            enrollCors
+          );
+          return;
+        }
         if (req.method !== 'POST') {
-          res.writeHead(405, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({ error: { code: 'METHOD_NOT_ALLOWED', message: 'POST required' } }));
+          jsonWithOptionalCors(
+            res,
+            405,
+            { error: { code: 'METHOD_NOT_ALLOWED', message: 'POST required' } },
+            enrollCors
+          );
           return;
         }
         if (!isLoopbackAddress(req.socket.remoteAddress || '')) {
-          forbid(res, 'localhost only');
+          forbid(res, 'localhost only', enrollCors || undefined);
           return;
         }
         if (!/^application\/json\b/i.test(String(req.headers['content-type'] || ''))) {
-          res.writeHead(415, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({ error: { code: 'UNSUPPORTED_MEDIA_TYPE', message: 'application/json required' } }));
+          jsonWithOptionalCors(
+            res,
+            415,
+            { error: { code: 'UNSUPPORTED_MEDIA_TYPE', message: 'application/json required' } },
+            enrollCors
+          );
           return;
         }
-        const body = await readJsonBody(req);
-        const enrolled = core.browserEnroll(body, { hostIp: req.socket.remoteAddress || '' });
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ ok: true, browser: enrolled }));
+        try {
+          const body = await readJsonBody(req);
+          const enrolled = core.browserEnroll(body, { hostIp: req.socket.remoteAddress || '' });
+          jsonWithOptionalCors(res, 200, { ok: true, browser: enrolled }, enrollCors);
+        } catch (err: any) {
+          if (err instanceof BodyTooLargeError) {
+            jsonWithOptionalCors(
+              res,
+              413,
+              { error: { code: 'PAYLOAD_TOO_LARGE', message: 'request body too large' } },
+              enrollCors
+            );
+            return;
+          }
+          const message = err?.message || 'enroll failed';
+          jsonWithOptionalCors(res, 400, { error: { code: 'ENROLL_FAILED', message } }, enrollCors);
+          core.audit({ action: 'browser.enroll', ok: false, message });
+        }
         return;
       }
       if (await handleMcpHttp(req, res, core, url)) return;
