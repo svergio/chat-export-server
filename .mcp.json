@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "chat-export": {
+      "url": "http://127.0.0.1:8765/mcp",
+      "headers": {
+        "Authorization": "Bearer cem_YOUR_KEY_HERE"
+      }
+    }
+  }
+}

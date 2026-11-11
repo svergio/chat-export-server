@@ -1,0 +1,12 @@
+# Local MCP (requires chat-export-extension + Chrome). Not a hosted remote server.
+startCommand:
+  type: stdio
+  configSchema:
+    type: object
+    properties: {}
+  commandFunction: |-
+    (config) => ({
+      command: "npm",
+      args: ["run", "mcp"],
+      env: {}
+    })
