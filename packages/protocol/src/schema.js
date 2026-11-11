@@ -176,7 +176,60 @@ const defs = {
     { items: { type: 'array', items: ref('Chat') }, nextCursor: { type: ['string', 'null'] } },
     ['items', 'nextCursor']
   ),
-  ChatsGetArgs: object({ chatId: str }, ['chatId']),
+  ChatsGetArgs: object(
+    { chatId: str, branch: { type: 'string', enum: ['active', 'all'] } },
+    ['chatId']
+  ),
+  FileRef: object({ path: nonEmpty, name: nonEmpty, mime: nonEmpty }, ['path']),
+  WireFile: object(
+    { name: nonEmpty, mime: nonEmpty, size: { type: 'integer', minimum: 0 }, b64: str },
+    ['name', 'mime', 'size', 'b64']
+  ),
+  ChatsSendArgs: object(
+    {
+      chatId: nonEmpty,
+      text: nonEmpty,
+      model: str,
+      mode: str,
+      toggles: { type: 'array', items: str, uniqueItems: true },
+      tools: { type: 'array', items: nonEmpty },
+      files: { type: 'array', items: ref('WireFile') }
+    },
+    ['chatId', 'text']
+  ),
+  McpChatsSendArgs: object(
+    {
+      chatId: nonEmpty,
+      text: nonEmpty,
+      model: str,
+      mode: str,
+      toggles: { type: 'array', items: str, uniqueItems: true },
+      tools: { type: 'array', items: nonEmpty },
+      files: { type: 'array', items: ref('FileRef') }
+    },
+    ['chatId', 'text']
+  ),
+  ChatsSendResult: ref('Chat'),
+  PlatformHostStateArgs: object({ chatId: str }),
+  PlatformHostStateResult: object(
+    {
+      platform: ref('Platform'),
+      generating: { type: 'boolean' },
+      busy: { type: 'boolean' },
+      banner: { type: ['string', 'null'] },
+      composerReady: { type: 'boolean' }
+    },
+    ['platform', 'generating', 'busy', 'banner', 'composerReady']
+  ),
+  McpChatsExportArgs: object(
+    {
+      chatId: str,
+      formats: { type: 'array', items: ref('ExportFormat'), minItems: 1, uniqueItems: true },
+      outDir: str,
+      branch: { type: 'string', enum: ['active', 'all'] }
+    },
+    ['chatId', 'formats']
+  ),
   ChatsGetResult: ref('ExportPayload'),
   ChatsExportArgs: object(
     { chatId: str, formats: { type: 'array', items: ref('ExportFormat'), minItems: 1, uniqueItems: true } },
@@ -303,6 +356,8 @@ export const OP_SCHEMAS = Object.freeze({
   'chats.export': { args: 'ChatsExportArgs', result: 'ChatsExportResult' },
   'chats.create': { args: 'ChatsCreateArgs', result: 'ChatsCreateResult' },
   'chats.delete': { args: 'ChatsDeleteArgs', result: 'ChatsDeleteResult' },
+  'chats.send': { args: 'ChatsSendArgs', result: 'ChatsSendResult' },
+  'platform.host_state': { args: 'PlatformHostStateArgs', result: 'PlatformHostStateResult' },
   'containers.list': { args: 'ContainersListArgs', result: 'ContainersListResult' },
   'containers.chats': { args: 'ContainersChatsArgs', result: 'ChatsListResult' },
   'containers.create': { args: 'ContainersCreateArgs', result: 'ContainersCreateResult' },

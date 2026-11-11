@@ -21,13 +21,14 @@ import {
   assertProjectsAllowed,
   mergePlatformsList
 } from './settings.js';
-import { writeExportFiles } from './export-files.js';
+import { resolveExportOutDir, writeExportFiles } from './export-files.js';
 import { toProtocolError } from './errors.js';
 import { resolveHome } from './paths.js';
 import { openDatabase, describeDatabase } from './db/index.js';
 import { ChatCacheManager } from './chat-cache.js';
 import { createLogger, type FileLogger } from './logger.js';
-import { JobManager, type JobManagerOptions } from './jobs/job-manager.js';
+import { JobManager, clampAskTimeout, type JobManagerOptions } from './jobs/job-manager.js';
+import { isTerminal } from './jobs/job-store.js';
 import { loadFiles, type FileRef } from './attachments.js';
 import type { BrowserHub } from '../hub/browser-hub.js';
 import type { DatabaseAdapter, LoadedConfig, Row } from '../types.js';
@@ -399,8 +400,19 @@ export class ServerCore {
       throw new ProtocolError(ERROR_CODES.NOT_BOUND, 'no browser bound');
     }
 
+    let rpcArgs = args;
+    let exportRoot = resolveExportDir(this.config);
+    if (op === 'chats.export' && args && typeof args === 'object') {
+      const raw = args as Record<string, unknown>;
+      if (raw.outDir !== undefined && String(raw.outDir).trim() !== '') {
+        exportRoot = resolveExportOutDir(String(raw.outDir), this.home);
+      }
+      const { outDir: _drop, ...rest } = raw;
+      rpcArgs = rest;
+    }
+
     if (KNOWN_PROTOCOL_OPS.has(op)) {
-      const reqCheck = validateRpcRequest({ id: 'precheck', op, platform, args });
+      const reqCheck = validateRpcRequest({ id: 'precheck', op, platform, args: rpcArgs });
       if (!reqCheck.valid) {
         throw new ProtocolError(
           ERROR_CODES.BAD_REQUEST,
@@ -428,11 +440,11 @@ export class ServerCore {
     }
 
     try {
-      const data = await hub.rpc({ op, platform, args });
+      const data = await hub.rpc({ op, platform, args: rpcArgs });
       if (op === 'chats.export') {
         const written = writeExportFiles(
-          resolveExportDir(this.config),
-          { platform, chatId: data?.payload?.chatId || args.chatId },
+          exportRoot,
+          { platform, chatId: data?.payload?.chatId || rpcArgs.chatId },
           data.files || []
         );
         const result = {
@@ -558,6 +570,36 @@ export class ServerCore {
     return this.chatCache.chatRead(platform, args || {});
   }
 
+  async chatAsk(args: OpArgs = {}) {
+    const platform = String(args.platform || '').trim();
+    const prompt = String(args.prompt || '').trim();
+    if (!platform) throw new ProtocolError(ERROR_CODES.INVALID_ARGS, 'platform required');
+    if (!prompt) throw new ProtocolError(ERROR_CODES.INVALID_ARGS, 'prompt required');
+    const wait = args.wait !== false;
+    const spec: OpArgs = { kind: 'ask', platform, prompt };
+    const passthrough = ['chatId', 'browserId', 'timeout_s', 'title', 'model', 'mode', 'toggles', 'tools', 'files'] as const;
+    for (const k of passthrough) {
+      if (args[k] !== undefined) spec[k] = args[k];
+    }
+    const enqueued = this.jobs.enqueue(spec as Parameters<JobManager['enqueue']>[0]);
+    if (!wait) {
+      return { ...enqueued, status: enqueued.status || 'queued' };
+    }
+    const timeoutMs = (clampAskTimeout(spec.timeout_s) + 60) * 1000;
+    const done = await this.jobs.waitFor(enqueued.job_id, timeoutMs);
+    if (!done || !isTerminal(done.status)) {
+      throw new ProtocolError(ERROR_CODES.TIMEOUT, 'chat_ask wait timed out', { job_id: enqueued.job_id });
+    }
+    if (done.status === 'error') {
+      const code = done.error?.code || ERROR_CODES.HOST_ERROR;
+      throw new ProtocolError(code, done.error?.message || 'ask failed', done.error || undefined);
+    }
+    if (done.status === 'cancelled') {
+      throw new ProtocolError(ERROR_CODES.BAD_REQUEST, 'ask cancelled', { job_id: done.id });
+    }
+    return { job_id: done.id, status: done.status, ...(done.result || {}) };
+  }
+
   chatCacheSync(args?: OpArgs) {
     return this.chatCache.sync(args || {});
   }
@@ -648,7 +690,7 @@ export class ServerCore {
       );
     });
     const artifacts = writeMcpTokenArtifacts(this.home, token, {
-      searchDirs: [this.home, process.cwd()]
+      searchDirs: [process.cwd()]
     });
     return {
       key: token,

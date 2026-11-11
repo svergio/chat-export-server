@@ -1,5 +1,6 @@
 import { createHash, randomBytes, scryptSync, timingSafeEqual } from 'node:crypto';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -105,13 +106,20 @@ export function findCursorMcpConfig(searchDirs: Array<string | null | undefined>
     path.resolve(MODULE_DIR, '..', '..'),
     path.resolve(MODULE_DIR, '..', '..', '..')
   ];
+  const userGlobal = path.join(os.homedir(), '.cursor', 'mcp.json');
+  const seen = new Set<string>();
+  const ordered: string[] = [];
   for (const root of roots) {
     for (const dir of parentDirs(root)) {
       const candidate = path.join(dir, '.cursor', 'mcp.json');
-      if (fs.existsSync(candidate)) return candidate;
+      if (fs.existsSync(candidate) && !seen.has(candidate)) {
+        seen.add(candidate);
+        ordered.push(candidate);
+      }
     }
   }
-  return null;
+  const workspace = ordered.filter((p) => p !== userGlobal);
+  return workspace[0] ?? ordered[0] ?? null;
 }
 
 export interface McpArtifactOptions {
@@ -156,6 +164,8 @@ export function writeMcpTokenArtifacts(home: string, token: string, opts: McpArt
   if (process.env.CHAT_EXPORT_SKIP_MCP_CONFIG === '1') {
     return { tokenPath, mcpConfig: { updated: false, filePath: null } };
   }
-  const mcpConfig = updateCursorMcpConfig(token, { ...opts, searchDirs: [home, ...(opts.searchDirs || [])] });
+  const cwd = process.cwd();
+  const searchDirs = [cwd, ...(opts.searchDirs || []).filter((dir) => dir && path.resolve(dir) !== cwd)];
+  const mcpConfig = updateCursorMcpConfig(token, { ...opts, searchDirs });
   return { tokenPath, mcpConfig };
 }

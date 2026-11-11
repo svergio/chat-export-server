@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { PLATFORMS, EXPORT_FORMATS, ERROR_CODES } from '@chat-export/protocol';
+import { PLATFORMS, EXPORT_FORMATS, ERROR_CODES, RETRYABLE_ERROR_CODES } from '@chat-export/protocol';
 import { toProtocolError } from '../core/errors.js';
 import type { ServerCore } from '../core/server-core.js';
 
@@ -17,7 +17,12 @@ const FileRef = z.object({
   mime: z.string().optional()
 });
 
-const RETRYABLE_CODES = new Set<string>([ERROR_CODES.TIMEOUT, ERROR_CODES.HOST_ERROR, ERROR_CODES.NOT_BOUND]);
+const RETRYABLE_CODES = new Set<string>([
+  ...RETRYABLE_ERROR_CODES,
+  ERROR_CODES.TIMEOUT,
+  ERROR_CODES.HOST_ERROR,
+  ERROR_CODES.NOT_BOUND
+]);
 
 function okResult(data: unknown) {
   return {
@@ -194,10 +199,63 @@ export function registerTools(server: McpServer, core: ServerCore): void {
       description: 'Get one chat as ExportPayload. Empty chatId means the open tab.',
       inputSchema: {
         platform: Platform,
-        chatId: z.string().describe('chat id, or empty string for current tab')
+        chatId: z.string().describe('chat id, or empty string for current tab'),
+        branch: z.enum(['active', 'all']).optional()
       }
     },
-    async ({ platform, chatId }) => core.chatsGet(platform, { chatId })
+    async ({ platform, chatId, branch }) => {
+      const args: ToolArgs = { chatId };
+      if (branch !== undefined) args.branch = branch;
+      return core.chatsGet(platform, args);
+    }
+  );
+
+  registerDetailedTool(
+    server,
+    core,
+    'chat_outline',
+    {
+      description:
+        'Turn index and previews for a chat (auto-caches long threads in SQLite). Empty chatId uses the open tab.',
+      inputSchema: {
+        platform: Platform,
+        chatId: z.string().optional(),
+        previewChars: z.number().int().min(40).max(300).optional(),
+        branch: z.enum(['active', 'all']).optional()
+      }
+    },
+    async (input) => {
+      const args: ToolArgs = {};
+      if (input.chatId !== undefined) args.chatId = input.chatId;
+      if (input.previewChars !== undefined) args.previewChars = input.previewChars;
+      if (input.branch !== undefined) args.branch = input.branch;
+      return core.chatOutline(input.platform, args);
+    }
+  );
+
+  registerDetailedTool(
+    server,
+    core,
+    'chat_read',
+    {
+      description: 'Read a slice of chat turns with char limits (auto-cache). Use start/end turn indexes from chat_outline.',
+      inputSchema: {
+        platform: Platform,
+        chatId: z.string(),
+        start: z.number().int().optional(),
+        end: z.number().int().optional(),
+        maxChars: z.number().int().min(200).max(20000).optional(),
+        branch: z.enum(['active', 'all']).optional()
+      }
+    },
+    async (input) => {
+      const args: ToolArgs = { chatId: input.chatId };
+      if (input.start !== undefined) args.start = input.start;
+      if (input.end !== undefined) args.end = input.end;
+      if (input.maxChars !== undefined) args.maxChars = input.maxChars;
+      if (input.branch !== undefined) args.branch = input.branch;
+      return core.chatRead(input.platform, args);
+    }
   );
 
   registerDetailedTool(
@@ -206,14 +264,28 @@ export function registerTools(server: McpServer, core: ServerCore): void {
     'chats_export',
     {
       description:
-        'Export a chat via the extension builders; server writes files under exportDir and returns paths.',
+        'Export a chat via the extension builders; server writes files under exportDir and returns paths. Set async:true to enqueue export job.',
       inputSchema: {
         platform: Platform,
         chatId: z.string(),
-        formats: z.array(ExportFormat).min(1)
+        formats: z.array(ExportFormat).min(1),
+        outDir: z.string().optional().describe('Absolute path under HOME; default server exportDir'),
+        branch: z.enum(['active', 'all']).optional(),
+        async: z.boolean().optional().describe('When true, returns job_id from jobs_enqueue instead of blocking')
       }
     },
-    async ({ platform, chatId, formats }) => core.chatsExport(platform, { chatId, formats })
+    async ({ platform, chatId, formats, outDir, branch, async: asyncExport }) => {
+      if (asyncExport === true) {
+        const spec: ToolArgs = { kind: 'export', platform, chatId, formats };
+        if (outDir !== undefined) spec.outDir = outDir;
+        if (branch !== undefined) spec.branch = branch;
+        return core.jobs.enqueue(spec as Parameters<typeof core.jobs.enqueue>[0]);
+      }
+      const args: ToolArgs = { chatId, formats };
+      if (outDir !== undefined) args.outDir = outDir;
+      if (branch !== undefined) args.branch = branch;
+      return core.chatsExport(platform, args);
+    }
   );
 
   registerDetailedTool(
@@ -233,6 +305,31 @@ export function registerTools(server: McpServer, core: ServerCore): void {
       if (title !== undefined) args.title = title;
       return core.chatsCreate(platform, args);
     }
+  );
+
+  registerDetailedTool(
+    server,
+    core,
+    'chat_ask',
+    {
+      description:
+        'Create or continue a chat, send a prompt, and wait for the assistant reply (or enqueue with wait:false).',
+      inputSchema: {
+        platform: Platform,
+        prompt: z.string().min(1),
+        chatId: z.string().optional(),
+        title: z.string().optional(),
+        timeout_s: z.number().int().min(10).max(300).optional(),
+        wait: z.boolean().optional().describe('default true; false returns job_id immediately'),
+        browserId: z.string().optional(),
+        model: z.string().optional(),
+        mode: z.string().optional(),
+        toggles: z.array(z.string()).optional(),
+        tools: z.array(z.string()).optional(),
+        files: z.array(FileRef).optional()
+      }
+    },
+    async (input) => core.chatAsk(input)
   );
 
   const TurnInput = z.object({
