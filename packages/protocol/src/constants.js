@@ -1,7 +1,16 @@
 export const PROTOCOL_VERSION = 1;
 
-/** @typedef {'chatgpt' | 'grok' | 'grok-x' | 'copilot' | 'claude'} Platform */
-export const PLATFORMS = Object.freeze(['chatgpt', 'grok', 'grok-x', 'copilot', 'claude']);
+/** @typedef {'chatgpt' | 'grok' | 'grok-x' | 'copilot' | 'claude' | 'qwen' | 'deepseek' | 'perplexity'} Platform */
+export const PLATFORMS = Object.freeze([
+  'chatgpt',
+  'grok',
+  'grok-x',
+  'copilot',
+  'claude',
+  'qwen',
+  'deepseek',
+  'perplexity'
+]);
 
 /** @typedef {'chats.list' | 'chats.get' | 'chats.export' | 'chats.create' | 'chats.delete' | 'chats.send' |
  *   'platform.capabilities' | 'platform.host_state' |

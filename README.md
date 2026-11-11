@@ -1,76 +1,203 @@
+[English](README.md) | [Русский](README.ru.md) · [![Support on DonationAlerts](https://img.shields.io/badge/Support-DonationAlerts-orange)](https://www.donationalerts.com/r/svwergio_mel)
+
 # chat-export-server
 
-Local MCP server for the Chat Export browser extension. Lists, exports, creates, and deletes your own chats on ChatGPT, Grok, X Grok, and GitHub Copilot through the extension in your browser. Everything stays on `127.0.0.1`.
+**Local MCP server** for the [Chat Export](https://github.com/svergio/chat-export-extension) Chrome extension. List, read, export, create, delete, and **ask** in your own chats on **eight** web providers (ChatGPT, Grok, X Grok, Claude, GitHub Copilot, Qwen, DeepSeek, Perplexity) — through the extension in **your** browser. Everything stays on `127.0.0.1`: job queues, SQLite chat cache, audit log, optional [dashboard](https://github.com/svergio/chat-export-dashboard) UI.
 
-The server is written in TypeScript (ESM, Node 22.13+). The browser extension stays plain vanilla JS/MV3 and is not part of this build; the wire contract in `packages/protocol` is plain JS and unchanged.
+## The problem
+
+IDE agents need **structured access** to web LLM sessions without pasting cookies or paying per-token cloud APIs. You want MCP tools, retries, and queues — but data must not leave your machine.
+
+## What you get
+
+| Platform | Automation |
+|----------|------------|
+| ChatGPT | list / get / export / create / delete / ask |
+| Grok (`grok.com`) | same |
+| X Grok | same |
+| Claude | same |
+| GitHub Copilot web | same |
+| Qwen (`chat.qwen.ai`) | same |
+| DeepSeek (`chat.deepseek.com`) | same |
+| Perplexity (`perplexity.ai`) | same |
+
+```mermaid
+flowchart TB
+  EXT[Chrome extension] <-->|WS /ws ceb_| HUB[Browser hub]
+  HUB --> Q[Job lanes per browser]
+  Q --> MCP[MCP /mcp]
+  MCP --> AGENT[Cursor etc. cem_/cek_]
+  HUB --> API[Dashboard /dashboard/api]
+  API --> UI[Dashboard static UI]
+  Q --> DB[(SQLite cache + WAL)]
+```
+
+## Quick start (3 steps)
+
+1. **Extension** — load [chat-export-extension](https://github.com/svergio/chat-export-extension) unpacked; enable bridge in popup; open provider tabs logged in.
+2. **Server** — `npm install && npm run build`, `chat-export-server key new`, `chat-export-server start` → `http://127.0.0.1:8765`.
+3. **MCP client** — point to `http://127.0.0.1:8765/mcp` with `Authorization: Bearer <key>`; run `browsers_bind` then `chats_list` / `chats_export` / `chat_ask`.
+
+Wiki: [MCP tools and profiles](https://github.com/svergio/chat-export-extension/wiki).
 
 ## Install and build
 
 ```sh
 npm install
 npm run build   # tsc -> dist/
-npm link        # optional: puts `chat-export-server` on your PATH (bin -> dist/cli/index.js)
+npm link        # optional: chat-export-server on PATH
 ```
 
-Requires Node 22.13+ (built-in `node:sqlite`).
+Requires **Node 22.13+** (`node:sqlite`).
 
 | Script | Purpose |
 | --- | --- |
-| `npm run build` | compile `src/**/*.ts` to `dist/` |
+| `npm run build` | compile to `dist/` |
 | `npm run typecheck` | `tsc --noEmit` |
-| `npm start` | run the compiled server (`node dist/cli/index.js start`) |
-| `npm run dev` | run from TypeScript sources with reload (`tsx watch src/cli/index.ts start`) |
-| `npm run mcp` | compiled server with stdio MCP attached |
+| `npm start` | `node dist/cli/index.js start` |
+| `npm run dev` | `tsx watch src/cli/index.ts start` |
+| `npm run mcp` | stdio MCP attached |
 
-## Quick start
+### First run
 
 ```sh
-# 1) Create a local API key (printed once; only a hash is stored)
-chat-export-server key new
-# or: node dist/cli/index.js key new
-
-# 2) Start HTTP + WebSocket hub + Streamable MCP
+chat-export-server key new    # print once; hash stored
 chat-export-server start
-# listens on http://127.0.0.1:8765
-#   WS   /ws     — extension bridge (canonical)
-#   WS   /ext    — alias of /ws (compat)
-#   MCP  /mcp    — Authorization: Bearer <key>
-#   GET  /health
+# WS   /ws, /ext  — extension bridge
+# MCP  /mcp       — Bearer key
+# GET  /health
 ```
 
-Config and data live under `~/.chat-export` (override with `CHAT_EXPORT_HOME`):
+Data under `~/.chat-export` (override `CHAT_EXPORT_HOME`):
 
 ```text
 ~/.chat-export/
-  config.json    # host 127.0.0.1, port, exportDir, settings
-  keys.json      # key hashes only (chmod 600)
-  audit.log      # append-only audit (MCP/RPC, especially delete)
-  exports/       # files from chats_export
+  config.json    # host, port, exportDir
+  keys.json      # hashes only (chmod 600)
+  audit.log      # MCP/RPC audit
+  exports/       # chats_export output
 ```
 
-Other commands:
-
 ```sh
-chat-export-server key rotate   # revoke previous key, print new one
-chat-export-server key list     # fingerprints only
+chat-export-server key rotate
+chat-export-server key list
 chat-export-server status
 ```
 
+## Configuration
+
+### Environment variables
+
+Copy [`.env.example`](.env.example) to `.env` in the server directory (or set `CHAT_EXPORT_ENV_FILE`). Container and process env override `config.json` where noted.
+
+| Variable | Purpose |
+|----------|---------|
+| `CHAT_EXPORT_HOME` | Data directory (default `~/.chat-export`; `/data` in Docker) |
+| `CHAT_EXPORT_HOST` | Bind address (`127.0.0.1` locally; use `0.0.0.0` in containers) |
+| `CHAT_EXPORT_PORT` | HTTP port (default `8765`) |
+| `CHAT_EXPORT_ALLOWED_HOSTS` | Extra `Host` header names allowed (comma-separated) |
+| `CHAT_EXPORT_DASHBOARD_ENABLED` | `true` / `false` |
+| `CHAT_EXPORT_ADMIN_USER` / `CHAT_EXPORT_ADMIN_PASS` | Dashboard login (overrides `config.json`) |
+| `CHAT_EXPORT_MCP_TOKEN` | Optional preset `cem_…` token hash on start |
+| `CHAT_EXPORT_BROWSER_TOKENS` | `browserId:ceb_…[:label]` comma list for auto-enroll |
+| `CHAT_EXPORT_ALLOW_DESTRUCTIVE` | `true` / `false` |
+| `CHAT_EXPORT_DB_DRIVER` | DB driver override (`sqlite` default) |
+| `CHAT_EXPORT_DB_URL` | DB URL when not using default SQLite path |
+| `CHAT_EXPORT_SKIP_MCP_CONFIG` | Set `1` to skip auto-writing Cursor MCP config on `key new` |
+
+### Docker and Colima
+
+This repo ships a **multi-stage** [`Dockerfile`](Dockerfile) (Node 22 Alpine, non-root user, `CHAT_EXPORT_HOME=/data`, listen `0.0.0.0:8765`, `/health` check). **Docker Desktop is not required** — use [Colima](https://github.com/abiosoft/colima) on macOS:
+
+```sh
+colima start
+docker context use colima   # or: docker --context colima …
+cp .env.example .env        # set CHAT_EXPORT_ADMIN_PASS at minimum
+docker --context colima compose build
+docker --context colima compose up -d
+curl -sS http://127.0.0.1:8765/health
+```
+
+Published only on **`127.0.0.1:8765`**. Persistent data: Compose volume `chat-export-data` → `/data`.
+
+Stop when finished so a local `chat-export-server` daemon can reclaim the port:
+
+```sh
+docker --context colima compose down
+```
+
+Optional **split stack** (nginx serves dashboard static, proxies `/dashboard/api`, `/mcp`, `/ws`, `/ext`, `/enroll`, `/health` to the server): build from the maintainer tree `chat-export-dashboard/Dockerfile` and `projects/Chat Export/docker-compose.yml` (see [dashboard repo](https://github.com/svergio/chat-export-dashboard)).
+
+### `config.json` (under `CHAT_EXPORT_HOME`)
+
+Created on first start. Example (secrets redacted):
+
+```json
+{
+  "host": "127.0.0.1",
+  "port": 8765,
+  "exportDir": "~/.chat-export/exports",
+  "rpcTimeoutMs": 60000,
+  "dashboard": {
+    "enabled": true,
+    "username": "admin",
+    "password": "changeme"
+  },
+  "registeredBrowsers": [],
+  "settings": {
+    "platformsEnabled": ["chatgpt", "grok", "grok-x", "copilot", "claude"],
+    "allowDestructive": false
+  }
+}
+```
+
+Change **`dashboard.password`** before exposing the host beyond loopback. Server listens on **`127.0.0.1:8765`** by default (`/health`, `/mcp`, `/ws`, `/dashboard/`).
+
+### Tokens
+
+| Prefix | Used by |
+|--------|---------|
+| `cek_` / `cem_` | MCP and CLI (`Authorization: Bearer …` on `/mcp`) |
+| `ceb_` | Chrome extension WebSocket (`/ws`); enroll via CLI or [dashboard](https://github.com/svergio/chat-export-dashboard) |
+
+Only **hashes** of MCP keys are stored in `keys.json` (mode `600`). Plaintext is shown once at `chat-export-server key new`.
+
+### Detached daemon (maintainer workspace)
+
+In the Chat Export maintainer tree, `tmp-scripts/ensure-daemon.mjs` can keep `chat-export-server` running on `:8765`, write `~/.chat-export/server.pid`, and optionally sync `Bearer cem_…` into `.cursor/mcp.json` (`--sync-mcp-json`). Equivalent manual start: `chat-export-server start`.
+
+### Cursor MCP (`~/.cursor/mcp.json` or project `.cursor/mcp.json`)
+
+HTTP (server already running):
+
+```json
+{
+  "mcpServers": {
+    "chat-export": {
+      "url": "http://127.0.0.1:8765/mcp",
+      "headers": {
+        "Authorization": "Bearer cem_YOUR_KEY_HERE"
+      }
+    }
+  }
+}
+```
+
+**Profiles:** expose the full tool surface (`chats_*`, `jobs_*`, `chat_cache_*`, `projects_*`) for IDE agents. A **small** read-focused subset (list/get/export, browsers, platforms) is documented on the [wiki MCP tools page](https://github.com/svergio/chat-export-extension/wiki/MCP-Tools-and-Profiles) — match your client’s token budget. Open WebUI via **mcpo** can proxy the same HTTP endpoint if your setup uses an OpenAPI bridge on another port.
+
+After MCP is configured, run **`browsers_bind`** so tools target your connected Chrome profile.
+
+Extension bridge settings: [chat-export-extension README](https://github.com/svergio/chat-export-extension#configuration).
+
 ## Background jobs
 
-Long-running work (ask, export, bulk delete) uses per-browser lanes. MCP tools:
+Long work (`chat_ask`, export, bulk delete) uses per-browser lanes:
 
-- `jobs_enqueue` — returns `job_id` immediately
-- `jobs_status` — poll until `done` / `error` / `cancelled`
-- `jobs_list`, `jobs_cancel`
-
-Lanes start when you run `chat-export-server start` (not for one-shot CLI). See `projects/Chat Export/docs/post-ts-server-followups.md` for gaps (`chat_ask`, `chats_export async:true`, `platform.host_state`).
+- `jobs_enqueue`, `jobs_status`, `jobs_list`, `jobs_cancel`
 
 ## Cursor MCP config
 
-### HTTP (server already running)
-
-Put your key in the Bearer header. Do not commit real keys.
+HTTP (server already running):
 
 ```json
 {
@@ -85,7 +212,7 @@ Put your key in the Bearer header. Do not commit real keys.
 }
 ```
 
-### stdio (starts hub in the same process)
+stdio:
 
 ```json
 {
@@ -101,68 +228,68 @@ Put your key in the Bearer header. Do not commit real keys.
 }
 ```
 
-From this repo without linking:
-
-```json
-{
-  "mcpServers": {
-    "chat-export": {
-      "command": "node",
-      "args": [
-        "/ABS/PATH/projects/chat-export-server/dist/cli/index.js",
-        "start",
-        "--stdio"
-      ]
-    }
-  }
-}
-```
-
-## MCP tools
+## MCP tools (overview)
 
 | Tool | Purpose |
 | --- | --- |
-| `browsers_list` | Connected Chrome profiles (extension WS) |
-| `browsers_bind` | Select which browser subsequent ops use |
-| `browsers_status` | Bound browser + online state |
-| `platforms_list` | Server/browser platform enablement |
-| `chats_list` | List chats (`platform`, optional `cursor` / `limit` / `query`) |
-| `chats_get` | Fetch one chat as `ExportPayload` |
-| `chats_export` | Export via extension builders; server writes under `exportDir` and returns paths |
-| `chats_create` | Create a chat (UI drive in the browser) |
-| `chats_delete` | Delete a chat — requires `confirm: true` and `allowDestructive` |
+| `browsers_list` / `browsers_bind` / `browsers_status` | Connected Chrome profiles |
+| `platforms_list` | Enablement matrix |
+| `chats_list` / `chats_get` / `chats_export` | Read and write exports |
+| `chats_create` / `chats_delete` | UI drive (delete needs `confirm: true`) |
+| `chat_ask` | Send prompt; wait or job queue |
+| `jobs_*` | Async pipeline |
+| `chat_cache_*` | Temp SQLite cache for long threads |
+
+Full list evolves with releases; see wiki **MCP Tools**.
 
 ## Layout
 
 ```text
-packages/protocol/   wire contract v1 (schemas, fixtures) — frozen
-packages/faq.md      shared FAQ wording
-src/core/            config, keys, settings gates, audit, export files, db, jobs, chat cache
-src/hub/             WS BrowserHub (bind, RPC timeouts)
-src/mcp/             MCP tools + stdio + HTTP Streamable
-src/cli/             chat-export-server CLI
-src/dashboard-api.ts /dashboard/api + static files from dashboard/public (submodule)
-src/protocol.d.ts    local typings for the plain-JS @chat-export/protocol package
-dist/                tsc output (gitignored)
+packages/protocol/   wire contract v1
+src/core/            config, keys, audit, db, jobs, cache
+src/hub/             WebSocket BrowserHub
+src/mcp/             MCP HTTP + stdio
+src/cli/             CLI entry
+src/dashboard-api.ts /dashboard/api + dashboard/public
+dashboard/           git submodule → chat-export-dashboard
 ```
 
-## Development
+`git submodule update --init` after clone.
 
-```sh
-npm install
-npm run typecheck
-npm run build
-npm run dev
-```
+## Security
 
-`dashboard/` is a git submodule (React + Vite UI built to `dashboard/public`); the server only serves those static files, so run `git submodule update --init` after cloning.
+- **Loopback only** by default (`127.0.0.1`). Change host only if you understand exposure.
+- Keys (`cek_`/`cem_`) grant full local API — never commit or publish.
+- Browser tokens (`ceb_`) are separate from MCP keys.
+- `chats_delete` and similar need `allowDestructive` on extension **and** server plus `confirm: true`.
+- Append-only **audit** for sensitive RPC. See [SECURITY.md](SECURITY.md).
+- Personal data portability is the goal; you must comply with each provider **ToS**. Not legal advice.
+
+## Related repositories
+
+| Repo | Role |
+|------|------|
+| [chat-export-extension](https://github.com/svergio/chat-export-extension) | Content scripts + WS client |
+| [chat-export-server](https://github.com/svergio/chat-export-server) (this) | MCP hub, jobs, cache |
+| [chat-export-dashboard](https://github.com/svergio/chat-export-dashboard) | Operator UI submodule |
+| [Wiki](https://github.com/svergio/chat-export-extension/wiki) | Install, security, FAQ |
+
+## Support the project
+
+- **Tip (fiat):** [DonationAlerts — svwergio_mel](https://www.donationalerts.com/r/svwergio_mel)
+
+Tips are voluntary; they do not purchase support SLAs or private builds.
 
 ## FAQ
 
-- The extension and server run **only locally** on your computer. There is no telemetry and no external servers; your data is not sent anywhere else.
-- Only **your** chats are exported, from your logged-in browser session. Site passwords and cookies are not read by the server and are not sent to the agent.
-- The local key grants access only to your server on `127.0.0.1`. Do not publish it.
-- Delete is **off by default** and requires explicit confirmation (`confirm: true`) plus `allowDestructive`.
-- This is for exporting your own data (personal data portability). You are responsible for complying with each service’s terms of use (ToS). This is not legal advice.
+- No telemetry; no external servers for core operation.
+- Only **your** chats, from **your** browser session.
+- Shared wording: [packages/faq.md](packages/faq.md).
 
-Shared copy: [packages/faq.md](packages/faq.md).
+## Contributing
+
+See [extension CONTRIBUTING.md](https://github.com/svergio/chat-export-extension/blob/main/CONTRIBUTING.md) (protocol `PLATFORMS`, server MCP, config) and [wiki Contributing](https://github.com/svergio/chat-export-extension/wiki/Contributing).
+
+## License
+
+See [LICENSE](LICENSE).

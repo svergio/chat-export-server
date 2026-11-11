@@ -2,6 +2,22 @@ export const SCHEMA_VERSION = 1;
 
 export const DEFAULT_AUTOINCREMENT_PK = 'INTEGER PRIMARY KEY AUTOINCREMENT';
 
+export interface SchemaColumn {
+  table: string;
+  column: string;
+  type: string;
+}
+
+// Columns added after a table first shipped: CREATE TABLE IF NOT EXISTS skips existing tables,
+// so older DBs need ALTER TABLE before anything (indexes) references them.
+export const SCHEMA_COLUMNS: readonly SchemaColumn[] = Object.freeze([
+  { table: 'jobs', column: 'request_id', type: 'TEXT' }
+]);
+
+export const SCHEMA_INDEXES: readonly string[] = Object.freeze([
+  'CREATE INDEX IF NOT EXISTS idx_jobs_request_id ON jobs(request_id, created_at)'
+]);
+
 export interface SchemaOptions {
   metricsIdColumn?: string;
   fts?: boolean;
@@ -50,7 +66,8 @@ export function schemaStatements({
       retry_at INTEGER,
       chat_id TEXT,
       created_at TEXT,
-      updated_at TEXT
+      updated_at TEXT,
+      request_id TEXT
     )`,
     'CREATE INDEX IF NOT EXISTS idx_jobs_lane_status ON jobs(lane_browser_id, status, created_at)',
     `CREATE TABLE IF NOT EXISTS cached_chats (

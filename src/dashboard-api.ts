@@ -1,11 +1,13 @@
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import type { IncomingMessage, ServerResponse } from 'node:http';
+import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ProtocolError } from '@chat-export/protocol';
 import { JobStore, isTerminal, type JobRecord } from './core/jobs/job-store.js';
 import type { ServerCore } from './core/server-core.js';
+import { BodyTooLargeError, LoginThrottle, readLimitedBody } from './core/net-guard.js';
 
 type JsonBody = Record<string, any>;
 type Session = { username: string; expiresAt: number };
@@ -34,8 +36,22 @@ const MIME: Record<string, string> = {
   '.webmanifest': 'application/manifest+json; charset=utf-8'
 };
 
+const SECURITY_HEADERS = {
+  'X-Content-Type-Options': 'nosniff',
+  'X-Frame-Options': 'DENY',
+  'Referrer-Policy': 'no-referrer',
+  'Cache-Control': 'no-store',
+  'Content-Security-Policy': "frame-ancestors 'none'; base-uri 'self'; object-src 'none'"
+};
+
+function safeEqual(a: string, b: string): boolean {
+  const ha = crypto.createHash('sha256').update(a).digest();
+  const hb = crypto.createHash('sha256').update(b).digest();
+  return crypto.timingSafeEqual(ha, hb);
+}
+
 function jsonResponse(res: ServerResponse, status: number, body: unknown): void {
-  res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8' });
+  res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', ...SECURITY_HEADERS });
   res.end(JSON.stringify(body));
 }
 
@@ -70,11 +86,10 @@ function clearSessionCookie(res: ServerResponse): void {
 }
 
 async function readJsonBody(req: IncomingMessage): Promise<JsonBody | null> {
-  const chunks: Buffer[] = [];
-  for await (const chunk of req) chunks.push(chunk);
-  if (!chunks.length) return {};
+  const body = await readLimitedBody(req);
+  if (!body.length) return {};
   try {
-    return JSON.parse(Buffer.concat(chunks).toString('utf8'));
+    return JSON.parse(body.toString('utf8'));
   } catch {
     return null;
   }
@@ -82,6 +97,39 @@ async function readJsonBody(req: IncomingMessage): Promise<JsonBody | null> {
 
 function dashboardEnabled(core: ServerCore): boolean {
   return core.config.dashboard?.enabled !== false;
+}
+
+function collectProcessResources(uptimeMs: number, dbInfo: Record<string, unknown>): {
+  rssMb: number;
+  heapUsedMb: number;
+  heapTotalMb: number;
+  dbSizeBytes: number;
+  walSizeBytes: number;
+  loadAvg: number[];
+  uptimeMs: number;
+} {
+  const mem = process.memoryUsage();
+  const dbFile = typeof dbInfo.file === 'string' ? dbInfo.file : null;
+  let dbSizeBytes = 0;
+  let walSizeBytes = 0;
+  if (dbFile && dbFile !== ':memory:') {
+    try {
+      if (fs.existsSync(dbFile)) dbSizeBytes = fs.statSync(dbFile).size;
+      const wal = `${dbFile}-wal`;
+      if (fs.existsSync(wal)) walSizeBytes = fs.statSync(wal).size;
+    } catch {
+      /* ignore stat errors */
+    }
+  }
+  return {
+    rssMb: Math.round((mem.rss / 1048576) * 10) / 10,
+    heapUsedMb: Math.round((mem.heapUsed / 1048576) * 10) / 10,
+    heapTotalMb: Math.round((mem.heapTotal / 1048576) * 10) / 10,
+    dbSizeBytes,
+    walSizeBytes,
+    loadAvg: os.loadavg().map((n) => Math.round(n * 100) / 100),
+    uptimeMs
+  };
 }
 
 function jobSummary(job: JobRecord | null) {
@@ -119,6 +167,7 @@ export type DashboardHandler = (req: IncomingMessage, res: ServerResponse, url: 
 export function createDashboardApi(deps: { core: ServerCore; startedAt: number }): DashboardHandler {
   const { core, startedAt } = deps;
   const sessions = new Map<string, Session>();
+  const loginThrottle = new LoginThrottle();
   let jobStore: JobStore | null = null;
 
   function getJobStore(): JobStore {
@@ -150,7 +199,9 @@ export function createDashboardApi(deps: { core: ServerCore; startedAt: number }
     const dash = core.config.dashboard || {};
     const wantUser = dash.username || 'admin';
     const wantPass = dash.password || 'changeme';
-    return username === wantUser && password === wantPass;
+    const userOk = safeEqual(username, wantUser);
+    const passOk = safeEqual(password, wantPass);
+    return userOk && passOk;
   }
 
   function serveStatic(urlPath: string, res: ServerResponse): boolean {
@@ -159,15 +210,15 @@ export function createDashboardApi(deps: { core: ServerCore; startedAt: number }
       jsonResponse(res, 400, { error: { message: 'bad path' } });
       return true;
     }
-    const filePath = path.join(DASHBOARD_PUBLIC, rel);
-    if (!filePath.startsWith(DASHBOARD_PUBLIC)) {
+    const filePath = path.resolve(DASHBOARD_PUBLIC, rel);
+    if (!filePath.startsWith(path.resolve(DASHBOARD_PUBLIC) + path.sep)) {
       jsonResponse(res, 403, { error: { message: 'forbidden' } });
       return true;
     }
     if (!fs.existsSync(filePath) || !fs.statSync(filePath).isFile()) {
       const indexPath = path.join(DASHBOARD_PUBLIC, 'index.html');
       if (fs.existsSync(indexPath)) {
-        res.writeHead(200, { 'Content-Type': MIME['.html'] });
+        res.writeHead(200, { 'Content-Type': MIME['.html'], ...SECURITY_HEADERS });
         res.end(fs.readFileSync(indexPath));
         return true;
       }
@@ -175,7 +226,7 @@ export function createDashboardApi(deps: { core: ServerCore; startedAt: number }
       return true;
     }
     const ext = path.extname(filePath).toLowerCase();
-    res.writeHead(200, { 'Content-Type': MIME[ext] || 'application/octet-stream' });
+    res.writeHead(200, { 'Content-Type': MIME[ext] || 'application/octet-stream', ...SECURITY_HEADERS });
     res.end(fs.readFileSync(filePath));
     return true;
   }
@@ -191,11 +242,20 @@ export function createDashboardApi(deps: { core: ServerCore; startedAt: number }
       }
       const username = String(body.username || '').trim();
       const password = String(body.password ?? '');
+      const retryMs = loginThrottle.retryAfterMs('login');
+      if (retryMs > 0) {
+        core.audit({ action: 'dashboard.login', ok: false, code: 'RATE_LIMITED' });
+        res.setHeader('Retry-After', String(Math.ceil(retryMs / 1000)));
+        jsonResponse(res, 429, { ok: false, error: { code: 'RATE_LIMITED', message: 'too many failed logins' } });
+        return true;
+      }
       if (!checkCredentials(username, password)) {
+        loginThrottle.fail('login');
         core.audit({ action: 'dashboard.login', ok: false, username });
         jsonResponse(res, 401, { ok: false, error: { code: 'UNAUTHORIZED', message: 'invalid credentials' } });
         return true;
       }
+      loginThrottle.success('login');
       const sid = crypto.randomBytes(24).toString('hex');
       sessions.set(sid, { username, expiresAt: Date.now() + SESSION_TTL_MS });
       setSessionCookie(res, sid);
@@ -246,7 +306,8 @@ export function createDashboardApi(deps: { core: ServerCore; startedAt: number }
           avgMs: r.avg_ms != null ? Math.round(Number(r.avg_ms)) : null
         })),
         queue,
-        hub
+        hub,
+        resources: collectProcessResources(uptimeMs, dbInfo as Record<string, unknown>)
       });
       return true;
     }

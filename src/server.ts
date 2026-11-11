@@ -8,6 +8,14 @@ import { resolveHome } from './core/paths.js';
 import { ALERT_CODES } from './core/logger.js';
 import { createDashboardApi } from './dashboard-api.js';
 import type { JobManagerOptions } from './core/jobs/job-manager.js';
+import {
+  BodyTooLargeError,
+  corsHeadersForAllowedOrigin,
+  enrollCorsPreflightHeaders,
+  isAllowedHostHeader,
+  isAllowedOrigin,
+  readLimitedBody
+} from './core/net-guard.js';
 
 const PKG_VERSION = '0.1.0';
 
@@ -25,10 +33,24 @@ function isLoopbackAddress(address: string): boolean {
 }
 
 async function readJsonBody(req: http.IncomingMessage): Promise<any> {
-  const chunks: Buffer[] = [];
-  for await (const chunk of req) chunks.push(chunk);
-  if (!chunks.length) return {};
-  return JSON.parse(Buffer.concat(chunks).toString('utf8'));
+  const body = await readLimitedBody(req);
+  if (!body.length) return {};
+  return JSON.parse(body.toString('utf8'));
+}
+
+function forbid(res: http.ServerResponse, message: string, extraHeaders?: Record<string, string>): void {
+  res.writeHead(403, { 'Content-Type': 'application/json', ...extraHeaders });
+  res.end(JSON.stringify({ error: { code: 'FORBIDDEN', message } }));
+}
+
+function jsonWithOptionalCors(
+  res: http.ServerResponse,
+  status: number,
+  payload: unknown,
+  cors: Record<string, string> | null
+): void {
+  res.writeHead(status, { 'Content-Type': 'application/json', ...(cors || {}) });
+  res.end(JSON.stringify(payload));
 }
 
 export async function startServer(opts: StartServerOptions = {}) {
@@ -77,29 +99,91 @@ export async function startServer(opts: StartServerOptions = {}) {
     version: PKG_VERSION
   });
 
+  if (
+    core.config.dashboard?.enabled !== false &&
+    core.config.dashboard?.password === 'changeme' &&
+    !process.env.CHAT_EXPORT_ADMIN_PASS
+  ) {
+    core.logger.warn({
+      component: 'dashboard',
+      message: 'dashboard uses the default password; set CHAT_EXPORT_ADMIN_PASS or dashboard.password in config.json'
+    });
+  }
+
   const httpServer = http.createServer(async (req, res) => {
     try {
       const url = new URL(req.url || '/', `http://${host}:${port}`);
+      if (!isAllowedHostHeader(req, host)) {
+        forbid(res, 'host not allowed');
+        return;
+      }
+      if (url.pathname !== '/health' && !isAllowedOrigin(req)) {
+        core.audit({ action: 'http.origin', ok: false, code: 'FORBIDDEN', origin: String(req.headers.origin || ''), path: url.pathname });
+        forbid(res, 'origin not allowed');
+        return;
+      }
       if (url.pathname === '/health') {
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ ok: true, version: PKG_VERSION }));
         return;
       }
       if (url.pathname === '/enroll') {
+        const enrollCors = corsHeadersForAllowedOrigin(req);
+        if (req.method === 'OPTIONS') {
+          const preflight = enrollCorsPreflightHeaders(req);
+          if (preflight) {
+            res.writeHead(204, preflight);
+            res.end();
+            return;
+          }
+          jsonWithOptionalCors(
+            res,
+            405,
+            { error: { code: 'METHOD_NOT_ALLOWED', message: 'POST required' } },
+            enrollCors
+          );
+          return;
+        }
         if (req.method !== 'POST') {
-          res.writeHead(405, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({ error: { code: 'METHOD_NOT_ALLOWED', message: 'POST required' } }));
+          jsonWithOptionalCors(
+            res,
+            405,
+            { error: { code: 'METHOD_NOT_ALLOWED', message: 'POST required' } },
+            enrollCors
+          );
           return;
         }
         if (!isLoopbackAddress(req.socket.remoteAddress || '')) {
-          res.writeHead(403, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({ error: { code: 'FORBIDDEN', message: 'localhost only' } }));
+          forbid(res, 'localhost only', enrollCors || undefined);
           return;
         }
-        const body = await readJsonBody(req);
-        const enrolled = core.browserEnroll(body, { hostIp: req.socket.remoteAddress || '' });
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ ok: true, browser: enrolled }));
+        if (!/^application\/json\b/i.test(String(req.headers['content-type'] || ''))) {
+          jsonWithOptionalCors(
+            res,
+            415,
+            { error: { code: 'UNSUPPORTED_MEDIA_TYPE', message: 'application/json required' } },
+            enrollCors
+          );
+          return;
+        }
+        try {
+          const body = await readJsonBody(req);
+          const enrolled = core.browserEnroll(body, { hostIp: req.socket.remoteAddress || '' });
+          jsonWithOptionalCors(res, 200, { ok: true, browser: enrolled }, enrollCors);
+        } catch (err: any) {
+          if (err instanceof BodyTooLargeError) {
+            jsonWithOptionalCors(
+              res,
+              413,
+              { error: { code: 'PAYLOAD_TOO_LARGE', message: 'request body too large' } },
+              enrollCors
+            );
+            return;
+          }
+          const message = err?.message || 'enroll failed';
+          jsonWithOptionalCors(res, 400, { error: { code: 'ENROLL_FAILED', message } }, enrollCors);
+          core.audit({ action: 'browser.enroll', ok: false, message });
+        }
         return;
       }
       if (await handleMcpHttp(req, res, core, url)) return;
@@ -107,6 +191,11 @@ export async function startServer(opts: StartServerOptions = {}) {
       res.writeHead(404, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ error: { message: 'not found' } }));
     } catch (err: any) {
+      if (err instanceof BodyTooLargeError && !res.headersSent) {
+        res.writeHead(413, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: { code: 'PAYLOAD_TOO_LARGE', message: 'request body too large' } }));
+        return;
+      }
       if (!res.headersSent) {
         res.writeHead(500, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ error: { message: 'internal error' } }));
@@ -115,7 +204,10 @@ export async function startServer(opts: StartServerOptions = {}) {
     }
   });
 
-  hub.attach(httpServer, { path: '/ws' });
+  hub.attach(httpServer, {
+    path: '/ws',
+    verifyUpgrade: (req) => isAllowedHostHeader(req, host) && isAllowedOrigin(req)
+  });
 
   await new Promise<void>((resolve, reject) => {
     httpServer.once('error', reject);
