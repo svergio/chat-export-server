@@ -7,6 +7,7 @@ import { startStdioMcp } from './mcp/stdio.js';
 import { resolveHome } from './core/paths.js';
 import { ALERT_CODES } from './core/logger.js';
 import { createDashboardApi } from './dashboard-api.js';
+import type { JobManagerOptions } from './core/jobs/job-manager.js';
 
 const PKG_VERSION = '0.1.0';
 
@@ -16,6 +17,7 @@ export interface StartServerOptions {
   host?: string;
   port?: number;
   dashboard?: { enabled?: boolean; username?: string; password?: string };
+  jobs?: JobManagerOptions;
 }
 
 function isLoopbackAddress(address: string): boolean {
@@ -63,6 +65,7 @@ export async function startServer(opts: StartServerOptions = {}) {
     }
   });
   core.setHub(hub);
+  core.startJobLanes(hub, opts.jobs);
 
   const host = opts.host || core.config.host || '127.0.0.1';
   const port = opts.port ?? core.config.port;

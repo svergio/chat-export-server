@@ -1,5 +1,7 @@
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
+import { ERROR_CODES, ProtocolError } from '@chat-export/protocol';
 
 const INLINE_TEXT_MAX = 64 * 1024;
 
@@ -60,4 +62,13 @@ function sanitize(s: unknown): string {
 function sanitizeFileName(name: unknown): string {
   const base = path.basename(String(name || ''));
   return base.replace(/[^\w.\- ()[\]]+/g, '_').slice(0, 180);
+}
+
+export function resolveExportOutDir(outDir: string, homedir = os.homedir()): string {
+  let p = String(outDir || '').trim();
+  if (!p) throw new ProtocolError(ERROR_CODES.BAD_REQUEST, 'outDir required');
+  if (p.startsWith('~/')) p = path.join(homedir, p.slice(2));
+  else if (p === '~') p = homedir;
+  if (!path.isAbsolute(p)) p = path.resolve(p);
+  return p;
 }

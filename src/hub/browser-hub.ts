@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { AsyncLocalStorage } from 'node:async_hooks';
 import type { IncomingMessage, Server as HttpServer } from 'node:http';
 import type { Duplex } from 'node:stream';
 import { WebSocketServer, type WebSocket } from 'ws';
@@ -51,6 +52,8 @@ interface PendingRpc {
   browserId: string;
 }
 
+const laneBrowserStorage = new AsyncLocalStorage<string>();
+
 // WebSocket registry for extension browsers on the same HTTP server.
 export class BrowserHub {
   serverVersion: string;
@@ -65,6 +68,7 @@ export class BrowserHub {
   wss: WebSocketServer | null = null;
   _onUpgrade: ((req: IncomingMessage, socket: Duplex, head: Buffer) => void) | null = null;
   _httpServer: HttpServer | null = null;
+  private _connectListeners = new Set<(browserId: string) => void>();
 
   constructor(opts: BrowserHubOptions) {
     this.serverVersion = opts.serverVersion;
@@ -153,8 +157,39 @@ export class BrowserHub {
   }
 
   getBound(): BrowserSession | null {
-    if (!this.boundBrowserId) return null;
-    return this.browsers.get(this.boundBrowserId) || null;
+    const laneId = laneBrowserStorage.getStore();
+    const effectiveId = laneId || this.boundBrowserId;
+    if (!effectiveId) return null;
+    return this.browsers.get(effectiveId) || null;
+  }
+
+  isOnline(browserId: string): boolean {
+    const session = this.browsers.get(browserId);
+    return Boolean(session && session.ws.readyState === 1);
+  }
+
+  onBrowserConnected(cb: (browserId: string) => void): () => void {
+    this._connectListeners.add(cb);
+    return () => {
+      this._connectListeners.delete(cb);
+    };
+  }
+
+  async runInLane<T>(browserId: string, fn: () => Promise<T>): Promise<T> {
+    if (!this.isOnline(browserId)) {
+      throw new ProtocolError(ERROR_CODES.NOT_BOUND, 'browser not connected: ' + browserId);
+    }
+    return laneBrowserStorage.run(browserId, fn);
+  }
+
+  #emitBrowserConnected(browserId: string): void {
+    for (const cb of this._connectListeners) {
+      try {
+        cb(browserId);
+      } catch {
+        /* ignore listener errors */
+      }
+    }
   }
 
   // Forward RPC to the bound browser.
@@ -289,6 +324,7 @@ export class BrowserHub {
           browserId: sessionId,
           browserLabel: session.browserLabel
         });
+        this.#emitBrowserConnected(sessionId);
         return;
       }
 
