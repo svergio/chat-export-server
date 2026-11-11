@@ -12,42 +12,48 @@ export const MCP_TOKEN_PREFIX = 'cem_';
 export const BROWSER_TOKEN_PREFIX = 'ceb_';
 export const LEGACY_BROWSER_TOKEN_PREFIX = 'cek_';
 
-function randomToken(prefix) {
+function randomToken(prefix: string): string {
   return prefix + randomBytes(TOKEN_HEX_BYTES).toString('hex');
 }
 
-function hasTokenPrefix(key, prefix) {
+function hasTokenPrefix(key: unknown, prefix: string): boolean {
   return typeof key === 'string' && key.startsWith(prefix) && TOKEN_BODY_RE.test(key.slice(prefix.length));
 }
 
-export function generateMcpToken() {
+export function generateMcpToken(): string {
   return randomToken(MCP_TOKEN_PREFIX);
 }
 
-export function generateBrowserToken() {
+export function generateBrowserToken(): string {
   return randomToken(BROWSER_TOKEN_PREFIX);
 }
 
-export function isMcpToken(key) {
+export function isMcpToken(key: unknown): boolean {
   return hasTokenPrefix(key, MCP_TOKEN_PREFIX);
 }
 
-export function isBrowserToken(key) {
+export function isBrowserToken(key: unknown): boolean {
   return hasTokenPrefix(key, BROWSER_TOKEN_PREFIX) || hasTokenPrefix(key, LEGACY_BROWSER_TOKEN_PREFIX);
 }
 
-export function hashKey(key, salt = randomBytes(16).toString('hex')) {
+export function hashKey(
+  key: string,
+  salt: string = randomBytes(16).toString('hex')
+): { salt: string; hash: string; fingerprint: string } {
   const hash = scryptSync(key, salt, SCRYPT_KEYLEN).toString('hex');
   return { salt, hash, fingerprint: fingerprintOf(key) };
 }
 
-export function fingerprintOf(key) {
+export function fingerprintOf(key: string): string {
   return createHash('sha256').update(key).digest('hex').slice(0, 12);
 }
 
-export function verifyKey(key, record) {
+export function verifyKey(
+  key: string | null | undefined,
+  record?: { salt?: string; hash?: string } | null
+): boolean {
   if (!key || !record?.salt || !record?.hash) return false;
-  let derived;
+  let derived: Buffer;
   try {
     derived = scryptSync(key, record.salt, SCRYPT_KEYLEN);
   } catch {
@@ -58,7 +64,7 @@ export function verifyKey(key, record) {
   return timingSafeEqual(derived, expected);
 }
 
-function chmod600(filePath) {
+function chmod600(filePath: string): void {
   try {
     fs.chmodSync(filePath, 0o600);
   } catch {
@@ -66,7 +72,7 @@ function chmod600(filePath) {
   }
 }
 
-export function writeSecretFile(filePath, value) {
+export function writeSecretFile(filePath: string, value: string): string {
   fs.mkdirSync(path.dirname(filePath), { recursive: true, mode: 0o700 });
   const tmp = filePath + '.tmp';
   fs.writeFileSync(tmp, value, { mode: 0o600 });
@@ -75,9 +81,9 @@ export function writeSecretFile(filePath, value) {
   return filePath;
 }
 
-function parentDirs(startDir) {
-  const seen = new Set();
-  const dirs = [];
+function parentDirs(startDir: string): string[] {
+  const seen = new Set<string>();
+  const dirs: string[] = [];
   let current = path.resolve(startDir);
   for (;;) {
     if (!seen.has(current)) {
@@ -91,9 +97,9 @@ function parentDirs(startDir) {
   return dirs;
 }
 
-export function findCursorMcpConfig(searchDirs = []) {
+export function findCursorMcpConfig(searchDirs: Array<string | null | undefined> = []): string | null {
   const roots = [
-    ...searchDirs.filter(Boolean),
+    ...searchDirs.filter((dir): dir is string => Boolean(dir)),
     process.cwd(),
     MODULE_DIR,
     path.resolve(MODULE_DIR, '..', '..'),
@@ -108,7 +114,16 @@ export function findCursorMcpConfig(searchDirs = []) {
   return null;
 }
 
-export function updateCursorMcpConfig(token, opts = {}) {
+export interface McpArtifactOptions {
+  filePath?: string;
+  searchDirs?: string[];
+  tokenPath?: string;
+}
+
+export function updateCursorMcpConfig(
+  token: string,
+  opts: McpArtifactOptions = {}
+): { updated: boolean; filePath: string | null } {
   const filePath = opts.filePath || findCursorMcpConfig(opts.searchDirs);
   if (!filePath) return { updated: false, filePath: null };
   const raw = fs.existsSync(filePath) ? JSON.parse(fs.readFileSync(filePath, 'utf8')) : {};
@@ -135,7 +150,7 @@ export function updateCursorMcpConfig(token, opts = {}) {
   return { updated: true, filePath };
 }
 
-export function writeMcpTokenArtifacts(home, token, opts = {}) {
+export function writeMcpTokenArtifacts(home: string, token: string, opts: McpArtifactOptions = {}) {
   const tokenPath = opts.tokenPath || path.join(home, 'mcp-token.txt');
   writeSecretFile(tokenPath, token + '\n');
   const mcpConfig = updateCursorMcpConfig(token, opts);

@@ -1,16 +1,21 @@
 import crypto from 'node:crypto';
 import fs from 'node:fs';
+import type { IncomingMessage, ServerResponse } from 'node:http';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ProtocolError } from '@chat-export/protocol';
-import { JobStore, isTerminal } from './core/jobs/job-store.js';
+import { JobStore, isTerminal, type JobRecord } from './core/jobs/job-store.js';
+import type { ServerCore } from './core/server-core.js';
+
+type JsonBody = Record<string, any>;
+type Session = { username: string; expiresAt: number };
 
 const SESSION_COOKIE = 'ce_dash_sid';
 const SESSION_TTL_MS = 24 * 60 * 60 * 1000;
 const MODULE_DIR = path.dirname(fileURLToPath(import.meta.url));
 const DASHBOARD_PUBLIC = path.join(MODULE_DIR, '..', 'dashboard', 'public');
 
-const MIME = {
+const MIME: Record<string, string> = {
   '.html': 'text/html; charset=utf-8',
   '.js': 'text/javascript; charset=utf-8',
   '.css': 'text/css; charset=utf-8',
@@ -18,18 +23,26 @@ const MIME = {
   '.svg': 'image/svg+xml',
   '.png': 'image/png',
   '.ico': 'image/x-icon',
-  '.woff2': 'font/woff2'
+  '.woff': 'font/woff',
+  '.woff2': 'font/woff2',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.webp': 'image/webp',
+  '.gif': 'image/gif',
+  '.txt': 'text/plain; charset=utf-8',
+  '.map': 'application/json; charset=utf-8',
+  '.webmanifest': 'application/manifest+json; charset=utf-8'
 };
 
-function jsonResponse(res, status, body) {
+function jsonResponse(res: ServerResponse, status: number, body: unknown): void {
   res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8' });
   res.end(JSON.stringify(body));
 }
 
-function parseCookies(req) {
+function parseCookies(req: IncomingMessage): Record<string, string> {
   const header = req.headers.cookie;
   if (!header || typeof header !== 'string') return {};
-  const out = {};
+  const out: Record<string, string> = {};
   for (const part of header.split(';')) {
     const idx = part.indexOf('=');
     if (idx <= 0) continue;
@@ -40,7 +53,7 @@ function parseCookies(req) {
   return out;
 }
 
-function setSessionCookie(res, sid, { secure = false } = {}) {
+function setSessionCookie(res: ServerResponse, sid: string, { secure = false }: { secure?: boolean } = {}): void {
   const parts = [
     `${SESSION_COOKIE}=${encodeURIComponent(sid)}`,
     'HttpOnly',
@@ -52,12 +65,12 @@ function setSessionCookie(res, sid, { secure = false } = {}) {
   res.setHeader('Set-Cookie', parts.join('; '));
 }
 
-function clearSessionCookie(res) {
+function clearSessionCookie(res: ServerResponse): void {
   res.setHeader('Set-Cookie', `${SESSION_COOKIE}=; HttpOnly; Path=/dashboard; Max-Age=0; SameSite=Strict`);
 }
 
-async function readJsonBody(req) {
-  const chunks = [];
+async function readJsonBody(req: IncomingMessage): Promise<JsonBody | null> {
+  const chunks: Buffer[] = [];
   for await (const chunk of req) chunks.push(chunk);
   if (!chunks.length) return {};
   try {
@@ -67,13 +80,13 @@ async function readJsonBody(req) {
   }
 }
 
-function dashboardEnabled(core) {
+function dashboardEnabled(core: ServerCore): boolean {
   return core.config.dashboard?.enabled !== false;
 }
 
-function jobSummary(job) {
+function jobSummary(job: JobRecord | null) {
   if (!job) return null;
-  const rest = {
+  const rest: Record<string, any> = {
     job_id: job.id,
     kind: job.kind,
     browserId: job.browserId,
@@ -101,20 +114,19 @@ function jobSummary(job) {
   return rest;
 }
 
-/**
- * @param {{ core: import('./core/server-core.js').ServerCore, startedAt: number }} deps
- */
-export function createDashboardApi(deps) {
-  const { core, startedAt } = deps;
-  const sessions = new Map();
-  let jobStore = null;
+export type DashboardHandler = (req: IncomingMessage, res: ServerResponse, url: URL) => Promise<boolean>;
 
-  function getJobStore() {
+export function createDashboardApi(deps: { core: ServerCore; startedAt: number }): DashboardHandler {
+  const { core, startedAt } = deps;
+  const sessions = new Map<string, Session>();
+  let jobStore: JobStore | null = null;
+
+  function getJobStore(): JobStore {
     if (!jobStore) jobStore = new JobStore(core.db);
     return jobStore;
   }
 
-  function getSession(req) {
+  function getSession(req: IncomingMessage): Session | null {
     const sid = parseCookies(req)[SESSION_COOKIE];
     if (!sid) return null;
     const row = sessions.get(sid);
@@ -125,7 +137,7 @@ export function createDashboardApi(deps) {
     return row;
   }
 
-  function requireSession(req, res) {
+  function requireSession(req: IncomingMessage, res: ServerResponse): Session | null {
     const session = getSession(req);
     if (!session) {
       jsonResponse(res, 401, { ok: false, error: { code: 'UNAUTHORIZED', message: 'dashboard login required' } });
@@ -134,14 +146,14 @@ export function createDashboardApi(deps) {
     return session;
   }
 
-  function checkCredentials(username, password) {
+  function checkCredentials(username: string, password: string): boolean {
     const dash = core.config.dashboard || {};
     const wantUser = dash.username || 'admin';
     const wantPass = dash.password || 'changeme';
     return username === wantUser && password === wantPass;
   }
 
-  function serveStatic(urlPath, res) {
+  function serveStatic(urlPath: string, res: ServerResponse): boolean {
     let rel = urlPath.replace(/^\/dashboard\/?/, '') || 'index.html';
     if (rel.includes('..')) {
       jsonResponse(res, 400, { error: { message: 'bad path' } });
@@ -168,7 +180,7 @@ export function createDashboardApi(deps) {
     return true;
   }
 
-  async function handleApi(req, res, url) {
+  async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL): Promise<boolean> {
     const pathname = url.pathname;
 
     if (pathname === '/dashboard/api/login' && req.method === 'POST') {
@@ -253,7 +265,7 @@ export function createDashboardApi(deps) {
       try {
         const enrolled = core.browserEnroll(body, { hostIp: req.socket?.remoteAddress || '' });
         jsonResponse(res, 200, { ok: true, browser: enrolled });
-      } catch (err) {
+      } catch (err: any) {
         const mapped = err instanceof ProtocolError ? err : null;
         jsonResponse(res, 400, {
           ok: false,
@@ -277,7 +289,7 @@ export function createDashboardApi(deps) {
       try {
         const status = core.browsersBind(browserId);
         jsonResponse(res, 200, { ok: true, ...status });
-      } catch (err) {
+      } catch (err: any) {
         const mapped = err instanceof ProtocolError ? err : null;
         jsonResponse(res, 400, {
           ok: false,
@@ -330,7 +342,7 @@ export function createDashboardApi(deps) {
         status: filter.status,
         browserId: filter.browserId,
         kind: filter.kind,
-        limit: filter.limit
+        limit: filter.limit === undefined ? undefined : Number(filter.limit)
       });
       jsonResponse(res, 200, { ok: true, jobs: jobs.map(jobSummary), count: jobs.length });
       return true;
@@ -368,7 +380,7 @@ export function createDashboardApi(deps) {
       jsonResponse(res, 200, {
         ok: true,
         job_id: jobId,
-        status: store.get(jobId).status,
+        status: store.get(jobId)?.status,
         cancelled: 'requested'
       });
       return true;
@@ -437,7 +449,7 @@ export function createDashboardApi(deps) {
       try {
         const result = core.chatCacheDelete({ cacheId, platform: row.platform, chatId: row.chat_id });
         jsonResponse(res, 200, { ok: true, ...result });
-      } catch (err) {
+      } catch (err: any) {
         const mapped = err instanceof ProtocolError ? err : null;
         jsonResponse(res, 400, {
           ok: false,
@@ -459,10 +471,8 @@ export function createDashboardApi(deps) {
     return true;
   }
 
-  /**
-   * @returns {Promise<boolean>} true if handled
-   */
-  return async function handleDashboard(req, res, url) {
+  // Resolves true when the request was handled.
+  return async function handleDashboard(req: IncomingMessage, res: ServerResponse, url: URL): Promise<boolean> {
     if (!url.pathname.startsWith('/dashboard')) return false;
 
     if (!dashboardEnabled(core)) {

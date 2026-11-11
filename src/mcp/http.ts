@@ -1,25 +1,23 @@
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
+import type { IncomingMessage, ServerResponse } from 'node:http';
 import { createMcpServer } from './create-server.js';
+import type { ServerCore } from '../core/server-core.js';
 
-/**
- * Extract Bearer token. Never log the token.
- * @param {import('node:http').IncomingMessage} req
- */
-export function extractBearer(req) {
+// Extract Bearer token. Never log the token.
+export function extractBearer(req: IncomingMessage): string | null {
   const h = req.headers.authorization;
   if (!h || typeof h !== 'string') return null;
   const m = /^Bearer\s+(.+)$/i.exec(h.trim());
   return m ? m[1].trim() : null;
 }
 
-/**
- * Handle /mcp Streamable HTTP (stateless). Returns true if handled.
- * @param {import('node:http').IncomingMessage} req
- * @param {import('node:http').ServerResponse} res
- * @param {import('../core/server-core.js').ServerCore} core
- * @param {URL} url
- */
-export async function handleMcpHttp(req, res, core, url) {
+// Handle /mcp Streamable HTTP (stateless). Returns true if handled.
+export async function handleMcpHttp(
+  req: IncomingMessage,
+  res: ServerResponse,
+  core: ServerCore,
+  url: URL
+): Promise<boolean> {
   if (url.pathname !== '/mcp') return false;
 
   const token = extractBearer(req);
@@ -38,7 +36,7 @@ export async function handleMcpHttp(req, res, core, url) {
     try {
       await server.connect(transport);
       await transport.handleRequest(req, res);
-    } catch (err) {
+    } catch (err: any) {
       if (!res.headersSent) {
         res.writeHead(500, { 'Content-Type': 'application/json' });
         res.end(

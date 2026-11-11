@@ -1,8 +1,55 @@
 import { randomUUID } from 'node:crypto';
 import { EventEmitter } from 'node:events';
+import type { DatabaseAdapter, Row, SqlParam } from '../../types.js';
+
+export type JobStatus = 'queued' | 'assigned' | 'running' | 'waiting_host' | 'done' | 'error' | 'cancelled';
+
+export interface JobProgress {
+  done: number;
+  total: number;
+  current: unknown;
+  [key: string]: unknown;
+}
+
+export interface JobRecord {
+  id: string;
+  kind: string;
+  browserId: string;
+  platform: string;
+  status: JobStatus;
+  input: Record<string, any>;
+  progress: JobProgress;
+  state: Record<string, any>;
+  result: any;
+  error: any;
+  attempts: number;
+  cancelRequested: boolean;
+  retryAt: string | null;
+  chatId: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface JobPatch {
+  status?: JobStatus;
+  attempts?: number;
+  cancelRequested?: boolean;
+  retryAt?: number | string | null;
+  result?: any;
+  error?: any;
+  progress?: Partial<JobProgress>;
+  state?: Record<string, any> | null;
+}
+
+export interface JobFilter {
+  status?: string;
+  kind?: string;
+  browserId?: string;
+  limit?: number;
+}
 
 export const JOB_KINDS = Object.freeze(['ask', 'export', 'export_batch', 'delete', 'delete_batch']);
-export const JOB_STATUSES = Object.freeze([
+export const JOB_STATUSES: readonly JobStatus[] = Object.freeze<JobStatus[]>([
   'queued',
   'assigned',
   'running',
@@ -11,39 +58,39 @@ export const JOB_STATUSES = Object.freeze([
   'error',
   'cancelled'
 ]);
-export const TERMINAL_STATUSES = Object.freeze(['done', 'error', 'cancelled']);
-export const ACTIVE_STATUSES = Object.freeze(['assigned', 'running', 'waiting_host']);
+export const TERMINAL_STATUSES: readonly JobStatus[] = Object.freeze<JobStatus[]>(['done', 'error', 'cancelled']);
+export const ACTIVE_STATUSES: readonly JobStatus[] = Object.freeze<JobStatus[]>(['assigned', 'running', 'waiting_host']);
 export const DEFAULT_JOB_TTL_MS = 24 * 60 * 60 * 1000;
 
 const JOB_ID_RE = /^job_[A-Za-z0-9-]+$/;
 const NON_TERMINAL_STATUSES = JOB_STATUSES.filter((s) => !TERMINAL_STATUSES.includes(s));
-const DEFAULT_PROGRESS = Object.freeze({ done: 0, total: 0, current: null });
+const DEFAULT_PROGRESS: Readonly<JobProgress> = Object.freeze({ done: 0, total: 0, current: null });
 
-export function isTerminal(status) {
-  return TERMINAL_STATUSES.includes(status);
+export function isTerminal(status: unknown): boolean {
+  return (TERMINAL_STATUSES as readonly unknown[]).includes(status);
 }
 
-function placeholders(list) {
+function placeholders(list: readonly unknown[]): string {
   return list.map(() => '?').join(',');
 }
 
-function parseJson(text, fallback) {
+function parseJson(text: unknown, fallback: any): any {
   if (text === null || text === undefined || text === '') return fallback;
   try {
-    return JSON.parse(text);
+    return JSON.parse(String(text));
   } catch {
     return fallback;
   }
 }
 
-function toJson(value) {
+function toJson(value: unknown): string | null {
   return value === undefined || value === null ? null : JSON.stringify(value);
 }
 
-function toEpoch(value) {
+function toEpoch(value: unknown): number | null {
   if (value === null || value === undefined) return null;
   if (typeof value === 'number') return value;
-  const ms = Date.parse(value);
+  const ms = Date.parse(String(value));
   return Number.isFinite(ms) ? ms : null;
 }
 
@@ -51,7 +98,7 @@ function toEpoch(value) {
  * progress_json carries both the public progress counters and the runner's resumable `state`
  * (the plan schema has no dedicated state column): { done, total, current, state: {...} }.
  */
-function rowToJob(row) {
+function rowToJob(row: Row | null): JobRecord | null {
   if (!row) return null;
   const { state, ...progress } = parseJson(row.progress_json, {});
   return {
@@ -80,11 +127,12 @@ function rowToJob(row) {
  * `db` is any adapter from core/db (sqlite WAL by default, or an external driver).
  */
 export class JobStore extends EventEmitter {
-  /**
-   * @param {import('../db/sqlite-adapter.js').SqliteAdapter} db
-   * @param {{ now?: () => number }} [opts]
-   */
-  constructor(db, opts = {}) {
+  db: DatabaseAdapter;
+  now: () => number;
+  closed: boolean;
+  orderBy: string;
+
+  constructor(db: DatabaseAdapter, opts: { now?: () => number } = {}) {
     super();
     if (!db || typeof db.run !== 'function') throw new TypeError('JobStore requires a db adapter');
     this.db = db;
@@ -93,14 +141,11 @@ export class JobStore extends EventEmitter {
     this.orderBy = 'created_at, ' + (db.rowOrder === 'rowid' ? 'rowid' : 'id');
   }
 
-  #ts() {
+  #ts(): string {
     return new Date(this.now()).toISOString();
   }
 
-  /**
-   * @param {{ kind: string, browserId: string, platform: string, input?: object }} spec
-   */
-  create(spec) {
+  create(spec: { kind: string; browserId: string; platform: string; input?: Record<string, any> }): JobRecord {
     const ts = this.#ts();
     const input = spec.input || {};
     const id = 'job_' + randomUUID();
@@ -122,24 +167,22 @@ export class JobStore extends EventEmitter {
     );
     const job = this.get(id);
     this.emit('update', job);
-    return job;
+    return job as JobRecord;
   }
 
-  get(id) {
+  get(id: string | null | undefined): JobRecord | null {
     if (this.closed || !id || !JOB_ID_RE.test(id)) return null;
     return rowToJob(this.db.get('SELECT * FROM jobs WHERE id = ?', [id]));
   }
 
-  /**
-   * Patch uses the public job shape (status, progress, state, result, error, attempts, cancelRequested, retryAt).
-   */
-  update(id, patch) {
+  // Patch uses the public job shape (status, progress, state, result, error, attempts, cancelRequested, retryAt).
+  update(id: string, patch: JobPatch): JobRecord | null {
     if (this.closed) return null;
     const job = this.get(id);
     if (!job) return null;
-    const sets = [];
-    const params = [];
-    const set = (column, value) => {
+    const sets: string[] = [];
+    const params: SqlParam[] = [];
+    const set = (column: string, value: SqlParam) => {
       sets.push(column + ' = ?');
       params.push(value);
     };
@@ -165,7 +208,7 @@ export class JobStore extends EventEmitter {
   }
 
   /** Atomic queued -> assigned handoff; returns null when another path already moved the job. */
-  claim(id) {
+  claim(id: string): JobRecord | null {
     if (this.closed) return null;
     const { changes } = this.db.run(
       "UPDATE jobs SET status = 'assigned', updated_at = ? WHERE id = ? AND status = 'queued'",
@@ -177,14 +220,11 @@ export class JobStore extends EventEmitter {
     return job;
   }
 
-  /**
-   * @param {{ status?: string, kind?: string, browserId?: string, limit?: number }} [filter]
-   */
-  list(filter = {}) {
+  list(filter: JobFilter = {}): JobRecord[] {
     if (this.closed) return [];
     const limit = Math.max(1, Math.min(500, Number(filter.limit) || 50));
-    const where = [];
-    const params = [];
+    const where: string[] = [];
+    const params: SqlParam[] = [];
     if (filter.status) {
       where.push('status = ?');
       params.push(filter.status);
@@ -203,11 +243,11 @@ export class JobStore extends EventEmitter {
       ' ORDER BY created_at DESC, ' +
       (this.db.rowOrder === 'rowid' ? 'rowid' : 'id') +
       ' DESC LIMIT ?';
-    return this.db.all(sql, [...params, limit]).map(rowToJob);
+    return this.db.all(sql, [...params, limit]).map((row) => rowToJob(row) as JobRecord);
   }
 
   /** Job ids of a lane in FIFO order (all statuses). */
-  laneOrder(browserId) {
+  laneOrder(browserId: string): string[] {
     if (this.closed) return [];
     return this.db
       .all('SELECT id FROM jobs WHERE lane_browser_id = ? ORDER BY ' + this.orderBy, [browserId])
@@ -215,7 +255,7 @@ export class JobStore extends EventEmitter {
   }
 
   /** Non-terminal jobs of a lane in FIFO order. */
-  laneQueue(browserId) {
+  laneQueue(browserId: string): JobRecord[] {
     if (this.closed) return [];
     return this.db
       .all(
@@ -223,26 +263,26 @@ export class JobStore extends EventEmitter {
          ORDER BY ${this.orderBy}`,
         [browserId, ...NON_TERMINAL_STATUSES]
       )
-      .map(rowToJob);
+      .map((row) => rowToJob(row) as JobRecord);
   }
 
   /** Lanes that still have unfinished work. */
-  lanes() {
+  lanes(): string[] {
     if (this.closed) return [];
     return this.db
       .all(
         `SELECT DISTINCT lane_browser_id FROM jobs WHERE status IN (${placeholders(NON_TERMINAL_STATUSES)})`,
-        NON_TERMINAL_STATUSES
+        [...NON_TERMINAL_STATUSES]
       )
       .map((r) => r.lane_browser_id);
   }
 
   /** Restart recovery: anything mid-flight (assigned/running/waiting_host) goes back to queued. */
-  recover() {
+  recover(): string[] {
     if (this.closed) return [];
     return this.db.transaction((db) => {
       const ids = db
-        .all(`SELECT id FROM jobs WHERE status IN (${placeholders(ACTIVE_STATUSES)})`, ACTIVE_STATUSES)
+        .all(`SELECT id FROM jobs WHERE status IN (${placeholders(ACTIVE_STATUSES)})`, [...ACTIVE_STATUSES])
         .map((r) => r.id);
       if (ids.length) {
         db.run(`UPDATE jobs SET status = 'queued', updated_at = ? WHERE status IN (${placeholders(ACTIVE_STATUSES)})`, [
@@ -254,7 +294,7 @@ export class JobStore extends EventEmitter {
     });
   }
 
-  prune(ttlMs = DEFAULT_JOB_TTL_MS) {
+  prune(ttlMs = DEFAULT_JOB_TTL_MS): string[] {
     if (this.closed) return [];
     const cutoff = new Date(this.now() - ttlMs).toISOString();
     return this.db.transaction((db) => {
@@ -275,7 +315,7 @@ export class JobStore extends EventEmitter {
   }
 
   /** Detaches listeners and stops further writes; the shared db is owned (and closed) by ServerCore. */
-  close() {
+  close(): void {
     this.closed = true;
     this.removeAllListeners();
   }
