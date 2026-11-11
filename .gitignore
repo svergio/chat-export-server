@@ -6,6 +6,7 @@ test/
 *.log
 .env
 .env.*
+!.env.example
 coverage/
 dist/
 .chat-export/

@@ -82,10 +82,14 @@ export async function startServer(opts: StartServerOptions = {}) {
     version: PKG_VERSION
   });
 
-  if (core.config.dashboard?.enabled !== false && core.config.dashboard?.password === 'changeme') {
+  if (
+    core.config.dashboard?.enabled !== false &&
+    core.config.dashboard?.password === 'changeme' &&
+    !process.env.CHAT_EXPORT_ADMIN_PASS
+  ) {
     core.logger.warn({
       component: 'dashboard',
-      message: 'dashboard uses the default password; set dashboard.password in config.json'
+      message: 'dashboard uses the default password; set CHAT_EXPORT_ADMIN_PASS or dashboard.password in config.json'
     });
   }
 

@@ -168,9 +168,13 @@ export class ServerCore {
       'SELECT id, fingerprint, created_at AS createdAt FROM mcp_tokens WHERE revoked_at IS NULL ORDER BY created_at DESC, id DESC LIMIT 1'
     );
     if (active) return { created: false, ...active };
-    const created = this.#insertMcpToken({ rotate: false, label: 'default' });
+    const preset = String(process.env.CHAT_EXPORT_MCP_TOKEN || '').trim();
+    const created =
+      preset && isMcpToken(preset)
+        ? this.#insertMcpTokenFromPlain(preset, { label: 'env' })
+        : this.#insertMcpToken({ rotate: false, label: 'default' });
     this.audit({ action: 'mcp_token.bootstrap', keyId: created.id, fingerprint: created.fingerprint, ok: true });
-    return { created: true, ...created };
+    return { created: true, id: created.id, fingerprint: created.fingerprint, createdAt: created.createdAt };
   }
 
   keyNew() {
@@ -674,6 +678,20 @@ export class ServerCore {
       message: message || '',
       detail
     });
+  }
+
+  #insertMcpTokenFromPlain(token: string, { label }: { label?: string }) {
+    if (!isMcpToken(token)) {
+      throw new ProtocolError(ERROR_CODES.BAD_REQUEST, 'CHAT_EXPORT_MCP_TOKEN must start with cem_');
+    }
+    const hashed = hashKey(token);
+    const now = new Date().toISOString();
+    const id = 'mcp_' + hashed.fingerprint;
+    this.db.run(
+      'INSERT INTO mcp_tokens (id, label, salt, hash, fingerprint, created_at, last_used_at, revoked_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      [id, label || 'env', hashed.salt, hashed.hash, hashed.fingerprint, now, null, null]
+    );
+    return { id, fingerprint: hashed.fingerprint, createdAt: now };
   }
 
   #insertMcpToken({ rotate, label }: { rotate: boolean; label?: string }) {

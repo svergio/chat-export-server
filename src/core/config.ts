@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { PLATFORMS } from '@chat-export/protocol';
+import { envBool, envInt, envString, parseBrowserTokensEnv } from './env.js';
 import { pathsFor, resolveHome } from './paths.js';
 import type {
   ChatExportConfig,
@@ -110,6 +111,13 @@ export function loadConfig(home: string = resolveHome()): LoadedConfig {
     return { ...defaults, home, paths: p };
   }
   const raw = JSON.parse(fs.readFileSync(p.config, 'utf8'));
+  const envBrowsers = parseBrowserTokensEnv(process.env.CHAT_EXPORT_BROWSER_TOKENS);
+  const fileBrowsers = normalizeRegisteredBrowsers(raw.registeredBrowsers);
+  const registeredBrowsers =
+    envBrowsers.length > 0
+      ? normalizeRegisteredBrowsers([...fileBrowsers, ...envBrowsers])
+      : fileBrowsers;
+
   const merged: ChatExportConfig = {
     host: raw.host === undefined ? defaults.host : raw.host,
     port: raw.port === undefined ? defaults.port : Number(raw.port),
@@ -117,7 +125,7 @@ export function loadConfig(home: string = resolveHome()): LoadedConfig {
     rpcTimeoutMs: raw.rpcTimeoutMs === undefined ? defaults.rpcTimeoutMs : Number(raw.rpcTimeoutMs),
     database: normalizeDatabase(raw.database),
     logging: normalizeLogging(raw.logging, p),
-    registeredBrowsers: normalizeRegisteredBrowsers(raw.registeredBrowsers),
+    registeredBrowsers,
     dashboard: normalizeDashboard(raw.dashboard),
     settings: {
       platformsEnabled: Array.isArray(raw.settings?.platformsEnabled)
@@ -126,9 +134,25 @@ export function loadConfig(home: string = resolveHome()): LoadedConfig {
       allowDestructive: Boolean(raw.settings?.allowDestructive)
     }
   };
-  if (merged.host !== DEFAULT_HOST) {
-    merged.host = DEFAULT_HOST;
-  }
+
+  const envHost = envString('CHAT_EXPORT_HOST');
+  if (envHost) merged.host = envHost;
+  else if (merged.host !== DEFAULT_HOST) merged.host = DEFAULT_HOST;
+
+  const envPort = envInt('CHAT_EXPORT_PORT');
+  if (envPort !== undefined && envPort > 0 && envPort < 65536) merged.port = envPort;
+
+  const dashEnabled = envBool('CHAT_EXPORT_DASHBOARD_ENABLED');
+  if (dashEnabled !== undefined) merged.dashboard.enabled = dashEnabled;
+
+  const adminUser = envString('CHAT_EXPORT_ADMIN_USER');
+  if (adminUser) merged.dashboard.username = adminUser;
+
+  const adminPass = envString('CHAT_EXPORT_ADMIN_PASS');
+  if (adminPass !== undefined) merged.dashboard.password = adminPass;
+
+  const allowDestructive = envBool('CHAT_EXPORT_ALLOW_DESTRUCTIVE');
+  if (allowDestructive !== undefined) merged.settings.allowDestructive = allowDestructive;
   fs.mkdirSync(merged.exportDir, { recursive: true, mode: 0o700 });
   fs.mkdirSync(p.logsDir, { recursive: true, mode: 0o700 });
   return { ...merged, home, paths: p };

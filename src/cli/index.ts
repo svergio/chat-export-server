@@ -1,7 +1,10 @@
 #!/usr/bin/env node
+import { loadEnvFile } from '../core/env.js';
 import { startServer, PKG_VERSION } from '../server.js';
 import { ServerCore } from '../core/server-core.js';
 import { resolveHome } from '../core/paths.js';
+
+loadEnvFile();
 
 function usage(): string {
   return `chat-export-server ${PKG_VERSION}
@@ -14,8 +17,11 @@ Usage:
   chat-export-server browser add --id BROWSER_ID --token ceb_... [--label NAME]
   chat-export-server status
 
-Env:
-  CHAT_EXPORT_HOME   config directory (default: ~/.chat-export)
+Env (see .env.example):
+  CHAT_EXPORT_HOME / CHAT_EXPORT_ENV_FILE / CHAT_EXPORT_HOST / CHAT_EXPORT_PORT
+  CHAT_EXPORT_DASHBOARD_ENABLED / CHAT_EXPORT_ADMIN_USER / CHAT_EXPORT_ADMIN_PASS
+  CHAT_EXPORT_MCP_TOKEN / CHAT_EXPORT_BROWSER_TOKENS / CHAT_EXPORT_ALLOW_DESTRUCTIVE
+  CHAT_EXPORT_ALLOWED_HOSTS
 `;
 }
 
