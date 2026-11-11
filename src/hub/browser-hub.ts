@@ -11,6 +11,7 @@ import {
   validate,
   validateRpcResponse
 } from '@chat-export/protocol';
+import { rpcTimeoutForArgs } from '../core/attachments.js';
 
 export interface BrowserSession {
   browserId: string;
@@ -214,12 +215,17 @@ export class BrowserHub {
       platform: req.platform,
       args: req.args || {}
     };
+    const timeoutMs = rpcTimeoutForArgs(
+      this.rpcTimeoutMs,
+      (req.args || {}) as Record<string, any>,
+      req.op
+    );
 
     return new Promise<any>((resolve, reject) => {
       const timer = setTimeout(() => {
         this.pending.delete(id);
-        reject(new ProtocolError(ERROR_CODES.TIMEOUT, 'rpc timeout after ' + this.rpcTimeoutMs + 'ms'));
-      }, this.rpcTimeoutMs);
+        reject(new ProtocolError(ERROR_CODES.TIMEOUT, 'rpc timeout after ' + timeoutMs + 'ms'));
+      }, timeoutMs);
 
       this.pending.set(id, { resolve, reject, timer, browserId: browser.browserId });
 
