@@ -44,10 +44,17 @@ const SECURITY_HEADERS = {
   'Content-Security-Policy': "frame-ancestors 'none'; base-uri 'self'; object-src 'none'"
 };
 
+const CRED_COMPARE_SALT = 'chat-export-dashboard-cred-v1';
+const CRED_COMPARE_KEYLEN = 32;
+
 function safeEqual(a: string, b: string): boolean {
-  const ha = crypto.createHash('sha256').update(a).digest();
-  const hb = crypto.createHash('sha256').update(b).digest();
+  const ha = crypto.scryptSync(a, CRED_COMPARE_SALT, CRED_COMPARE_KEYLEN);
+  const hb = crypto.scryptSync(b, CRED_COMPARE_SALT, CRED_COMPARE_KEYLEN);
   return crypto.timingSafeEqual(ha, hb);
+}
+
+function clientErrorMessage(err: unknown, fallback: string): string {
+  return err instanceof ProtocolError ? err.message : fallback;
 }
 
 function jsonResponse(res: ServerResponse, status: number, body: unknown): void {
@@ -330,7 +337,7 @@ export function createDashboardApi(deps: { core: ServerCore; startedAt: number }
         const mapped = err instanceof ProtocolError ? err : null;
         jsonResponse(res, 400, {
           ok: false,
-          error: { code: mapped?.code || 'BAD_REQUEST', message: err?.message || String(err) }
+          error: { code: mapped?.code || 'BAD_REQUEST', message: clientErrorMessage(err, 'enroll failed') }
         });
       }
       return true;
@@ -354,7 +361,7 @@ export function createDashboardApi(deps: { core: ServerCore; startedAt: number }
         const mapped = err instanceof ProtocolError ? err : null;
         jsonResponse(res, 400, {
           ok: false,
-          error: { code: mapped?.code || 'BAD_REQUEST', message: err?.message || String(err) }
+          error: { code: mapped?.code || 'BAD_REQUEST', message: clientErrorMessage(err, 'bind failed') }
         });
       }
       return true;
@@ -514,7 +521,7 @@ export function createDashboardApi(deps: { core: ServerCore; startedAt: number }
         const mapped = err instanceof ProtocolError ? err : null;
         jsonResponse(res, 400, {
           ok: false,
-          error: { code: mapped?.code || 'BAD_REQUEST', message: err?.message || String(err) }
+          error: { code: mapped?.code || 'BAD_REQUEST', message: clientErrorMessage(err, 'delete failed') }
         });
       }
       return true;
