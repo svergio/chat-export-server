@@ -27,6 +27,10 @@ ENV NODE_ENV=production \
     CHAT_EXPORT_HOST=0.0.0.0 \
     CHAT_EXPORT_PORT=8765
 
+LABEL org.opencontainers.image.source="https://github.com/svergio/chat-export-server" \
+      org.opencontainers.image.description="Local MCP server for Chat Export Chrome extension" \
+      io.modelcontextprotocol.server.name="io.github.svergio/chat-export-server"
+
 COPY --from=builder --chown=chatexport:chatexport /app /app
 
 RUN mkdir -p /data && chown chatexport:chatexport /data
