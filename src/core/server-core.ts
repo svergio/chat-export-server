@@ -648,7 +648,7 @@ export class ServerCore {
       );
     });
     const artifacts = writeMcpTokenArtifacts(this.home, token, {
-      searchDirs: [this.home, process.cwd()]
+      searchDirs: [process.cwd()]
     });
     return {
       key: token,
