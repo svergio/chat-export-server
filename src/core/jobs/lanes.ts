@@ -2,14 +2,11 @@ import * as protocol from '@chat-export/protocol';
 import { toProtocolError } from '../errors.js';
 import type { JobPatch, JobRecord, JobStatus, JobStore } from './job-store.js';
 
-const { ERROR_CODES, ProtocolError } = protocol;
+const { ERROR_CODES, ProtocolError, RETRYABLE_ERROR_CODES } = protocol;
 
 export const DEFAULT_BACKOFF_MS = Object.freeze([5_000, 15_000, 45_000]);
 const MAX_ATTEMPTS = 20;
-// The committed protocol package does not export RETRYABLE_ERROR_CODES yet; fall back to the transient codes.
-const RETRYABLE_CODES = new Set<string>(
-  (protocol as any).RETRYABLE_ERROR_CODES ?? [ERROR_CODES.TIMEOUT, 'PLATFORM_BUSY', 'RATE_LIMIT']
-);
+const RETRYABLE_CODES = new Set<string>([...RETRYABLE_ERROR_CODES, ERROR_CODES.TIMEOUT]);
 
 export interface LaneContext {
   jobId: string;

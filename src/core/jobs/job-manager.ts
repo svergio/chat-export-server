@@ -22,7 +22,7 @@ export function clampAskTimeout(value: unknown): number {
 }
 
 function invalid(message: string, details?: Record<string, unknown>): never {
-  throw new ProtocolError(ERROR_CODES.BAD_REQUEST, message, details);
+  throw new ProtocolError(ERROR_CODES.INVALID_ARGS, message, details);
 }
 
 function requireFormats(formats: unknown): string[] {

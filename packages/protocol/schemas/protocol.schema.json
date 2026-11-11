@@ -24,6 +24,14 @@
       "args": "ChatsDeleteArgs",
       "result": "ChatsDeleteResult"
     },
+    "chats.send": {
+      "args": "ChatsSendArgs",
+      "result": "ChatsSendResult"
+    },
+    "platform.host_state": {
+      "args": "PlatformHostStateArgs",
+      "result": "PlatformHostStateResult"
+    },
     "containers.list": {
       "args": "ContainersListArgs",
       "result": "ContainersListResult"
@@ -64,6 +72,8 @@
         "chats.export",
         "chats.create",
         "chats.delete",
+        "chats.send",
+        "platform.host_state",
         "containers.list",
         "containers.chats",
         "containers.create",
@@ -94,7 +104,10 @@
         "TIMEOUT",
         "HOST_ERROR",
         "NOT_FOUND",
-        "BAD_REQUEST"
+        "BAD_REQUEST",
+        "INVALID_ARGS",
+        "PLATFORM_BUSY",
+        "RATE_LIMIT"
       ]
     },
     "BrowserTab": {
@@ -540,10 +553,228 @@
       "properties": {
         "chatId": {
           "type": "string"
+        },
+        "branch": {
+          "type": "string",
+          "enum": [
+            "active",
+            "all"
+          ]
         }
       },
       "required": [
         "chatId"
+      ],
+      "additionalProperties": false
+    },
+    "FileRef": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "mime": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "path"
+      ],
+      "additionalProperties": false
+    },
+    "WireFile": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "mime": {
+          "type": "string",
+          "minLength": 1
+        },
+        "size": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "b64": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "mime",
+        "size",
+        "b64"
+      ],
+      "additionalProperties": false
+    },
+    "ChatsSendArgs": {
+      "type": "object",
+      "properties": {
+        "chatId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1
+        },
+        "model": {
+          "type": "string"
+        },
+        "mode": {
+          "type": "string"
+        },
+        "toggles": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "tools": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "files": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/WireFile"
+          }
+        }
+      },
+      "required": [
+        "chatId",
+        "text"
+      ],
+      "additionalProperties": false
+    },
+    "McpChatsSendArgs": {
+      "type": "object",
+      "properties": {
+        "chatId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1
+        },
+        "model": {
+          "type": "string"
+        },
+        "mode": {
+          "type": "string"
+        },
+        "toggles": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "tools": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "files": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/FileRef"
+          }
+        }
+      },
+      "required": [
+        "chatId",
+        "text"
+      ],
+      "additionalProperties": false
+    },
+    "ChatsSendResult": {
+      "$ref": "#/$defs/Chat"
+    },
+    "PlatformHostStateArgs": {
+      "type": "object",
+      "properties": {
+        "chatId": {
+          "type": "string"
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    },
+    "PlatformHostStateResult": {
+      "type": "object",
+      "properties": {
+        "platform": {
+          "$ref": "#/$defs/Platform"
+        },
+        "generating": {
+          "type": "boolean"
+        },
+        "busy": {
+          "type": "boolean"
+        },
+        "banner": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "composerReady": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "platform",
+        "generating",
+        "busy",
+        "banner",
+        "composerReady"
+      ],
+      "additionalProperties": false
+    },
+    "McpChatsExportArgs": {
+      "type": "object",
+      "properties": {
+        "chatId": {
+          "type": "string"
+        },
+        "formats": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ExportFormat"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "outDir": {
+          "type": "string"
+        },
+        "branch": {
+          "type": "string",
+          "enum": [
+            "active",
+            "all"
+          ]
+        }
+      },
+      "required": [
+        "chatId",
+        "formats"
       ],
       "additionalProperties": false
     },

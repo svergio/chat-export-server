@@ -22,9 +22,13 @@ declare module '@chat-export/protocol' {
     HOST_ERROR: 'HOST_ERROR';
     NOT_FOUND: 'NOT_FOUND';
     BAD_REQUEST: 'BAD_REQUEST';
-    // Codes referenced by the jobs/attachments modules that the committed protocol does not define yet.
+    INVALID_ARGS: 'INVALID_ARGS';
+    PLATFORM_BUSY: 'PLATFORM_BUSY';
+    RATE_LIMIT: 'RATE_LIMIT';
     [extra: string]: string;
   }>;
+
+  export const RETRYABLE_ERROR_CODES: readonly ['PLATFORM_BUSY', 'RATE_LIMIT'];
 
   export const WS_TYPES: Readonly<{
     HELLO: 'hello';
