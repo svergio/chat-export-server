@@ -71,6 +71,7 @@ export async function startServer(opts = {}) {
         await stdio.server.close().catch(() => {});
       }
       await new Promise((resolve) => httpServer.close(() => resolve()));
+      core.close();
     }
   };
 }

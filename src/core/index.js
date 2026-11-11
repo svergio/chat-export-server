@@ -3,6 +3,7 @@ export {
   DEFAULT_PORT,
   DEFAULT_HOST,
   DEFAULT_RPC_TIMEOUT_MS,
+  normalizeDatabase,
   defaultConfig,
   loadConfig,
   saveConfig,
@@ -28,4 +29,5 @@ export {
 } from './settings.js';
 export { writeExportFiles } from './export-files.js';
 export { toProtocolError, errorToJson, isProtocolError } from './errors.js';
+export { openDatabase, resolveDatabaseConfig, describeDatabase } from './db/index.js';
 export { ServerCore } from './server-core.js';
