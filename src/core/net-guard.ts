@@ -48,6 +48,29 @@ export function isAllowedOrigin(req: IncomingMessage): boolean {
   }
 }
 
+const ENROLL_CORS_ALLOW_HEADERS = 'content-type, accept';
+
+export function corsHeadersForAllowedOrigin(req: IncomingMessage): Record<string, string> | null {
+  const origin = req.headers.origin;
+  if (origin === undefined || typeof origin !== 'string') return null;
+  if (!isAllowedOrigin(req)) return null;
+  return {
+    'Access-Control-Allow-Origin': origin,
+    Vary: 'Origin'
+  };
+}
+
+export function enrollCorsPreflightHeaders(req: IncomingMessage): Record<string, string> | null {
+  const base = corsHeadersForAllowedOrigin(req);
+  if (!base) return null;
+  return {
+    ...base,
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': ENROLL_CORS_ALLOW_HEADERS,
+    'Access-Control-Max-Age': '86400'
+  };
+}
+
 export const MAX_JSON_BODY_BYTES = 256 * 1024;
 
 export class BodyTooLargeError extends Error {
