@@ -55,12 +55,45 @@ chat-export-server start
 
 ### Переменные окружения
 
+Скопируйте [`.env.example`](.env.example) в `.env`. Переменные окружения перекрывают `config.json`, где указано ниже.
+
 | Переменная | Назначение |
 |------------|------------|
-| `CHAT_EXPORT_HOME` | Каталог данных (по умолчанию `~/.chat-export`) |
+| `CHAT_EXPORT_HOME` | Каталог данных (`~/.chat-export`; в Docker — `/data`) |
+| `CHAT_EXPORT_HOST` | Адрес bind (`127.0.0.1` локально; в контейнере — `0.0.0.0`) |
+| `CHAT_EXPORT_PORT` | Порт HTTP (по умолчанию `8765`) |
+| `CHAT_EXPORT_ALLOWED_HOSTS` | Доп. имена заголовка `Host` (через запятую) |
+| `CHAT_EXPORT_DASHBOARD_ENABLED` | `true` / `false` |
+| `CHAT_EXPORT_ADMIN_USER` / `CHAT_EXPORT_ADMIN_PASS` | Логин дашборда |
+| `CHAT_EXPORT_MCP_TOKEN` | Опциональный `cem_…` при старте |
+| `CHAT_EXPORT_BROWSER_TOKENS` | Авто-энролл `browserId:ceb_…[:label]` |
+| `CHAT_EXPORT_ALLOW_DESTRUCTIVE` | `true` / `false` |
 | `CHAT_EXPORT_DB_DRIVER` | Драйвер БД |
 | `CHAT_EXPORT_DB_URL` | URL БД |
 | `CHAT_EXPORT_SKIP_MCP_CONFIG` | `1` — не писать Cursor MCP при `key new` |
+
+### Docker и Colima
+
+В репозитории есть [`Dockerfile`](Dockerfile) (Node 22 Alpine, непривилегированный пользователь, том `/data`, `HEALTHCHECK` на `/health`). **Docker Desktop не нужен** — на macOS используйте [Colima](https://github.com/abiosoft/colima):
+
+```sh
+colima start
+docker context use colima
+cp .env.example .env    # задайте CHAT_EXPORT_ADMIN_PASS
+docker --context colima compose build
+docker --context colima compose up -d
+curl -sS http://127.0.0.1:8765/health
+```
+
+Порт только **`127.0.0.1:8765`**. Данные — volume `chat-export-data`.
+
+После проверки остановите контейнер, чтобы локальный демон снова мог слушать `:8765`:
+
+```sh
+docker --context colima compose down
+```
+
+Раздельный фронт nginx (статика дашборда + прокси API/MCP/WS): см. [chat-export-dashboard](https://github.com/svergio/chat-export-dashboard) и `docker-compose.yml` в дереве сопровождения Chat Export.
 
 ### `config.json`
 
