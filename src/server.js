@@ -7,16 +7,30 @@ import { resolveHome } from './core/paths.js';
 
 const PKG_VERSION = '0.1.0';
 
+function isLoopbackAddress(address) {
+  return address === '127.0.0.1' || address === '::1' || address === '::ffff:127.0.0.1';
+}
+
+async function readJsonBody(req) {
+  const chunks = [];
+  for await (const chunk of req) chunks.push(chunk);
+  if (!chunks.length) return {};
+  return JSON.parse(Buffer.concat(chunks).toString('utf8'));
+}
+
 /**
  * @param {{ home?: string, stdio?: boolean, host?: string, port?: number }} [opts]
  */
 export async function startServer(opts = {}) {
   const home = opts.home || resolveHome();
   const core = new ServerCore({ home, serverVersion: PKG_VERSION });
+  core.ensureAuthState();
   const hub = new BrowserHub({
     serverVersion: PKG_VERSION,
     rpcTimeoutMs: core.config.rpcTimeoutMs,
-    verifyKey: (key) => core.verifyBearer(key),
+    authorizeHello: (hello, meta) => core.authorizeBrowserHello(hello, meta),
+    onPresence: (session, meta) => core.updateBrowserPresence(session, meta),
+    onDisconnect: (browserId) => core.markBrowserOffline(browserId),
     onAudit: (event) => core.audit(event)
   });
   core.setHub(hub);
@@ -30,6 +44,23 @@ export async function startServer(opts = {}) {
       if (url.pathname === '/health') {
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ ok: true, version: PKG_VERSION }));
+        return;
+      }
+      if (url.pathname === '/enroll') {
+        if (req.method !== 'POST') {
+          res.writeHead(405, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: { code: 'METHOD_NOT_ALLOWED', message: 'POST required' } }));
+          return;
+        }
+        if (!isLoopbackAddress(req.socket.remoteAddress || '')) {
+          res.writeHead(403, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: { code: 'FORBIDDEN', message: 'localhost only' } }));
+          return;
+        }
+        const body = await readJsonBody(req);
+        const enrolled = core.browserEnroll(body, { hostIp: req.socket.remoteAddress || '' });
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ ok: true, browser: enrolled }));
         return;
       }
       if (await handleMcpHttp(req, res, core, url)) return;

@@ -11,20 +11,26 @@ export {
   resolveExportDir
 } from './config.js';
 export {
-  generateKey,
+  generateMcpToken,
+  generateBrowserToken,
   hashKey,
   fingerprintOf,
+  isMcpToken,
+  isBrowserToken,
   verifyKey,
-  loadKeys,
-  saveKeys,
-  createOrReplaceKey,
-  listKeyMeta,
-  verifyAgainstStore
+  findCursorMcpConfig,
+  updateCursorMcpConfig,
+  writeMcpTokenArtifacts,
+  MCP_TOKEN_PREFIX,
+  BROWSER_TOKEN_PREFIX,
+  LEGACY_BROWSER_TOKEN_PREFIX
 } from './keys.js';
 export { appendAudit, readAuditLines } from './audit.js';
 export {
   assertPlatformEnabled,
+  assertCreateAllowed,
   assertDestructiveAllowed,
+  assertProjectsAllowed,
   mergePlatformsList
 } from './settings.js';
 export { writeExportFiles } from './export-files.js';

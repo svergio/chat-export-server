@@ -11,6 +11,7 @@ Usage:
   chat-export-server key new
   chat-export-server key rotate
   chat-export-server key list
+  chat-export-server browser add --id BROWSER_ID --token ceb_... [--label NAME]
   chat-export-server status
 
 Env:
@@ -26,6 +27,9 @@ function parseArgs(argv) {
     if (a === '--stdio') out.flags.stdio = true;
     else if (a === '--port') out.flags.port = Number(args[++i]);
     else if (a === '--home') out.flags.home = args[++i];
+    else if (a === '--id') out.flags.id = args[++i];
+    else if (a === '--token') out.flags.token = args[++i];
+    else if (a === '--label') out.flags.label = args[++i];
     else if (a === '--help' || a === '-h') out.flags.help = true;
     else if (!a.startsWith('-')) out.positionals.push(a);
   }
@@ -87,6 +91,25 @@ async function main() {
       return;
     }
     process.stderr.write('unknown key subcommand\n' + usage());
+    process.exit(1);
+  }
+
+  if (parsed.cmd === 'browser') {
+    const core = new ServerCore({ home, serverVersion: PKG_VERSION });
+    const sub = parsed.sub || parsed.positionals[0];
+    if (sub === 'add') {
+      const browserId = parsed.flags.id;
+      const token = parsed.flags.token;
+      const browserLabel = parsed.flags.label;
+      if (!browserId || !token) {
+        process.stderr.write('browser add requires --id and --token\n' + usage());
+        process.exit(1);
+      }
+      const enrolled = core.browserEnroll({ browserId, key: token, browserLabel });
+      process.stdout.write(JSON.stringify(enrolled, null, 2) + '\n');
+      return;
+    }
+    process.stderr.write('unknown browser subcommand\n' + usage());
     process.exit(1);
   }
 

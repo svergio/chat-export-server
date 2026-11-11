@@ -1,5 +1,8 @@
 import { ERROR_CODES, PLATFORMS, ProtocolError, DESTRUCTIVE_OPS } from '@chat-export/protocol';
 
+const CREATE_OPS = new Set(['chats.create', 'chats.send', 'chats.ask_selection', 'chats.side_ask']);
+const PROJECT_OPS = new Set(['containers.create', 'containers.delete', 'containers.move_chat']);
+
 /**
  * Server-level + browser-level gate for platform enablement.
  * @param {string} platform
@@ -38,6 +41,29 @@ export function assertDestructiveAllowed(op, serverSettings, browser, opts = {})
   }
   if (browser && !browser.allowDestructive) {
     throw new ProtocolError(ERROR_CODES.DESTRUCTIVE_DISABLED, 'allowDestructive is off on browser');
+  }
+}
+
+export function assertCreateAllowed(op, browser) {
+  if (!CREATE_OPS.has(op)) return;
+  if (browser && browser.allowCreate === false) {
+    throw new ProtocolError(ERROR_CODES.CREATE_DISABLED, 'allowCreate is off on browser');
+  }
+}
+
+export function assertProjectsAllowed(op, browser, opts = {}) {
+  if (PROJECT_OPS.has(op)) {
+    if (browser && browser.allowProjects === false) {
+      throw new ProtocolError(ERROR_CODES.PROJECTS_DISABLED, 'allowProjects is off on browser');
+    }
+    if (op === 'containers.delete') {
+      if (!opts.confirm) {
+        throw new ProtocolError(ERROR_CODES.CONFIRM_REQUIRED, 'destructive op requires confirm:true');
+      }
+      if (browser && !browser.allowDestructive) {
+        throw new ProtocolError(ERROR_CODES.DESTRUCTIVE_DISABLED, 'allowDestructive is off on browser');
+      }
+    }
   }
 }
 

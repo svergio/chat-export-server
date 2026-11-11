@@ -23,7 +23,7 @@ export async function handleMcpHttp(req, res, core, url) {
   if (url.pathname !== '/mcp') return false;
 
   const token = extractBearer(req);
-  if (!core.verifyBearer(token)) {
+  if (!core.verifyMcpBearer(token)) {
     core.audit({ action: 'mcp.auth', ok: false, code: 'UNAUTHORIZED', transport: 'http' });
     res.writeHead(401, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({ error: { code: 'UNAUTHORIZED', message: 'invalid or missing bearer key' } }));
