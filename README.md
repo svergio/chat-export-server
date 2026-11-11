@@ -2,6 +2,10 @@
 
 # chat-export-server
 
+<p align="center">
+  <img src="docs/media/demo-server.gif" alt="Native start on :8765, health, two Chrome profiles online/offline" width="720" />
+</p>
+
 **Local MCP server** for the [Chat Export](https://github.com/svergio/chat-export-extension) Chrome extension. List, read, export, create, delete, and **ask** in your own chats on **eight** web providers (ChatGPT, Grok, X Grok, Claude, GitHub Copilot, Qwen, DeepSeek, Perplexity) — through the extension in **your** browser. Everything stays on `127.0.0.1`: job queues, SQLite chat cache, audit log, optional [dashboard](https://github.com/svergio/chat-export-dashboard) UI.
 
 ## Why this MCP (for awesome-list reviewers)
