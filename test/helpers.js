@@ -3,7 +3,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { WebSocket } from 'ws';
-import { WS_TYPES, PROTOCOL_VERSION } from '@chat-export/protocol';
+import { WS_TYPES, PROTOCOL_VERSION, PLATFORMS } from '@chat-export/protocol';
 import { startServer } from '../dist/server.js';
 import { MCP_TOKEN_PREFIX } from '../dist/core/keys.js';
 
@@ -58,7 +58,7 @@ export function connectMockBrowser(port, opts = {}) {
     key: keyIn,
     browserId = 'b-test-1',
     browserLabel = 'Test Browser',
-    platformsEnabled = ['chatgpt', 'grok', 'grok-x', 'copilot', 'claude'],
+    platformsEnabled = [...PLATFORMS],
     allowDestructive = false,
     allowCreate = true,
     allowProjects = true,

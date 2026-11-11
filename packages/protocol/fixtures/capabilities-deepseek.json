@@ -1,0 +1,19 @@
+{
+  "platform": "deepseek",
+  "models": [
+    { "id": "default", "label": "DeepSeek", "kind": "model" }
+  ],
+  "modes": [],
+  "toggles": [
+    { "id": "deepthink", "label": "DeepThink", "kind": "toggle" },
+    { "id": "search", "label": "Search", "kind": "toggle" }
+  ],
+  "tools": [],
+  "attach": {
+    "supported": false,
+    "multiple": false,
+    "accept": []
+  },
+  "current": { "model": "default", "toggles": [] },
+  "detectedAt": "2026-11-11T08:00:00.000Z"
+}

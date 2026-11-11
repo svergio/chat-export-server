@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { ERROR_CODES } from '@chat-export/protocol';
+import { ERROR_CODES, PLATFORMS } from '@chat-export/protocol';
 import { resolveExportOutDir } from '../../dist/core/export-files.js';
 import { withServer, connectMockBrowser } from '../helpers.js';
 import { extractBearer } from '../../dist/mcp/http.js';
@@ -49,7 +49,7 @@ describe('MCP contract (mock extension)', () => {
         key,
         browserId: 'b-contract',
         allowDestructive: true,
-        platformsEnabled: ['chatgpt', 'grok', 'grok-x', 'copilot', 'claude'],
+        platformsEnabled: [...PLATFORMS],
         onRpc: (msg) => {
           if (msg.op === 'chats.list' && msg.platform === 'chatgpt') {
             return { data: list };
@@ -317,32 +317,66 @@ describe('MCP contract (mock extension)', () => {
     assert.match(src, /chats_send[\s\S]*?files:\s*z\.array\(FileRef\)/);
   });
 
-  it('accepts claude platform enum on list/get', async () => {
-    const list = loadJson('chats-list.json');
-    await withServer(async (server) => {
-      const { core, port } = server;
-      const { key } = core.keyNew();
-      await connectMockBrowser(port, {
-        core,
-        key,
-        browserId: 'b-claude',
-        platformsEnabled: ['claude'],
-        onRpc: (msg) => {
-          if (msg.op === 'chats.list' && msg.platform === 'claude') {
-            return {
-              data: {
-                items: list.items.map((c) => ({ ...c, platform: 'claude' })),
-                nextCursor: null
-              }
-            };
+  for (const platform of ['claude', 'qwen', 'deepseek', 'perplexity']) {
+    it(platform + ': list, get, capabilities, create, send forward over rpc', async () => {
+      const list = loadJson('chats-list.json');
+      const payload = loadJson('export-payload-chatgpt.json');
+      const caps = loadJson('capabilities-' + platform + '.json');
+      /** @type {string[]} */
+      const seen = [];
+      await withServer(async (server) => {
+        const { core, port } = server;
+        const { key } = core.keyNew();
+        await connectMockBrowser(port, {
+          core,
+          key,
+          browserId: 'b-' + platform,
+          platformsEnabled: [platform],
+          onRpc: (msg) => {
+            assert.equal(msg.platform, platform);
+            seen.push(msg.op);
+            if (msg.op === 'chats.list') {
+              return { data: { items: list.items.map((c) => ({ ...c, platform })), nextCursor: null } };
+            }
+            if (msg.op === 'chats.get') return { data: { ...payload, platform } };
+            if (msg.op === 'platform.capabilities') return { data: caps };
+            if (msg.op === 'chats.create' || msg.op === 'chats.send') {
+              return {
+                data: {
+                  platform,
+                  chatId: msg.args.chatId || 'new-' + platform,
+                  title: 't',
+                  url: 'https://example.com/c/x',
+                  updatedAt: null
+                }
+              };
+            }
+            return { data: { ok: true } };
           }
-          return { data: { ok: true } };
+        });
+        core.browsersBind('b-' + platform);
+        const listed = await core.chatsList(platform, { limit: 5 });
+        assert.equal(listed.items[0].platform, platform);
+        const got = await core.chatsGet(platform, { chatId: listed.items[0].chatId });
+        assert.equal(got.platform, platform);
+        const gotCaps = await core.platformCapabilities(platform, {});
+        assert.equal(gotCaps.platform, platform);
+        const created = await core.chatsCreate(platform, { text: 'hi' });
+        assert.equal(created.platform, platform);
+        const sent = await core.chatsSend(platform, { chatId: created.chatId, text: 'again' });
+        assert.equal(sent.chatId, created.chatId);
+        for (const op of ['chats.list', 'chats.get', 'platform.capabilities', 'chats.create', 'chats.send']) {
+          assert.ok(seen.includes(op), platform + ' ' + op);
         }
       });
-      core.browsersBind('b-claude');
-      const listed = await core.chatsList('claude', { limit: 5 });
-      assert.equal(listed.items[0].platform, 'claude');
     });
+  }
+
+  it('mcp platform enum is derived from protocol PLATFORMS', () => {
+    const src = fs.readFileSync(new URL('../../src/mcp/tools.ts', import.meta.url), 'utf8');
+    assert.match(src, /z\.enum\(\[\.\.\.PLATFORMS\]/);
+    const types = fs.readFileSync(new URL('../../src/types.ts', import.meta.url), 'utf8');
+    assert.match(types, /Platform = \(typeof PLATFORMS\)\[number\]/);
   });
 
   it('chats_export outDir: rejects relative and outside HOME', async () => {
@@ -359,11 +393,11 @@ describe('MCP contract (mock extension)', () => {
       core.browsersBind('b-outdir-gate');
       await assert.rejects(
         () => core.chatsExport('chatgpt', { chatId: 'x', formats: ['md'], outDir: 'exports/out' }),
-        (e) => e.code === ERROR_CODES.INVALID_ARGS
+        (e) => e.code === ERROR_CODES.BAD_REQUEST
       );
       await assert.rejects(
         () => core.chatsExport('chatgpt', { chatId: 'x', formats: ['md'], outDir: '/etc' }),
-        (e) => e.code === ERROR_CODES.INVALID_ARGS
+        (e) => e.code === ERROR_CODES.BAD_REQUEST
       );
     });
   });
@@ -373,7 +407,7 @@ describe('MCP contract (mock extension)', () => {
     await withServer(async (server, home) => {
       const flatRoot = path.join(home, 'exports-flat-' + Date.now());
       fs.mkdirSync(flatRoot, { recursive: true, mode: 0o700 });
-      assert.equal(resolveExportOutDir(flatRoot, home), path.resolve(flatRoot));
+      assert.equal(resolveExportOutDir(flatRoot, home), fs.realpathSync(flatRoot));
 
         const { core, port } = server;
         const { key } = core.keyNew();
@@ -407,7 +441,7 @@ describe('MCP contract (mock extension)', () => {
           formats: ['md'],
           outDir: flatRoot
         });
-        assert.ok(exported.dir.startsWith(path.resolve(flatRoot)));
+        assert.ok(exported.dir.startsWith(fs.realpathSync(flatRoot)));
         assert.equal(exported.paths.length, 1);
         const base = path.basename(exported.paths[0]);
         assert.match(base, /^chatgpt-.*\.md$/);

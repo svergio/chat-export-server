@@ -1,0 +1,19 @@
+{
+  "platform": "qwen",
+  "models": [
+    { "id": "qwen3-max", "label": "Qwen3-Max", "kind": "model" },
+    { "id": "qwen3-coder-plus", "label": "Qwen3-Coder", "kind": "model" }
+  ],
+  "modes": [],
+  "toggles": [
+    { "id": "thinking_mode", "label": "Thinking", "kind": "toggle" }
+  ],
+  "tools": [],
+  "attach": {
+    "supported": false,
+    "multiple": false,
+    "accept": []
+  },
+  "current": { "model": "qwen3-max", "toggles": [] },
+  "detectedAt": "2026-11-11T08:00:00.000Z"
+}

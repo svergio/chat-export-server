@@ -1,0 +1,19 @@
+{
+  "platform": "perplexity",
+  "models": [
+    { "id": "turbo", "label": "Best", "kind": "model" },
+    { "id": "sonar", "label": "Sonar", "kind": "model" }
+  ],
+  "modes": [
+    { "id": "search", "label": "Search", "kind": "mode" }
+  ],
+  "toggles": [],
+  "tools": [],
+  "attach": {
+    "supported": true,
+    "multiple": true,
+    "accept": []
+  },
+  "current": { "model": "turbo", "mode": "search", "toggles": [] },
+  "detectedAt": "2026-11-11T08:00:00.000Z"
+}

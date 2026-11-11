@@ -16,7 +16,10 @@ import { fixture } from './helpers.js';
 
 test('protocol version and platforms', () => {
   assert.equal(PROTOCOL_VERSION, 1);
-  assert.deepEqual([...PLATFORMS], ['chatgpt', 'grok', 'grok-x', 'copilot', 'claude']);
+  assert.deepEqual(
+    [...PLATFORMS],
+    ['chatgpt', 'grok', 'grok-x', 'copilot', 'claude', 'qwen', 'deepseek', 'perplexity']
+  );
 });
 
 test('error codes include core contract set', () => {
