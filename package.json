@@ -21,7 +21,12 @@
     "mcp": "node dist/cli/index.js start --stdio",
     "key": "node dist/cli/index.js key",
     "status": "node dist/cli/index.js status",
-    "schema": "npm run schema -w @chat-export/protocol"
+    "schema": "npm run schema -w @chat-export/protocol",
+    "test:unit": "npm run build && node --test --test-reporter spec test/unit/*.test.js",
+    "test:contract": "npm run build && node --test --test-reporter spec test/contract/*.test.js",
+    "test:protocol": "node --test --test-reporter spec packages/protocol/test/*.test.js",
+    "test": "npm run test:unit && npm run test:protocol",
+    "test:all": "npm run test:unit && npm run test:contract && npm run test:protocol"
   },
   "dependencies": {
     "@chat-export/protocol": "*",

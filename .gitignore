@@ -1,7 +1,5 @@
 node_modules/
 .serena/
-test/
-*.test.js
 .DS_Store
 *.log
 .env
