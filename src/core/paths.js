@@ -12,6 +12,7 @@ export function pathsFor(home) {
     config: path.join(home, 'config.json'),
     keys: path.join(home, 'keys.json'),
     audit: path.join(home, 'audit.log'),
-    exportDir: path.join(home, 'exports')
+    exportDir: path.join(home, 'exports'),
+    dbFile: path.join(home, 'data', 'chat-export.db')
   };
 }

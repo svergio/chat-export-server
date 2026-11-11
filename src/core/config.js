@@ -7,6 +7,13 @@ export const DEFAULT_PORT = 8765;
 export const DEFAULT_HOST = '127.0.0.1';
 export const DEFAULT_RPC_TIMEOUT_MS = 60_000;
 
+export function normalizeDatabase(raw) {
+  return {
+    driver: typeof raw?.driver === 'string' && raw.driver.trim() ? raw.driver.trim() : 'sqlite',
+    url: typeof raw?.url === 'string' ? raw.url.trim() : ''
+  };
+}
+
 export function defaultConfig(home) {
   const p = pathsFor(home);
   return {
@@ -14,6 +21,7 @@ export function defaultConfig(home) {
     port: DEFAULT_PORT,
     exportDir: p.exportDir,
     rpcTimeoutMs: DEFAULT_RPC_TIMEOUT_MS,
+    database: normalizeDatabase(),
     settings: {
       platformsEnabled: [...PLATFORMS],
       allowDestructive: false
@@ -35,6 +43,7 @@ export function loadConfig(home = resolveHome()) {
     port: raw.port === undefined ? defaults.port : Number(raw.port),
     exportDir: raw.exportDir || defaults.exportDir,
     rpcTimeoutMs: raw.rpcTimeoutMs === undefined ? defaults.rpcTimeoutMs : Number(raw.rpcTimeoutMs),
+    database: normalizeDatabase(raw.database),
     settings: {
       platformsEnabled: Array.isArray(raw.settings?.platformsEnabled)
         ? raw.settings.platformsEnabled.filter((x) => PLATFORMS.includes(x))
@@ -57,6 +66,7 @@ export function saveConfig(home, config) {
     port: config.port ?? DEFAULT_PORT,
     exportDir: config.exportDir || p.exportDir,
     rpcTimeoutMs: config.rpcTimeoutMs ?? DEFAULT_RPC_TIMEOUT_MS,
+    database: normalizeDatabase(config.database),
     settings: {
       platformsEnabled: config.settings?.platformsEnabled || [...PLATFORMS],
       allowDestructive: Boolean(config.settings?.allowDestructive)

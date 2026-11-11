@@ -15,6 +15,7 @@ import { assertPlatformEnabled, assertDestructiveAllowed, mergePlatformsList } f
 import { writeExportFiles } from './export-files.js';
 import { toProtocolError } from './errors.js';
 import { resolveHome } from './paths.js';
+import { openDatabase, describeDatabase } from './db/index.js';
 
 export class ServerCore {
   /**
@@ -25,6 +26,20 @@ export class ServerCore {
     this.config = loadConfig(this.home);
     this.hub = opts.hub || null;
     this.serverVersion = opts.serverVersion || '0.1.0';
+    this._db = opts.db || null;
+  }
+
+  /** Opened and migrated on first use so one-shot CLI commands do not touch the database. */
+  get db() {
+    if (!this._db) this._db = openDatabase(this.config);
+    return this._db;
+  }
+
+  close() {
+    if (!this._db) return;
+    const db = this._db;
+    this._db = null;
+    db.close();
   }
 
   reloadConfig() {
@@ -73,6 +88,7 @@ export class ServerCore {
       exportDir: resolveExportDir(this.config),
       settings: this.config.settings,
       keys: this.keyList(),
+      database: this._db ? this._db.describe() : describeDatabase(this.config),
       hub: this.hub ? this.hub.status() : null,
       serverVersion: this.serverVersion
     };
