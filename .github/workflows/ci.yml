@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+    branches: [main, test]
+  pull_request:
+    branches: [main, test]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install, typecheck, build, test
+        run: |
+          npm ci
+          npm run typecheck
+          npm run build
+          npm run test:ci
+
+      - name: npm audit (high)
+        run: npm audit --audit-level=high
+
+      - name: Kustomize deploy/k8s
+        if: hashFiles('deploy/k8s/kustomization.yaml') != ''
+        run: kubectl kustomize deploy/k8s >/dev/null

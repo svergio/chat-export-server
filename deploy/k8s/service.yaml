@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: chat-export-server
+  namespace: chat-export
+  labels:
+    app.kubernetes.io/name: chat-export-server
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: chat-export-server
+  ports:
+    - name: http
+      port: 8765
+      targetPort: http
+      protocol: TCP

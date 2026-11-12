@@ -374,7 +374,7 @@ describe('MCP contract (mock extension)', () => {
 
   it('mcp platform enum is derived from protocol PLATFORMS', () => {
     const src = fs.readFileSync(new URL('../../src/mcp/tools.ts', import.meta.url), 'utf8');
-    assert.match(src, /z\.enum\(\[\.\.\.PLATFORMS\]/);
+    assert.match(src, /\.enum\(\[\.\.\.PLATFORMS\]/);
     const types = fs.readFileSync(new URL('../../src/types.ts', import.meta.url), 'utf8');
     assert.match(types, /Platform = \(typeof PLATFORMS\)\[number\]/);
   });

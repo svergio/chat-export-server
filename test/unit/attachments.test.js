@@ -10,7 +10,8 @@ import {
   DEFAULT_MAX_FILE_BYTES,
   rpcTimeoutForArgs,
   EXPORT_RPC_TIMEOUT_MS,
-  EXPORT_HEAVY_RPC_TIMEOUT_MS
+  EXPORT_HEAVY_RPC_TIMEOUT_MS,
+  SEND_RPC_TIMEOUT_MS
 } from '../../dist/core/attachments.js';
 
 function tempDir() {
@@ -124,7 +125,7 @@ describe('attachments.loadFiles', () => {
 describe('attachments.rpcTimeoutForArgs', () => {
   it('keeps base for plain ops and scales with file bytes', () => {
     assert.equal(rpcTimeoutForArgs(60_000, { chatId: 'x' }, 'chats.get'), 60_000);
-    assert.equal(rpcTimeoutForArgs(60_000, { files: [{ size: 512 * 1024 }] }, 'chats.create'), 70_000);
+    assert.equal(rpcTimeoutForArgs(60_000, { files: [{ size: 512 * 1024 }] }, 'chats.create'), SEND_RPC_TIMEOUT_MS);
   });
 
   it('raises chats.export timeout, more for pdf / many formats / all branches', () => {

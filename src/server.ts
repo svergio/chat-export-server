@@ -120,14 +120,32 @@ export async function startServer(opts: StartServerOptions = {}) {
         forbid(res, 'host not allowed');
         return;
       }
-      if (url.pathname !== '/health' && !isAllowedOrigin(req)) {
+      if (url.pathname !== '/health' && url.pathname !== '/legal' && !isAllowedOrigin(req)) {
         core.audit({ action: 'http.origin', ok: false, code: 'FORBIDDEN', origin: String(req.headers.origin || ''), path: url.pathname });
         forbid(res, 'origin not allowed');
         return;
       }
       if (url.pathname === '/health') {
         res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ ok: true, version: PKG_VERSION }));
+        res.end(JSON.stringify({ ok: true, version: PKG_VERSION, legal: '/legal' }));
+        return;
+      }
+      if (url.pathname === '/legal' && req.method === 'GET') {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(
+          JSON.stringify({
+            ok: true,
+            version: PKG_VERSION,
+            license: 'MIT',
+            warranty: 'AS IS, WITHOUT WARRANTY OF ANY KIND',
+            localFirst: true,
+            document: 'LEGAL.md',
+            issues: {
+              server: 'https://github.com/svergio/chat-export-server/issues',
+              extension: 'https://github.com/svergio/chat-export-extension/issues'
+            }
+          })
+        );
         return;
       }
       if (url.pathname === '/enroll') {

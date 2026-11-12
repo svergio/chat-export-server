@@ -64,8 +64,11 @@ function sanitize(s: unknown): string {
 }
 
 function sanitizeFileName(name: unknown): string {
-  const base = path.basename(String(name || ''));
-  return stripDotSegments(base.replace(/[^\w.\- ()[\]]+/g, '_').slice(0, 180));
+  const normalized = String(name || '').replace(/\\/g, '/');
+  const base = path.basename(normalized);
+  let cleaned = stripDotSegments(base.replace(/[^\w.\- ()[\]]+/g, '_').slice(0, 180));
+  cleaned = cleaned.replace(/\.\.+/g, '_');
+  return cleaned;
 }
 
 const ALLOWED_HOME_DOT_DIRS = new Set(['.chat-export']);

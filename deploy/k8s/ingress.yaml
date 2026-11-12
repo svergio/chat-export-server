@@ -1,0 +1,24 @@
+# Prefer loopback port-forward for local-first security:
+#   kubectl -n chat-export port-forward --address 127.0.0.1 svc/chat-export-server 8765:8765
+# Enable this Ingress only on trusted private clusters with auth in front.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: chat-export-server
+  namespace: chat-export
+  labels:
+    app.kubernetes.io/name: chat-export-server
+  annotations:
+    kubernetes.io/ingress.class: nginx
+spec:
+  rules:
+    - host: chat-export.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: chat-export-server
+                port:
+                  number: 8765

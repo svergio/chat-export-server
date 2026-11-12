@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chat-export-server
+  namespace: chat-export
+  labels:
+    app.kubernetes.io/name: chat-export-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: chat-export-server
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: chat-export-server
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+      containers:
+        - name: server
+          image: ghcr.io/svergio/chat-export-server:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8765
+              protocol: TCP
+          env:
+            - name: CHAT_EXPORT_HOME
+              value: /data
+            - name: CHAT_EXPORT_HOST
+              value: 0.0.0.0
+            - name: CHAT_EXPORT_PORT
+              value: "8765"
+          envFrom:
+            - secretRef:
+                name: chat-export-secrets
+          volumeMounts:
+            - name: data
+              mountPath: /data
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 30
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              memory: 1Gi
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: chat-export-data
