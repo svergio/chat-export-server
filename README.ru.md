@@ -14,6 +14,10 @@
 
 `chat-export-server` вместе с [расширением Chrome](https://github.com/svergio/chat-export-extension) — полный локальный стек. Операции с чатами в браузере идут через WebSocket-мост расширения — **без** Chrome DevTools MCP, Playwright и без встроенного кода агентов. Деплой **нативно**, **Docker / Colima** или **Kubernetes** (`deploy/k8s`). Любой MCP-клиент (Cursor, Claude Desktop, Open WebUI, локальные LLM вроде Bonsai-27B) — **опционален**.
 
+## Зачем этот MCP (для ревьюеров awesome-list)
+
+Большинство LLM MCP оборачивают **HTTP API вендора** (ключи, квоты, облако). Chat Export другой: агент говорит MCP с **локальным** процессом; тот управляет **веб-UI, в которые вы уже залогинены**, через мост расширения Chrome. Для chat-ops не нужны API-ключи OpenAI/Anthropic/xAI, тела чатов не уходят с `127.0.0.1`, create/delete выключены, пока вы сами не включите (`allowDestructive` + `confirm`). Пара: [zip расширения](https://github.com/svergio/chat-export-extension/releases) → Cursor (или любой MCP-клиент) на `http://127.0.0.1:8765/mcp`.
+
 ## Проблема
 
 Агентам в IDE нужен **структурный доступ** к веб-сессиям LLM без утечки cookies и без облачных API. Нужны MCP, очереди и повторы — при этом данные не покидают ваш ПК.
@@ -43,21 +47,49 @@
 2. **Сервер** — `npm install && npm run build`, `chat-export-server key new`, `chat-export-server start`.
 3. **MCP** — URL `http://127.0.0.1:8765/mcp`, Bearer-ключ, `browsers_bind`, затем инструменты чатов.
 
-## Установка
+## Установка и сборка
 
 ```sh
 npm install
-npm run build
+npm run build   # tsc -> dist/
+npm link        # опционально: chat-export-server в PATH
 ```
 
-Нужен **Node 22.13+**.
+Нужен **Node 22.13+** (`node:sqlite`).
+
+| Скрипт | Назначение |
+| --- | --- |
+| `npm run build` | компиляция в `dist/` |
+| `npm run typecheck` | `tsc --noEmit` |
+| `npm start` | `node dist/cli/index.js start` |
+| `npm run dev` | `tsx watch … start` |
+| `npm run mcp` | stdio MCP |
+
+### Первый запуск
 
 ```sh
-chat-export-server key new
+chat-export-server key new    # plaintext один раз; в файле — хеш
 chat-export-server start
+# WS   /ws, /ext  — мост расширения
+# MCP  /mcp       — Bearer
+# GET  /health
 ```
 
-Данные: `~/.chat-export` (`CHAT_EXPORT_HOME` для переопределения).
+Данные в `~/.chat-export` (или `CHAT_EXPORT_HOME`):
+
+```text
+~/.chat-export/
+  config.json
+  keys.json      # только хеши (chmod 600)
+  audit.log
+  exports/
+```
+
+```sh
+chat-export-server key rotate
+chat-export-server key list
+chat-export-server status
+```
 
 ## Настройка
 
@@ -140,11 +172,19 @@ docker --context colima compose down
 
 Хеши MCP-ключей в `keys.json`; plaintext — один раз при `key new`.
 
-Демон в дереве сопровождения: `tmp-scripts/ensure-daemon.mjs` (порт `8765`, опция `--sync-mcp-json` для `.cursor/mcp.json`).
+После настройки MCP выполните **`browsers_bind`**, чтобы инструменты целились в подключённый профиль Chrome.
 
 Расширение: [README extension — Настройка](https://github.com/svergio/chat-export-extension#%D0%BD%D0%B0%D1%81%D1%82%D1%80%D0%BE%D0%B9%D0%BA%D0%B0).
 
-## MCP в Cursor (HTTP)
+## Фоновые задачи
+
+Долгие операции (`chat_ask`, экспорт, пакетное удаление) идут по очередям **на браузер**:
+
+- `jobs_enqueue`, `jobs_status`, `jobs_list`, `jobs_cancel`
+
+## MCP в Cursor
+
+HTTP (сервер уже запущен):
 
 ```json
 {
@@ -152,27 +192,77 @@ docker --context colima compose down
     "chat-export": {
       "url": "http://127.0.0.1:8765/mcp",
       "headers": {
-        "Authorization": "Bearer cek_YOUR_KEY_HERE"
+        "Authorization": "Bearer cem_YOUR_KEY_HERE"
       }
     }
   }
 }
 ```
 
-## Инструменты MCP (кратко)
+stdio:
 
-`browsers_*`, `platforms_list`, `chats_*`, `chat_ask`, `jobs_*`, `chat_cache_*` — см. [вики](https://github.com/svergio/chat-export-extension/wiki).
+```json
+{
+  "mcpServers": {
+    "chat-export": {
+      "command": "chat-export-server",
+      "args": ["start", "--stdio"],
+      "env": {
+        "CHAT_EXPORT_HOME": "/Users/YOU/.chat-export"
+      }
+    }
+  }
+}
+```
+
+Профили инструментов (полный набор vs урезанный read-focus): вики [MCP: инструменты и профили](https://github.com/svergio/chat-export-extension/wiki/MCP-Tools-and-Profiles-RU).
+
+## Инструменты MCP (обзор)
+
+| Инструмент | Назначение |
+| --- | --- |
+| `browsers_list` / `browsers_bind` / `browsers_status` | Профили Chrome |
+| `platforms_list` | Матрица включения |
+| `chats_list` / `chats_get` / `chats_export` | Чтение и экспорт |
+| `chats_create` / `chats_delete` | UI-драйв (delete нужен `confirm: true`) |
+| `chat_ask` | Промпт; wait или очередь |
+| `jobs_*` | Асинхронный пайплайн |
+| `chat_cache_*` | Временный SQLite-кеш длинных тредов |
+
+Полный список — в вики **MCP Tools**.
 
 ## Опционально: локальная LLM (например Bonsai-27B)
 
 Любой **внешний** MCP-клиент (Cursor, Claude Desktop, Open WebUI или свой агент) может вызывать Streamable HTTP на `http://127.0.0.1:8765/mcp`. Локальный OpenAI-совместимый рантайм вроде **Bonsai-27B** (oMLX и т.п. на `:8000/v1`) — **опциональный** оркестратор; Chat Export **не** поставляет и не встраивает код агентов. Пример: локальная модель планирует шаги, этот сервер выполняет `chat_ask` / `jobs_*` во вкладках Chrome под вашей сессией. Руководство: вики [Local LLM + Bonsai-27B](https://github.com/svergio/chat-export-extension/wiki/Local-LLM-Bonsai-27B-Guide-RU) ([EN](https://github.com/svergio/chat-export-extension/wiki/Local-LLM-Bonsai-27B-Guide)).
 
+## Структура репозитория
+
+```text
+packages/protocol/   контракт v1
+src/core/            config, keys, audit, db, jobs, cache
+src/hub/             WebSocket BrowserHub
+src/mcp/             MCP HTTP + stdio
+src/cli/             CLI
+src/dashboard-api.ts /dashboard/api + dashboard/public
+dashboard/           git submodule → chat-export-dashboard
+```
+
+После клона: `git submodule update --init`.
+
 ## Безопасность
 
-- По умолчанию только **127.0.0.1**.
-- Ключи `cek_`/`cem_` и `ceb_` — раздельно; не публикуйте.
-- Удаление — с `allowDestructive` и `confirm: true`.
-- [SECURITY.md](SECURITY.md). Соблюдайте **ToS** провайдеров.
+- По умолчанию только **127.0.0.1**. Меняйте host, только если понимаете экспозицию.
+- Ключи `cek_`/`cem_` дают полный локальный API — не коммитьте и не публикуйте.
+- Токены браузера (`ceb_`) отделены от MCP.
+- `chats_delete` и аналоги: `allowDestructive` на расширении **и** сервере + `confirm: true`.
+- Append-only **audit** для чувствительного RPC. См. [SECURITY.md](SECURITY.md).
+- Цель — портативность ваших данных; **ToS** провайдеров соблюдать должны вы. Это не юрконсультация.
+
+## FAQ
+
+- Нет телеметрии; ядро не ходит на внешние серверы.
+- Только **ваши** чаты из **вашей** сессии браузера.
+- Общие формулировки: [packages/faq.md](packages/faq.md).
 
 ## Репозитории
 
@@ -191,7 +281,7 @@ docker --context colima compose down
 
 ## Участие в разработке
 
-[CONTRIBUTING.md](./CONTRIBUTING.md) (сборка, `deploy/k8s`, синхронизация dashboard, ветка `test`), [extension CONTRIBUTING](https://github.com/svergio/chat-export-extension/blob/main/CONTRIBUTING.md) (протокол), [вики](https://github.com/svergio/chat-export-extension/wiki/Contributing-RU).
+[CONTRIBUTING.md](./CONTRIBUTING.md) (сборка, `deploy/k8s`, синхронизация dashboard, ветка `test`), [extension CONTRIBUTING](https://github.com/svergio/chat-export-extension/blob/main/CONTRIBUTING.md) / [RU](https://github.com/svergio/chat-export-extension/blob/main/CONTRIBUTING.ru.md), [вики](https://github.com/svergio/chat-export-extension/wiki/Contributing-RU).
 
 ## Зависимости
 

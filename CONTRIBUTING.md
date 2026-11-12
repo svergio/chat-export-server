@@ -1,5 +1,7 @@
 # Contributing to chat-export-server
 
+[English](CONTRIBUTING.md) | [Русский](CONTRIBUTING.ru.md)
+
 Local MCP gateway for the [Chat Export](https://github.com/svergio/chat-export-extension) Chrome extension. Pair this repo with `chat-export-extension` (browser bridge) and `chat-export-dashboard` (embedded UI under `dashboard/`).
 
 Do not add `Co-authored-by` trailers to commits. Target `main` for feature fixes; use branch `test` when you are landing adversarial or contract tests before promotion.
