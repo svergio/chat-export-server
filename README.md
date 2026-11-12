@@ -35,16 +35,11 @@ IDE agents need **structured access** to web LLM sessions without pasting cookie
 | DeepSeek (`chat.deepseek.com`) | same |
 | Perplexity (`perplexity.ai`) | same |
 
-```mermaid
-flowchart TB
-  EXT[Chrome extension] <-->|WS /ws ceb_| HUB[Browser hub]
-  HUB --> Q[Job lanes per browser]
-  Q --> MCP[MCP /mcp]
-  MCP --> AGENT[Cursor etc. cem_/cek_]
-  HUB --> API[Dashboard /dashboard/api]
-  API --> UI[Dashboard static UI]
-  Q --> DB[(SQLite cache + WAL)]
-```
+## Architecture
+
+`chat-export-server` binds on loopback (by default), hosts the extension **browser hub** over WebSocket (`/ws`, `ceb_` tokens), exposes **Streamable HTTP MCP** at `/mcp` for IDE agents (`cem_`/`cek_`), runs **per-browser job lanes** with a SQLite chat cache and WAL, and optionally serves the embedded **dashboard** at `/dashboard/` plus `/dashboard/api`. Long operations (`chat_ask`, bulk export, delete with gates) go through the job queue instead of blocking MCP.
+
+Install paths: **native** Node 22 CLI (`npm run build`, `chat-export-server start`), **Docker / Colima** (`Dockerfile` + Compose on `127.0.0.1:8765`), or **Kubernetes** (`kubectl apply -k deploy/k8s`, port-forward for the Chrome bridge). Full **Mermaid diagrams** and endpoint map: **[Wiki — Architecture](https://github.com/svergio/chat-export-extension/wiki/Architecture)**. Operators: [Native and Kubernetes deployment](https://github.com/svergio/chat-export-extension/wiki/Native-and-Kubernetes-Deployment) · [Use cases](https://github.com/svergio/chat-export-extension/wiki/Use-Cases) · [MCP tools and profiles](https://github.com/svergio/chat-export-extension/wiki/MCP-Tools-and-Profiles).
 
 ## Quick start (3 steps)
 

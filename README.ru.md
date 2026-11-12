@@ -31,16 +31,11 @@
 | DeepSeek | то же |
 | Perplexity | то же |
 
-```mermaid
-flowchart TB
-  EXT[Расширение Chrome] <-->|WS ceb_| HUB[Browser hub]
-  HUB --> Q[Очереди по браузерам]
-  Q --> MCP[MCP /mcp]
-  MCP --> AGENT[Cursor и др.]
-  HUB --> API[/dashboard/api]
-  API --> UI[Дашборд]
-  Q --> DB[(SQLite)]
-```
+## Архитектура
+
+`chat-export-server` слушает loopback (по умолчанию), принимает **browser hub** от расширения по WebSocket (`/ws`, токены `ceb_`), отдаёт **MCP** по HTTP на `/mcp` для IDE (`cem_`/`cek_`), ведёт **очереди задач по браузерам** с SQLite-кешем и WAL и при необходимости раздаёт встроенный **дашборд** на `/dashboard/` и `/dashboard/api`. Длительные операции (`chat_ask`, пакетный экспорт, удаление с ограничениями) идут через очередь, а не блокируют MCP.
+
+Деплой: **нативный** CLI на Node 22, **Docker / Colima** (Compose на `127.0.0.1:8765`) или **Kubernetes** (`kubectl apply -k deploy/k8s`, port-forward для моста Chrome). **Диаграммы Mermaid** и карта эндпоинтов: **[Вики — Архитектура](https://github.com/svergio/chat-export-extension/wiki/Architecture-RU)**. См. также [Нативный деплой, Docker и Kubernetes](https://github.com/svergio/chat-export-extension/wiki/Native-and-Kubernetes-Deployment-RU) · [Сценарии использования](https://github.com/svergio/chat-export-extension/wiki/Use-Cases-RU) · [MCP: инструменты и профили](https://github.com/svergio/chat-export-extension/wiki/MCP-Tools-and-Profiles-RU).
 
 ## Быстрый старт (3 шага)
 
