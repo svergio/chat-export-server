@@ -63,9 +63,19 @@ async function hostState(core: RunnerCore, platform: string, chatId: string | un
 
 function assertNotBusy(state: any, platform: string): void {
   if (!state?.busy) return;
-  throw new ProtocolError(ERROR_CODES.PLATFORM_BUSY, state.banner || platform + ' is busy', {
-    retryable: true,
-    banner: state.banner || null
+  const code =
+    state.code === ERROR_CODES.RATE_LIMIT || state.code === ERROR_CODES.UNAUTHORIZED
+      ? state.code
+      : ERROR_CODES.PLATFORM_BUSY;
+  const kind = typeof state.kind === 'string' ? state.kind : undefined;
+  const retryable =
+    typeof state.retryable === 'boolean'
+      ? state.retryable
+      : code === ERROR_CODES.PLATFORM_BUSY || (code === ERROR_CODES.RATE_LIMIT && kind !== 'paywall');
+  throw new ProtocolError(code, state.banner || platform + ' is busy', {
+    retryable,
+    banner: state.banner || null,
+    ...(kind ? { kind } : {})
   });
 }
 

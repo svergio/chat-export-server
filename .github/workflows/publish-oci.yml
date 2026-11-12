@@ -8,7 +8,7 @@ on:
       version:
         description: Image tag (semver without v)
         required: true
-        default: "1.0.4"
+        default: "1.0.7"
 
 permissions:
   contents: read
@@ -53,3 +53,68 @@ jobs:
             org.opencontainers.image.source=https://github.com/svergio/chat-export-server
             org.opencontainers.image.description=Local MCP server for Chat Export Chrome extension
             io.modelcontextprotocol.server.name=io.github.svergio/chat-export-server
+
+      # Optional secrets (from Glama Admin): GLAMA_TOKEN or GLAMA_API_KEY, plus either
+      # GLAMA_REDEPLOY_WEBHOOK_URL or GLAMA_ORGANIZATION_ID+GLAMA_SERVER_ID.
+      # Without secrets this step no-ops so releases still publish OCI.
+      - name: Refresh Glama registry / TDQS
+        env:
+          GLAMA_TOKEN: ${{ secrets.GLAMA_TOKEN }}
+          GLAMA_API_KEY: ${{ secrets.GLAMA_API_KEY }}
+          GLAMA_REDEPLOY_WEBHOOK_URL: ${{ secrets.GLAMA_REDEPLOY_WEBHOOK_URL }}
+          GLAMA_ORGANIZATION_ID: ${{ secrets.GLAMA_ORGANIZATION_ID }}
+          GLAMA_SERVER_ID: ${{ secrets.GLAMA_SERVER_ID }}
+          GLAMA_API_BASE_URL: ${{ secrets.GLAMA_API_BASE_URL }}
+          IMAGE_REF: ghcr.io/svergio/chat-export-server:${{ steps.ver.outputs.tag }}
+        run: |
+          set -euo pipefail
+          TOKEN="${GLAMA_TOKEN:-${GLAMA_API_KEY:-}}"
+          if [ -z "${TOKEN}" ]; then
+            echo "No GLAMA_TOKEN/GLAMA_API_KEY — skip Glama refresh (OCI push still done)."
+            exit 0
+          fi
+          PAYLOAD=$(jq -nc \
+            --arg image "${IMAGE_REF}" \
+            --arg commit "${GITHUB_SHA}" \
+            --arg branch "${GITHUB_REF_NAME}" \
+            --arg repository "${GITHUB_REPOSITORY}" \
+            '{image:$image, commit:$commit, branch:$branch, repository:$repository}')
+
+          if [ -n "${GLAMA_REDEPLOY_WEBHOOK_URL:-}" ]; then
+            echo "Glama redeploy via webhook"
+            curl --fail --show-error --silent \
+              --request POST \
+              --header "Authorization: Bearer ${TOKEN}" \
+              --header "Content-Type: application/json" \
+              --data "${PAYLOAD}" \
+              "${GLAMA_REDEPLOY_WEBHOOK_URL}"
+            exit 0
+          fi
+
+          if [ -n "${GLAMA_ORGANIZATION_ID:-}" ] && [ -n "${GLAMA_SERVER_ID:-}" ]; then
+            API_BASE="${GLAMA_API_BASE_URL:-https://api.glama.ai}"
+            echo "Glama redeploy via API ${API_BASE}"
+            curl --fail --show-error --silent \
+              --request POST \
+              --header "Authorization: Bearer ${TOKEN}" \
+              --header "Content-Type: application/json" \
+              --data "${PAYLOAD}" \
+              "${API_BASE}/organizations/${GLAMA_ORGANIZATION_ID}/servers/${GLAMA_SERVER_ID}/deploy"
+            exit 0
+          fi
+
+          echo "Glama catalog refresh by repository"
+          if curl --fail --show-error --silent \
+            --request POST \
+            --header "Authorization: Bearer ${TOKEN}" \
+            --header "Content-Type: application/json" \
+            --data "{\"repository\":\"${GITHUB_REPOSITORY}\"}" \
+            "https://glama.ai/api/mcp/v1/servers/refresh"; then
+            exit 0
+          fi
+          curl --fail --show-error --silent \
+            --request POST \
+            --header "Authorization: Bearer ${TOKEN}" \
+            --header "Content-Type: application/json" \
+            --data "{\"repository\":\"${GITHUB_REPOSITORY}\"}" \
+            "https://api.glama.ai/mcp/v1/servers/refresh"

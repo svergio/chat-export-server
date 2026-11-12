@@ -104,9 +104,20 @@ function okResult(data: unknown) {
   };
 }
 
-function hintForError(code: string, platform?: string | null): string | null {
+function hintForError(code: string, platform?: string | null, details?: Record<string, unknown> | null): string | null {
   if (code === ERROR_CODES.NOT_BOUND) return 'Call browsers_bind with a connected browserId from browsers_list';
-  if (code === ERROR_CODES.UNAUTHORIZED) return 'Check MCP cem_ token and browser ceb_ token enrollment';
+  if (code === ERROR_CODES.UNAUTHORIZED) {
+    if (details?.kind === 'auth_wall') {
+      return 'Provider session/login wall in the tab — log in on that platform tab and retry';
+    }
+    return 'Check MCP cem_ token and browser ceb_ token enrollment';
+  }
+  if (code === ERROR_CODES.RATE_LIMIT) {
+    return 'Provider usage/quota/paywall on this account/tab. Stop spamming; wait, switch platform/browser, or upgrade. See error.details.kind (quota|paywall|http)';
+  }
+  if (code === ERROR_CODES.PLATFORM_BUSY) {
+    return 'Provider overloaded or temporarily unavailable; retry later';
+  }
   if (code === ERROR_CODES.PLATFORM_DISABLED) {
     return 'Enable the platform in server settings and the extension popup';
   }
@@ -125,22 +136,25 @@ function hintForError(code: string, platform?: string | null): string | null {
 
 function detailedErrorBody(core: ServerCore, tool: string, err: unknown, ctx: ErrorContext) {
   const pe = toProtocolError(err);
-  const platform = ctx.platform || (pe.details as Record<string, any> | undefined)?.platform || null;
+  const peDetails = (pe.details || null) as Record<string, unknown> | null;
+  const platform = ctx.platform || (peDetails as Record<string, any> | null)?.platform || null;
   const context = core.mcpErrorContext(platform);
   const code = pe.code || ERROR_CODES.HOST_ERROR;
+  const retryable =
+    typeof peDetails?.retryable === 'boolean' ? peDetails.retryable : RETRYABLE_CODES.has(code);
   return {
     ok: false,
     tool,
     error: {
       code,
       message: pe.message,
-      retryable: RETRYABLE_CODES.has(code),
+      retryable,
       browserId: context.browserId,
       platform: platform || context.platform,
       activeTabsOnPlatform: context.activeTabsOnPlatform,
       permissions: context.permissions,
       recentAlerts: context.recentAlerts,
-      hint: hintForError(code, platform || context.platform),
+      hint: hintForError(code, platform || context.platform, peDetails),
       details: pe.details || undefined,
       duration_ms: ctx.duration_ms
     }
@@ -243,6 +257,30 @@ export function registerTools(server: McpServer, core: ServerCore): void {
       annotations: annReadLive
     },
     async () => core.platformsList()
+  );
+
+  registerDetailedTool(
+    server,
+    core,
+    'platforms_status',
+    {
+      description:
+        'Probe gate/limit status per provider on the bound browser without sending a prompt. Returns state ok|rate_limit|busy|auth_wall|generating|composer_blocked|no_tab|offline|error plus code/kind/banner/retryable. Prefer before chat_ask when choosing a platform; set ensureTab:true to open a start tab before probing. Uses platform.host_state on open tabs; no_tab platforms include lastAlert only.',
+      inputSchema: {
+        platform: Platform.optional().describe('Probe one provider; omit to scan all enabled on the bound browser'),
+        ensureTab: z
+          .boolean()
+          .optional()
+          .describe('If true, tabs_ensure before host_state when no tab is open (default false)')
+      },
+      annotations: annReadLive
+    },
+    async ({ platform, ensureTab }) => {
+      const args: { platform?: string; ensureTab?: boolean } = {};
+      if (platform !== undefined) args.platform = platform;
+      if (ensureTab !== undefined) args.ensureTab = ensureTab;
+      return core.platformsStatus(args);
+    }
   );
 
   registerDetailedTool(

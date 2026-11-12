@@ -546,6 +546,148 @@ export class ServerCore {
     };
   }
 
+  async platformsStatus(opts: { platform?: string; ensureTab?: boolean } = {}) {
+    const {
+      pickPlatformTargets,
+      normalizeHostGate,
+      findLastPlatformAlert
+    } = await import('./platform-status.js');
+    const hub = this.#requireHub();
+    const browser = hub.getBound();
+    if (!browser) {
+      throw new ProtocolError(ERROR_CODES.NOT_BOUND, 'no browser bound');
+    }
+    if (!hub.isOnline(browser.browserId)) {
+      const checkedAt = new Date().toISOString();
+      const targets = pickPlatformTargets(opts.platform, browser.platformsEnabled);
+      return {
+        browserId: browser.browserId,
+        online: false,
+        checkedAt,
+        platforms: targets.map((platform) => ({
+          platform,
+          tabOpen: false,
+          state: 'offline' as const,
+          code: null,
+          kind: null,
+          retryable: null,
+          banner: null,
+          generating: null,
+          composerReady: null,
+          checkedAt,
+          lastAlert: findLastPlatformAlert(this.logger.recentAlerts(16), platform),
+          error: null
+        }))
+      };
+    }
+
+    const targets = pickPlatformTargets(opts.platform, browser.platformsEnabled);
+    const ensureTab = opts.ensureTab === true;
+    const checkedAt = new Date().toISOString();
+    const alerts = this.logger.recentAlerts(16);
+    const platforms = [];
+
+    for (const platform of targets) {
+      assertPlatformEnabled(platform, this.config.settings, browser);
+      const lastAlert = findLastPlatformAlert(alerts, platform);
+      let tabOpen = Array.isArray(browser.tabs) && browser.tabs.some((t) => t.platform === platform);
+      if (!tabOpen && ensureTab) {
+        try {
+          await this.tabsEnsure(platform, {});
+          const fresh = hub.getBound();
+          tabOpen = Array.isArray(fresh?.tabs) && fresh.tabs.some((t) => t.platform === platform);
+        } catch (err: any) {
+          const pe = toProtocolError(err);
+          platforms.push({
+            platform,
+            tabOpen: false,
+            state: 'error' as const,
+            code: pe.code || ERROR_CODES.HOST_ERROR,
+            kind: null,
+            retryable: Boolean(pe.details && (pe.details as any).retryable),
+            banner: null,
+            generating: null,
+            composerReady: null,
+            checkedAt,
+            lastAlert,
+            error: { code: pe.code || ERROR_CODES.HOST_ERROR, message: pe.message || String(err) }
+          });
+          continue;
+        }
+      }
+
+      if (!tabOpen) {
+        platforms.push({
+          platform,
+          tabOpen: false,
+          state: 'no_tab' as const,
+          code: lastAlert?.code || null,
+          kind: null,
+          retryable: lastAlert?.code ? true : null,
+          banner: lastAlert?.message || null,
+          generating: null,
+          composerReady: null,
+          checkedAt,
+          lastAlert,
+          error: null
+        });
+        continue;
+      }
+
+      try {
+        const host = await this.callOp('platform.host_state', platform, {});
+        const gate = normalizeHostGate(host);
+        platforms.push({
+          platform,
+          tabOpen: true,
+          state: gate.state,
+          code: gate.code,
+          kind: gate.kind,
+          retryable: gate.retryable,
+          banner: gate.banner,
+          generating: gate.generating,
+          composerReady: gate.composerReady,
+          checkedAt,
+          lastAlert,
+          error: null
+        });
+      } catch (err: any) {
+        const pe = toProtocolError(err);
+        const peDetails = (pe.details || null) as Record<string, unknown> | null;
+        const kind = typeof peDetails?.kind === 'string' ? String(peDetails.kind) : null;
+        const gateState =
+          pe.code === ERROR_CODES.UNAUTHORIZED
+            ? 'auth_wall'
+            : pe.code === ERROR_CODES.RATE_LIMIT
+              ? 'rate_limit'
+              : pe.code === ERROR_CODES.PLATFORM_BUSY
+                ? 'busy'
+                : 'error';
+        platforms.push({
+          platform,
+          tabOpen: true,
+          state: gateState,
+          code: pe.code || ERROR_CODES.HOST_ERROR,
+          kind,
+          retryable: typeof peDetails?.retryable === 'boolean' ? Boolean(peDetails.retryable) : null,
+          banner: typeof peDetails?.banner === 'string' ? String(peDetails.banner) : pe.message || null,
+          generating: null,
+          composerReady: null,
+          checkedAt,
+          lastAlert,
+          error: { code: pe.code || ERROR_CODES.HOST_ERROR, message: pe.message || String(err) }
+        });
+      }
+    }
+
+    return {
+      browserId: browser.browserId,
+      online: true,
+      checkedAt,
+      platforms
+    };
+  }
+
   async callOp(op: string, platform: string, args: OpArgs = {}, mcpOpts: CallOpOptions = {}): Promise<any> {
     const hub = this.#requireHub();
     const browser = hub.getBound();
@@ -632,6 +774,15 @@ export class ServerCore {
         ok: false,
         code: pe.code,
         message: pe.message
+      });
+      const browser = this.hub ? this.hub.getBound() : null;
+      this.#auditPlatformLimit({
+        source: `rpc:${op}`,
+        platform,
+        code: pe.code,
+        message: pe.message,
+        detail: pe.details || null,
+        browserId: browser?.browserId || null
       });
       throw pe;
     }
@@ -804,6 +955,36 @@ export class ServerCore {
     };
   }
 
+  #isPlatformLimit(code?: string | null, detail?: unknown): boolean {
+    if (code === ERROR_CODES.RATE_LIMIT || code === ERROR_CODES.PLATFORM_BUSY) return true;
+    if (code !== ERROR_CODES.UNAUTHORIZED) return false;
+    const kind = detail && typeof detail === 'object' ? (detail as Record<string, unknown>).kind : null;
+    return kind === 'auth_wall';
+  }
+
+  #auditPlatformLimit(opts: {
+    source: string;
+    platform?: string | null;
+    code?: string | null;
+    message?: string;
+    detail?: unknown;
+    browserId?: string | null;
+  }) {
+    if (!this.#isPlatformLimit(opts.code, opts.detail)) return;
+    const detail = opts.detail && typeof opts.detail === 'object' ? (opts.detail as Record<string, unknown>) : null;
+    this.audit({
+      action: 'platform.limit',
+      source: opts.source,
+      platform: opts.platform || null,
+      browserId: opts.browserId || null,
+      code: opts.code || null,
+      kind: detail?.kind || null,
+      banner: detail?.banner || null,
+      message: opts.message || '',
+      ok: false
+    });
+  }
+
   logMcpToolResult(
     tool: string,
     {
@@ -834,6 +1015,16 @@ export class ServerCore {
       message: message || '',
       detail
     });
+    if (ok === false) {
+      this.#auditPlatformLimit({
+        source: `mcp:${tool}`,
+        platform,
+        code,
+        message,
+        detail,
+        browserId: browser?.browserId || null
+      });
+    }
   }
 
   #insertMcpTokenFromPlain(token: string, { label }: { label?: string }) {

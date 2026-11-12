@@ -235,7 +235,20 @@ const defs = {
       generating: { type: 'boolean' },
       busy: { type: 'boolean' },
       banner: { type: ['string', 'null'] },
-      composerReady: { type: 'boolean' }
+      composerReady: { type: 'boolean' },
+      code: {
+        type: ['string', 'null'],
+        enum: ['RATE_LIMIT', 'PLATFORM_BUSY', 'UNAUTHORIZED', null]
+      },
+      kind: {
+        type: ['string', 'null'],
+        enum: ['paywall', 'quota', 'busy', 'auth_wall', null]
+      },
+      retryable: { type: 'boolean' },
+      state: {
+        type: 'string',
+        enum: ['ok', 'rate_limit', 'busy', 'auth_wall', 'generating', 'composer_blocked']
+      }
     },
     ['platform', 'generating', 'busy', 'banner', 'composerReady']
   ),
