@@ -75,6 +75,35 @@ describe('dashboard api confirm gates', () => {
       assert.equal(typeof browsers.serverSettings?.allowDestructive, 'boolean');
       assert.ok(Array.isArray(browsers.serverSettings?.platformsEnabled));
 
+      const unbindRes = await fetch(`http://127.0.0.1:${port}/dashboard/api/browsers/unbind`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Cookie: cookie },
+        body: JSON.stringify({})
+      });
+      const unbound = await unbindRes.json();
+      assert.equal(unbindRes.status, 200);
+      assert.equal(unbound.boundBrowserId, null);
+
+      const recheckMissing = await fetch(`http://127.0.0.1:${port}/dashboard/api/browsers/recheck`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Cookie: cookie },
+        body: JSON.stringify({ browserId: 'b-missing000' })
+      });
+      const recheckBody = await recheckMissing.json();
+      assert.equal(recheckMissing.status, 400);
+      assert.ok(recheckBody.error?.code);
+
+      const cacheRes = await fetch(`http://127.0.0.1:${port}/dashboard/api/cache?limit=10`, {
+        headers: { Cookie: cookie }
+      });
+      const cache = await cacheRes.json();
+      assert.equal(cacheRes.status, 200);
+      assert.ok(cache.summary);
+      assert.equal(typeof cache.summary.totalCaches, 'number');
+      assert.equal(typeof cache.summary.totalBlocks, 'number');
+      assert.ok(Array.isArray(cache.summary.byPlatform));
+      assert.equal(typeof cache.summary.db?.dbSizeBytes, 'number');
+
       const pidPath = path.join(server.core.config.home, 'server.pid');
       assert.equal(readPidFile(pidPath), process.pid);
     });

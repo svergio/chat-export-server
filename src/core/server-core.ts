@@ -1,3 +1,4 @@
+import fs from 'node:fs';
 import os from 'node:os';
 import {
   ERROR_CODES,
@@ -438,11 +439,92 @@ export class ServerCore {
     return status;
   }
 
+  browsersUnbind() {
+    const hub = this.#requireHub();
+    const previous = hub.boundBrowserId;
+    hub.unbind();
+    this.audit({ action: 'browsers.unbind', browserId: previous || null, ok: true });
+    return this.browsersStatus();
+  }
+
+  browsersRecheck(browserId: string) {
+    const id = String(browserId || '').trim();
+    if (!id) {
+      throw new ProtocolError(ERROR_CODES.BAD_REQUEST, 'browserId is required');
+    }
+    const browsers = this.browsersList();
+    const browser = browsers.find((b) => b.browserId === id);
+    if (!browser) {
+      throw new ProtocolError(ERROR_CODES.BAD_REQUEST, 'browser not found: ' + id);
+    }
+    this.audit({ action: 'browsers.recheck', browserId: id, ok: true, status: browser.status });
+    return { browser, browsers };
+  }
+
   browsersStatus() {
     const hub = this.#requireHub();
     return {
       ...hub.status(),
       browsers: this.browsersList()
+    };
+  }
+
+  cacheSummary() {
+    const totals = this.db.get(
+      `SELECT COUNT(*) AS totalCaches,
+              COALESCE(SUM(total_turns), 0) AS totalTurns,
+              COALESCE(SUM(total_chars), 0) AS totalChars
+         FROM cached_chats`
+    ) || { totalCaches: 0, totalTurns: 0, totalChars: 0 };
+    const blocks = this.db.get('SELECT COUNT(*) AS totalBlocks FROM cached_chat_blocks') || {
+      totalBlocks: 0
+    };
+    const byPlatform = this.db.all(
+      `SELECT platform,
+              COUNT(*) AS caches,
+              COALESCE(SUM(total_turns), 0) AS turns,
+              COALESCE(SUM(total_chars), 0) AS chars
+         FROM cached_chats
+        GROUP BY platform
+        ORDER BY caches DESC, platform ASC`
+    );
+    const dbInfo = (this._db ? this._db.describe() : describeDatabase(this.config)) as Record<
+      string,
+      unknown
+    >;
+    const dbFile =
+      typeof dbInfo.file === 'string'
+        ? dbInfo.file
+        : typeof dbInfo.path === 'string'
+          ? dbInfo.path
+          : null;
+    let dbSizeBytes = 0;
+    let walSizeBytes = 0;
+    if (dbFile && dbFile !== ':memory:') {
+      try {
+        if (fs.existsSync(dbFile)) dbSizeBytes = fs.statSync(dbFile).size;
+        const wal = `${dbFile}-wal`;
+        if (fs.existsSync(wal)) walSizeBytes = fs.statSync(wal).size;
+      } catch {
+        /* ignore */
+      }
+    }
+    return {
+      totalCaches: Number(totals.totalCaches) || 0,
+      totalBlocks: Number(blocks.totalBlocks) || 0,
+      totalTurns: Number(totals.totalTurns) || 0,
+      totalChars: Number(totals.totalChars) || 0,
+      byPlatform: (byPlatform || []).map((row: any) => ({
+        platform: String(row.platform || ''),
+        caches: Number(row.caches) || 0,
+        turns: Number(row.turns) || 0,
+        chars: Number(row.chars) || 0
+      })),
+      db: {
+        path: dbFile,
+        dbSizeBytes,
+        walSizeBytes
+      }
     };
   }
 

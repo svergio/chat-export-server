@@ -388,6 +388,44 @@ export function createDashboardApi(deps: { core: ServerCore; startedAt: number }
       return true;
     }
 
+    if (pathname === '/dashboard/api/browsers/unbind' && req.method === 'POST') {
+      try {
+        const status = core.browsersUnbind();
+        jsonResponse(res, 200, { ok: true, ...status });
+      } catch (err: any) {
+        const mapped = err instanceof ProtocolError ? err : null;
+        jsonResponse(res, 400, {
+          ok: false,
+          error: { code: mapped?.code || 'BAD_REQUEST', message: clientErrorMessage(err, 'unbind failed') }
+        });
+      }
+      return true;
+    }
+
+    if (pathname === '/dashboard/api/browsers/recheck' && req.method === 'POST') {
+      const body = await readJsonBody(req);
+      if (body === null) {
+        jsonResponse(res, 400, { ok: false, error: { code: 'BAD_REQUEST', message: 'invalid JSON' } });
+        return true;
+      }
+      const browserId = String(body.browserId || '').trim();
+      if (!browserId) {
+        jsonResponse(res, 400, { ok: false, error: { code: 'BAD_REQUEST', message: 'browserId required' } });
+        return true;
+      }
+      try {
+        const result = core.browsersRecheck(browserId);
+        jsonResponse(res, 200, { ok: true, ...result });
+      } catch (err: any) {
+        const mapped = err instanceof ProtocolError ? err : null;
+        jsonResponse(res, 400, {
+          ok: false,
+          error: { code: mapped?.code || 'BAD_REQUEST', message: clientErrorMessage(err, 'recheck failed') }
+        });
+      }
+      return true;
+    }
+
     if (pathname === '/dashboard/api/mcp-token' && req.method === 'GET') {
       const keys = core.keyList();
       jsonResponse(res, 200, {
@@ -504,7 +542,12 @@ export function createDashboardApi(deps: { core: ServerCore; startedAt: number }
           LIMIT ?`,
         [limit]
       );
-      jsonResponse(res, 200, { ok: true, caches: rows, count: rows.length });
+      jsonResponse(res, 200, {
+        ok: true,
+        caches: rows,
+        count: rows.length,
+        summary: core.cacheSummary()
+      });
       return true;
     }
 
