@@ -37,7 +37,8 @@
     "test:protocol": "node --test --test-reporter spec packages/protocol/test/*.test.js",
     "test": "npm run test:unit && npm run test:protocol",
     "test:all": "npm run test:unit && npm run test:contract && npm run test:protocol",
-    "test:ci": "npm run test:all"
+    "test:ci": "npm run test:all",
+    "licenses": "node scripts/gen-notices.mjs"
   },
   "dependencies": {
     "@chat-export/protocol": "*",

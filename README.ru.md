@@ -186,6 +186,18 @@ docker --context colima compose down
 
 [CONTRIBUTING.md](https://github.com/svergio/chat-export-extension/blob/main/CONTRIBUTING.md) (протокол, MCP, конфиг), [вики](https://github.com/svergio/chat-export-extension/wiki/Contributing-RU).
 
+## Зависимости
+
+**Runtime:** Node 22.13+, `@modelcontextprotocol/sdk`, `ws`, `zod`, workspace `@chat-export/protocol` (ISC, `packages/protocol/`). В production нет Playwright, Puppeteer, Electron и облачных SDK.
+
+**Связка продуктов:** [chat-export-extension](https://github.com/svergio/chat-export-extension) (WebSocket `ceb_`) ↔ этот сервер ↔ [chat-export-dashboard](https://github.com/svergio/chat-export-dashboard) (субмодуль `dashboard/`).
+
+Docker: **node:22-alpine**; опционально фронт dashboard на **nginx:alpine**. `package-lock.json` в репозитории — для Dependabot и графа зависимостей GitHub.
+
+Сторонние пакеты: [THIRD_PARTY_NOTICES.md](./THIRD_PARTY_NOTICES.md) (`npm run licenses`). SBOM по желанию: `npm sbom --omit dev`.
+
+**Не обязательны:** Cursor, Open WebUI, BibLLMsteak, Bonsai-27B, пути NodeRed — только MCP-клиенты или документация сопровождения.
+
 ## Лицензия
 
 [LICENSE](LICENSE).

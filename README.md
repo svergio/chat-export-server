@@ -300,6 +300,18 @@ Tips are voluntary; they do not purchase support SLAs or private builds.
 
 See [extension CONTRIBUTING.md](https://github.com/svergio/chat-export-extension/blob/main/CONTRIBUTING.md) (protocol `PLATFORMS`, server MCP, config) and [wiki Contributing](https://github.com/svergio/chat-export-extension/wiki/Contributing).
 
+## Dependencies
+
+**Runtime:** Node 22.13+, `@modelcontextprotocol/sdk`, `ws`, `zod`, workspace `@chat-export/protocol` (ISC wire contract in `packages/protocol/`). No Playwright, Puppeteer, Electron, or cloud SDKs in production.
+
+**Product graph:** [chat-export-extension](https://github.com/svergio/chat-export-extension) (browser `ceb_` WebSocket) ↔ this server ↔ embedded [chat-export-dashboard](https://github.com/svergio/chat-export-dashboard) static assets. Dashboard is a git submodule under `dashboard/`, not an npm dependency of the extension.
+
+Docker: multi-stage **node:22-alpine** runtime; optional split dashboard image **nginx:alpine**. `package-lock.json` is committed for GitHub Dependabot / dependency graph.
+
+Third-party list: [THIRD_PARTY_NOTICES.md](./THIRD_PARTY_NOTICES.md) (`npm run licenses`). Optional SBOM: `npm sbom --omit dev`.
+
+**Not required:** Cursor, Open WebUI, BibLLMsteak, Bonsai-27B, NodeRed paths — optional MCP clients or maintainer docs only.
+
 ## License
 
 See [LICENSE](LICENSE).

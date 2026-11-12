@@ -23,6 +23,8 @@ npm run schema         # JSON Schema via @chat-export/protocol workspace
 
 After protocol enum or op changes, rebuild and run tests before opening a PR.
 
+When runtime `dependencies` change, run `npm run licenses` and commit [THIRD_PARTY_NOTICES.md](./THIRD_PARTY_NOTICES.md) if needed (`npx license-checker` via script; no new npm deps).
+
 ## Tests (`test` branch gate)
 
 CI runs on pushes and PRs to **`test`** and **`main`** (see `.github/workflows/ci.yml`).
