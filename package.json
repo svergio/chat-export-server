@@ -13,6 +13,7 @@
     "packages/protocol/schemas",
     "packages/protocol/package.json",
     "README.md",
+    "LEGAL.md",
     "LICENSE",
     "server.json",
     "glama.json"

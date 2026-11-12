@@ -1,4 +1,4 @@
-[English](README.md) | [Русский](README.ru.md) · [![Поддержать на DonationAlerts](https://img.shields.io/badge/Поддержать-DonationAlerts-orange)](https://www.donationalerts.com/r/svwergio_mel) · [![chat-export-server MCP server](https://glama.ai/mcp/servers/svergio/chat-export-server/badges/score.svg)](https://glama.ai/mcp/servers/svergio/chat-export-server)
+[English](README.md) | [Русский](README.ru.md) · [![Поддержать на DonationAlerts](https://img.shields.io/badge/Поддержать-DonationAlerts-orange)](https://www.donationalerts.com/r/svwergio_mel) · [![chat-export-server MCP server](https://glama.ai/mcp/servers/svergio/chat-export-server/badges/score.svg)](https://glama.ai/mcp/servers/svergio/chat-export-server) · [![MCP Servers](https://img.shields.io/badge/MCP_Servers-listed-2563eb)](https://mcpservers.org/ru/)
 
 # chat-export-server
 
@@ -108,6 +108,10 @@ docker --context colima compose down
 
 Раздельный фронт nginx (статика дашборда + прокси API/MCP/WS): см. [chat-export-dashboard](https://github.com/svergio/chat-export-dashboard) и `docker-compose.yml` в дереве сопровождения Chat Export.
 
+### Kubernetes
+
+Манифесты в [`deploy/k8s/`](deploy/k8s/) (non-root UID `10001`, PVC `/data`, пробы `/health`, Ingress с WebSocket для `/ws`, `/ext`, `/mcp`). Деплой: `kubectl apply -k deploy/k8s`; для моста Chrome с хоста — `kubectl port-forward` на `127.0.0.1`. Подробнее: [deploy/k8s/README.md](deploy/k8s/README.md), вики [Native and Kubernetes deployment (RU)](https://github.com/svergio/chat-export-extension/wiki/Native-and-Kubernetes-Deployment-RU).
+
 ### `config.json`
 
 Пример (пароли смените на свои):
@@ -164,6 +168,10 @@ docker --context colima compose down
 
 `browsers_*`, `platforms_list`, `chats_*`, `chat_ask`, `jobs_*`, `chat_cache_*` — см. [вики](https://github.com/svergio/chat-export-extension/wiki).
 
+## Опционально: локальная LLM (например Bonsai-27B)
+
+Любой **внешний** MCP-клиент (Cursor, Claude Desktop, Open WebUI или свой агент) может вызывать Streamable HTTP на `http://127.0.0.1:8765/mcp`. Локальный OpenAI-совместимый рантайм вроде **Bonsai-27B** (oMLX и т.п. на `:8000/v1`) — **опциональный** оркестратор; Chat Export **не** поставляет и не встраивает код агентов. Пример: локальная модель планирует шаги, этот сервер выполняет `chat_ask` / `jobs_*` во вкладках Chrome под вашей сессией. Руководство: вики [Local LLM + Bonsai-27B](https://github.com/svergio/chat-export-extension/wiki/Local-LLM-Bonsai-27B-Guide-RU) ([EN](https://github.com/svergio/chat-export-extension/wiki/Local-LLM-Bonsai-27B-Guide)).
+
 ## Безопасность
 
 - По умолчанию только **127.0.0.1**.
@@ -188,7 +196,7 @@ docker --context colima compose down
 
 ## Участие в разработке
 
-[CONTRIBUTING.md](https://github.com/svergio/chat-export-extension/blob/main/CONTRIBUTING.md) (протокол, MCP, конфиг), [вики](https://github.com/svergio/chat-export-extension/wiki/Contributing-RU).
+[CONTRIBUTING.md](./CONTRIBUTING.md) (сборка, `deploy/k8s`, синхронизация dashboard, ветка `test`), [extension CONTRIBUTING](https://github.com/svergio/chat-export-extension/blob/main/CONTRIBUTING.md) (протокол), [вики](https://github.com/svergio/chat-export-extension/wiki/Contributing-RU).
 
 ## Зависимости
 

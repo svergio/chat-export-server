@@ -1,4 +1,4 @@
-[English](README.md) | [Русский](README.ru.md) · [![Support on DonationAlerts](https://img.shields.io/badge/Support-DonationAlerts-orange)](https://www.donationalerts.com/r/svwergio_mel) · [![chat-export-server MCP server](https://glama.ai/mcp/servers/svergio/chat-export-server/badges/score.svg)](https://glama.ai/mcp/servers/svergio/chat-export-server)
+[English](README.md) | [Русский](README.ru.md) · [![Support on DonationAlerts](https://img.shields.io/badge/Support-DonationAlerts-orange)](https://www.donationalerts.com/r/svwergio_mel) · [![chat-export-server MCP server](https://glama.ai/mcp/servers/svergio/chat-export-server/badges/score.svg)](https://glama.ai/mcp/servers/svergio/chat-export-server) · [![MCP Servers](https://img.shields.io/badge/MCP_Servers-listed-2563eb)](https://mcpservers.org/ru/)
 
 # chat-export-server
 
@@ -142,6 +142,10 @@ docker --context colima compose down
 
 Optional **split stack** (nginx serves dashboard static, proxies `/dashboard/api`, `/mcp`, `/ws`, `/ext`, `/enroll`, `/health` to the server): build from the maintainer tree `chat-export-dashboard/Dockerfile` and `projects/Chat Export/docker-compose.yml` (see [dashboard repo](https://github.com/svergio/chat-export-dashboard)).
 
+### Kubernetes
+
+Manifests under [`deploy/k8s/`](deploy/k8s/) (non-root UID `10001`, PVC on `/data`, `/health` probes, Ingress with WebSocket upgrade for `/ws`, `/ext`, `/mcp`). Apply with `kubectl apply -k deploy/k8s`; for local Chrome bridge use `kubectl port-forward` to `127.0.0.1`. Full steps: [deploy/k8s/README.md](deploy/k8s/README.md) and wiki [Native and Kubernetes deployment](https://github.com/svergio/chat-export-extension/wiki/Native-and-Kubernetes-Deployment).
+
 ### `config.json` (under `CHAT_EXPORT_HOME`)
 
 Created on first start. Example (secrets redacted):
@@ -256,6 +260,10 @@ stdio:
 
 Full list evolves with releases; see wiki **MCP Tools**.
 
+## Optional: local LLM (e.g. Bonsai-27B)
+
+Any **external** MCP client (Cursor, Claude Desktop, Open WebUI, or your own agent) can call Streamable HTTP at `http://127.0.0.1:8765/mcp`. A local OpenAI-compatible runtime such as **Bonsai-27B** (oMLX or similar on `:8000/v1`) is an optional orchestrator — Chat Export does **not** ship or vendor agent code. Example pattern: local model plans steps, this server drives `chat_ask` / `jobs_*` in your logged-in Chrome tabs. Guide: wiki [Local LLM + Bonsai-27B](https://github.com/svergio/chat-export-extension/wiki/Local-LLM-Bonsai-27B-Guide) ([RU](https://github.com/svergio/chat-export-extension/wiki/Local-LLM-Bonsai-27B-Guide-RU)).
+
 ## Layout
 
 ```text
@@ -302,7 +310,7 @@ Tips are voluntary; they do not purchase support SLAs or private builds.
 
 ## Contributing
 
-See [extension CONTRIBUTING.md](https://github.com/svergio/chat-export-extension/blob/main/CONTRIBUTING.md) (protocol `PLATFORMS`, server MCP, config) and [wiki Contributing](https://github.com/svergio/chat-export-extension/wiki/Contributing).
+See [CONTRIBUTING.md](./CONTRIBUTING.md) (build, `deploy/k8s`, embedded dashboard sync, `test` branch gate), [extension CONTRIBUTING.md](https://github.com/svergio/chat-export-extension/blob/main/CONTRIBUTING.md) (protocol `PLATFORMS`), and [wiki Contributing](https://github.com/svergio/chat-export-extension/wiki/Contributing).
 
 ## Dependencies
 
