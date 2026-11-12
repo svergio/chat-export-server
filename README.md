@@ -1,8 +1,18 @@
-[English](README.md) | [Русский](README.ru.md) · [![Support on DonationAlerts](https://img.shields.io/badge/Support-DonationAlerts-orange)](https://www.donationalerts.com/r/svwergio_mel)
+[English](README.md) | [Русский](README.ru.md) · [![Support on DonationAlerts](https://img.shields.io/badge/Support-DonationAlerts-orange)](https://www.donationalerts.com/r/svwergio_mel) · [![chat-export-server MCP server](https://glama.ai/mcp/servers/svergio/chat-export-server/badges/score.svg)](https://glama.ai/mcp/servers/svergio/chat-export-server)
 
 # chat-export-server
 
+<p align="center">
+  <img src="docs/media/demo-server.gif" alt="Native start on :8765, health, two Chrome profiles online/offline" width="720" />
+</p>
+
 **Local MCP server** for the [Chat Export](https://github.com/svergio/chat-export-extension) Chrome extension. List, read, export, create, delete, and **ask** in your own chats on **eight** web providers (ChatGPT, Grok, X Grok, Claude, GitHub Copilot, Qwen, DeepSeek, Perplexity) — through the extension in **your** browser. Everything stays on `127.0.0.1`: job queues, SQLite chat cache, audit log, optional [dashboard](https://github.com/svergio/chat-export-dashboard) UI.
+
+Listed on [Glama](https://glama.ai/mcp/servers/svergio/chat-export-server) (v1.0.4, TDQS 4.4/5).
+
+## Why this MCP (for awesome-list reviewers)
+
+Most LLM MCP servers wrap a **vendor HTTP API** (keys, quotas, cloud data path). Chat Export is different: the agent talks MCP to a **local** process; that process drives the **web UIs you are already logged into** via the Chrome extension bridge. No OpenAI/Anthropic/xAI API keys for chat ops, no chat bodies leaving `127.0.0.1`, and delete/create stay off until you opt in (`allowDestructive` + `confirm`). Pair with the [extension zip](https://github.com/svergio/chat-export-extension/releases/tag/v2.0.3); point Cursor (or any MCP client) at `http://127.0.0.1:8765/mcp`.
 
 ## The problem
 

@@ -2,7 +2,6 @@
   "name": "@chat-export/protocol",
   "version": "1.0.0",
   "description": "Wire contract (v1) between chat-export-server and the Chat Export extension.",
-  "private": true,
   "type": "module",
   "main": "./src/index.js",
   "exports": {

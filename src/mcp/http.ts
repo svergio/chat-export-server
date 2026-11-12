@@ -7,8 +7,10 @@ import type { ServerCore } from '../core/server-core.js';
 export function extractBearer(req: IncomingMessage): string | null {
   const h = req.headers.authorization;
   if (!h || typeof h !== 'string') return null;
-  const m = /^Bearer\s+(.+)$/i.exec(h.trim());
-  return m ? m[1].trim() : null;
+  const trimmed = h.trim();
+  if (trimmed.length > 4096 || !/^bearer[\s]/i.test(trimmed)) return null;
+  const token = trimmed.slice(6).trim();
+  return token || null;
 }
 
 // Handle /mcp Streamable HTTP (stateless). Returns true if handled.

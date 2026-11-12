@@ -1,6 +1,7 @@
 import http from 'node:http';
 import { createRequire } from 'node:module';
 import type { AddressInfo } from 'node:net';
+import { ProtocolError } from '@chat-export/protocol';
 import { ServerCore } from './core/server-core.js';
 import { BrowserHub } from './hub/browser-hub.js';
 import { handleMcpHttp } from './mcp/http.js';
@@ -19,7 +20,7 @@ import {
 } from './core/net-guard.js';
 
 const require = createRequire(import.meta.url);
-const PKG_VERSION = String((require('../package.json') as { version?: string }).version || '1.0.1');
+const PKG_VERSION = String((require('../package.json') as { version?: string }).version || '1.0.3');
 
 export interface StartServerOptions {
   home?: string;
@@ -182,7 +183,7 @@ export async function startServer(opts: StartServerOptions = {}) {
             );
             return;
           }
-          const message = err?.message || 'enroll failed';
+          const message = err instanceof ProtocolError ? err.message : 'enroll failed';
           jsonWithOptionalCors(res, 400, { error: { code: 'ENROLL_FAILED', message } }, enrollCors);
           core.audit({ action: 'browser.enroll', ok: false, message });
         }

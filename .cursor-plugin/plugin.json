@@ -1,0 +1,33 @@
+{
+  "name": "chat-export",
+  "description": "Local MCP bridge for ChatGPT, Claude, Grok, Copilot, Qwen, DeepSeek and Perplexity via the Chat Export Chrome extension",
+  "version": "1.0.4",
+  "author": {
+    "name": "CEC lab"
+  },
+  "homepage": "https://github.com/svergio/chat-export-server",
+  "repository": "https://github.com/svergio/chat-export-server",
+  "license": "MIT",
+  "keywords": [
+    "mcp",
+    "chat-export",
+    "browser",
+    "chatgpt",
+    "claude",
+    "grok"
+  ],
+  "variables": {
+    "type": "object",
+    "properties": {
+      "CHAT_EXPORT_MCP_TOKEN": {
+        "type": "string",
+        "title": "MCP Bearer token",
+        "description": "Bearer token from a running chat-export-server (cem_\u2026). Generate with: npx chat-export-server key or chat-export-server key"
+      }
+    },
+    "required": [
+      "CHAT_EXPORT_MCP_TOKEN"
+    ]
+  },
+  "logo": "assets/logo.png"
+}

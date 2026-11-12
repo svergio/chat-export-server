@@ -27,6 +27,10 @@ ENV NODE_ENV=production \
     CHAT_EXPORT_HOST=0.0.0.0 \
     CHAT_EXPORT_PORT=8765
 
+LABEL org.opencontainers.image.source="https://github.com/svergio/chat-export-server" \
+      org.opencontainers.image.description="Local MCP server for Chat Export Chrome extension" \
+      io.modelcontextprotocol.server.name="io.github.svergio/chat-export-server"
+
 COPY --from=builder --chown=chatexport:chatexport /app /app
 
 RUN mkdir -p /data && chown chatexport:chatexport /data
@@ -38,4 +42,5 @@ EXPOSE 8765
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
   CMD node -e "fetch('http://127.0.0.1:8765/health').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
 
-CMD ["node", "dist/cli/index.js", "start"]
+# --stdio lets Glama / mcp-proxy introspect tools; HTTP /health still serves for HEALTHCHECK.
+CMD ["node", "dist/cli/index.js", "start", "--stdio"]
