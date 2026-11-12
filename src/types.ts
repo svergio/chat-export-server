@@ -12,6 +12,7 @@ export interface HomePaths {
   logsDir: string;
   serverLog: string;
   alertsLog: string;
+  serverPid: string;
 }
 
 export interface DatabaseConfig {

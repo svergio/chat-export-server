@@ -279,6 +279,16 @@ export function createDashboardApi(deps: { core: ServerCore; startedAt: number }
       return true;
     }
 
+    if (pathname === '/dashboard/api/session' && req.method === 'GET') {
+      const session = getSession(req);
+      if (!session) {
+        jsonResponse(res, 401, { ok: false, error: { code: 'UNAUTHORIZED', message: 'dashboard login required' } });
+        return true;
+      }
+      jsonResponse(res, 200, { ok: true, username: session.username });
+      return true;
+    }
+
     if (!requireSession(req, res)) return true;
 
     if (pathname === '/dashboard/api/overview' && req.method === 'GET') {
@@ -314,13 +324,24 @@ export function createDashboardApi(deps: { core: ServerCore; startedAt: number }
         })),
         queue,
         hub,
+        settings: {
+          platformsEnabled: core.config.settings?.platformsEnabled || [],
+          allowDestructive: Boolean(core.config.settings?.allowDestructive)
+        },
         resources: collectProcessResources(uptimeMs, dbInfo as Record<string, unknown>)
       });
       return true;
     }
 
     if (pathname === '/dashboard/api/browsers' && req.method === 'GET') {
-      jsonResponse(res, 200, { ok: true, browsers: core.browsersList() });
+      jsonResponse(res, 200, {
+        ok: true,
+        browsers: core.browsersList(),
+        serverSettings: {
+          platformsEnabled: core.config.settings?.platformsEnabled || [],
+          allowDestructive: Boolean(core.config.settings?.allowDestructive)
+        }
+      });
       return true;
     }
 
@@ -386,6 +407,18 @@ export function createDashboardApi(deps: { core: ServerCore; startedAt: number }
     }
 
     if (pathname === '/dashboard/api/mcp-token/rotate' && req.method === 'POST') {
+      const body = await readJsonBody(req);
+      if (body === null) {
+        jsonResponse(res, 400, { ok: false, error: { code: 'BAD_REQUEST', message: 'invalid JSON' } });
+        return true;
+      }
+      if (body.confirm !== true) {
+        jsonResponse(res, 400, {
+          ok: false,
+          error: { code: 'CONFIRM_REQUIRED', message: 'mcp token rotate requires confirm:true' }
+        });
+        return true;
+      }
       const rotated = core.keyRotate();
       jsonResponse(res, 200, {
         ok: true,
@@ -420,6 +453,13 @@ export function createDashboardApi(deps: { core: ServerCore; startedAt: number }
       const body = await readJsonBody(req);
       if (body === null) {
         jsonResponse(res, 400, { ok: false, error: { code: 'BAD_REQUEST', message: 'invalid JSON' } });
+        return true;
+      }
+      if (body.confirm !== true) {
+        jsonResponse(res, 400, {
+          ok: false,
+          error: { code: 'CONFIRM_REQUIRED', message: 'job cancel requires confirm:true' }
+        });
         return true;
       }
       const jobId = String(body.jobId || body.job_id || '').trim();

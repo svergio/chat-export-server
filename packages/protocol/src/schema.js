@@ -61,14 +61,21 @@ function object(properties, required, extra) {
  *   chatId: string, title: string, active: boolean }} BrowserTab
  */
 /**
+ * @typedef {{ default: import('./constants.js').ExportSchema,
+ *   byFormat?: Partial<Record<import('./constants.js').ExportFormat, import('./constants.js').ExportSchema | null>> }} ExportSchemasConfig
+ */
+/**
  * @typedef {{ type: 'hello', protocolVersion?: 1, v?: 1, key: string, browserId: string,
  *   browserLabel: string, extVersion: string, platformsEnabled: import('./constants.js').Platform[],
- *   allowCreate?: boolean, allowDestructive?: boolean, allowProjects?: boolean, tabs?: BrowserTab[] }} WsHello
+ *   allowCreate?: boolean, allowDestructive?: boolean, allowProjects?: boolean,
+ *   exportSchemas?: ExportSchemasConfig, exportSchemaIds?: import('./constants.js').ExportSchema[],
+ *   tabs?: BrowserTab[] }} WsHello
  */
 /** @typedef {{ type: 'welcome', v: 1, browserId: string, serverVersion: string, bound: boolean }} WsWelcome */
 /**
  * @typedef {{ type: 'settings', platformsEnabled: import('./constants.js').Platform[],
- *   allowCreate?: boolean, allowDestructive?: boolean, allowProjects?: boolean, browserLabel?: string }} WsSettings
+ *   allowCreate?: boolean, allowDestructive?: boolean, allowProjects?: boolean, browserLabel?: string,
+ *   exportSchemas?: ExportSchemasConfig, exportSchemaIds?: import('./constants.js').ExportSchema[] }} WsSettings
  */
 /**
  * @typedef {{ type: 'tabs', browserId: string, tabs: BrowserTab[] }} WsTabs
@@ -80,6 +87,15 @@ const defs = {
   Op: { type: 'string', enum: [...OPS] },
   ExportFormat: { type: 'string', enum: [...EXPORT_FORMATS] },
   ExportSchema: { type: 'string', enum: [...EXPORT_SCHEMAS] },
+  ExportSchemaOrNull: { oneOf: [ref('ExportSchema'), { type: 'null' }] },
+  ExportSchemasConfig: object({
+    default: ref('ExportSchema'),
+    byFormat: {
+      type: 'object',
+      properties: Object.fromEntries(EXPORT_FORMATS.map((f) => [f, ref('ExportSchemaOrNull')])),
+      additionalProperties: false
+    }
+  }),
   ErrorCode: { type: 'string', enum: Object.values(ERROR_CODES) },
   BrowserTab: object(
     {
@@ -351,6 +367,20 @@ const defs = {
   ),
   ContainersMoveChatResult: ref('Chat'),
 
+  TabsEnsureArgs: object({ chatId: str }),
+  TabsEnsureResult: object(
+    {
+      tabId: { type: 'integer' },
+      platform: ref('Platform'),
+      url: str,
+      chatId: str,
+      title: str,
+      active: { type: 'boolean' },
+      created: { type: 'boolean' }
+    },
+    ['tabId', 'platform', 'url', 'chatId', 'title', 'active', 'created']
+  ),
+
   WsHelloCurrent: object(
     {
       type: { const: WS_TYPES.HELLO },
@@ -363,6 +393,8 @@ const defs = {
       allowCreate: { type: 'boolean' },
       allowDestructive: { type: 'boolean' },
       allowProjects: { type: 'boolean' },
+      exportSchemas: ref('ExportSchemasConfig'),
+      exportSchemaIds: { type: 'array', items: ref('ExportSchema'), uniqueItems: true },
       tabs: { type: 'array', items: ref('BrowserTab') }
     },
     ['type', 'protocolVersion', 'key', 'browserId', 'browserLabel', 'extVersion', 'platformsEnabled']
@@ -379,6 +411,8 @@ const defs = {
       allowCreate: { type: 'boolean' },
       allowDestructive: { type: 'boolean' },
       allowProjects: { type: 'boolean' },
+      exportSchemas: ref('ExportSchemasConfig'),
+      exportSchemaIds: { type: 'array', items: ref('ExportSchema'), uniqueItems: true },
       tabs: { type: 'array', items: ref('BrowserTab') }
     },
     ['type', 'v', 'key', 'browserId', 'browserLabel', 'extVersion', 'platformsEnabled']
@@ -403,7 +437,9 @@ const defs = {
       allowCreate: { type: 'boolean' },
       allowDestructive: { type: 'boolean' },
       allowProjects: { type: 'boolean' },
-      browserLabel: str
+      browserLabel: str,
+      exportSchemas: ref('ExportSchemasConfig'),
+      exportSchemaIds: { type: 'array', items: ref('ExportSchema'), uniqueItems: true }
     },
     ['type', 'platformsEnabled']
   ),
@@ -430,6 +466,7 @@ export const OP_SCHEMAS = Object.freeze({
   'chats.send': { args: 'ChatsSendArgs', result: 'ChatsSendResult' },
   'platform.capabilities': { args: 'PlatformCapabilitiesArgs', result: 'Capabilities' },
   'platform.host_state': { args: 'PlatformHostStateArgs', result: 'PlatformHostStateResult' },
+  'tabs.ensure': { args: 'TabsEnsureArgs', result: 'TabsEnsureResult' },
   'containers.list': { args: 'ContainersListArgs', result: 'ContainersListResult' },
   'containers.chats': { args: 'ContainersChatsArgs', result: 'ChatsListResult' },
   'containers.create': { args: 'ContainersCreateArgs', result: 'ContainersCreateResult' },

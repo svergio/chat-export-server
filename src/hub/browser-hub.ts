@@ -143,6 +143,24 @@ export class BrowserHub {
     return [...this.browsers.values()].map((b) => this.#publicBrowser(b));
   }
 
+  disconnectBrowser(browserId: string, reason = 'token superseded'): boolean {
+    const id = String(browserId || '').trim();
+    if (!id) return false;
+    const session = this.browsers.get(id);
+    if (!session) return false;
+    try {
+      this.#sendError(session.ws, ERROR_CODES.UNAUTHORIZED, reason);
+    } catch {
+      /* ignore */
+    }
+    try {
+      session.ws.close();
+    } catch {
+      /* ignore */
+    }
+    return true;
+  }
+
   bind(browserId: string) {
     if (!browserId || !this.browsers.has(browserId)) {
       throw new ProtocolError(ERROR_CODES.NOT_BOUND, 'browser not connected: ' + browserId);

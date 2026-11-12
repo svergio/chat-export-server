@@ -97,7 +97,7 @@ chat-export-server status
 
 ### Environment variables
 
-Copy [`.env.example`](.env.example) to `.env` in the server directory (or set `CHAT_EXPORT_ENV_FILE`). Container and process env override `config.json` where noted.
+Copy [`.env.example`](.env.example) to `.env` in the server directory (or set `CHAT_EXPORT_ENV_FILE`), then `chmod 600 .env`. Never commit `.env` (gitignored); keep secrets out of `.env.example`. Container and process env override `config.json` where noted.
 
 | Variable | Purpose |
 |----------|---------|

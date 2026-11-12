@@ -248,6 +248,29 @@ export function registerTools(server: McpServer, core: ServerCore): void {
   registerDetailedTool(
     server,
     core,
+    'tabs_ensure',
+    {
+      description:
+        'Open or reuse a provider start tab in the bound browser without sending a prompt. Prefer before chats_list/chat_ask when no platform tab is open; returns tab meta and created=true if chrome.tabs.create ran. Requires browsers_bind.',
+      inputSchema: {
+        platform: Platform,
+        chatId: z
+          .string()
+          .optional()
+          .describe('Prefer a tab whose URL already contains this chatId when matching open tabs')
+      },
+      annotations: annMutateUi
+    },
+    async ({ platform, chatId }) => {
+      const args: ToolArgs = {};
+      if (chatId !== undefined) args.chatId = chatId;
+      return core.tabsEnsure(platform, args);
+    }
+  );
+
+  registerDetailedTool(
+    server,
+    core,
     'platforms_capabilities',
     {
       description: 'Read composer capabilities (models, modes, toggles, attach) from the bound browser tab.',

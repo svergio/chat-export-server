@@ -256,5 +256,27 @@
         "composerReady": true
       }
     }
+  },
+  {
+    "op": "tabs.ensure",
+    "request": {
+      "id": "r15",
+      "op": "tabs.ensure",
+      "platform": "chatgpt",
+      "args": {}
+    },
+    "response": {
+      "id": "r15",
+      "ok": true,
+      "data": {
+        "tabId": 42,
+        "platform": "chatgpt",
+        "url": "https://chatgpt.com/",
+        "chatId": "",
+        "title": "ChatGPT",
+        "active": false,
+        "created": true
+      }
+    }
   }
 ]

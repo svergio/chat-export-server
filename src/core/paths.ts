@@ -18,6 +18,7 @@ export function pathsFor(home: string): HomePaths {
     dbFile: path.join(home, 'data', 'chat-export.db'),
     logsDir,
     serverLog: path.join(logsDir, 'server.log'),
-    alertsLog: path.join(logsDir, 'alerts.log')
+    alertsLog: path.join(logsDir, 'alerts.log'),
+    serverPid: path.join(home, 'server.pid')
   };
 }

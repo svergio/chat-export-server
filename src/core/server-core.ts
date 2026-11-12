@@ -141,14 +141,13 @@ export class ServerCore {
 
   authorizeBrowserHello(hello: any, meta: { remoteAddress?: string } = {}) {
     if (!isBrowserToken(hello?.key)) return null;
+    const claimedId = typeof hello?.browserId === 'string' ? hello.browserId.trim() : '';
     const rows = this.db.all(
       'SELECT browser_id, label, salt, hash, fingerprint, host_ip, permissions_json, status, connected_at, updated_at, tabs_json FROM browsers ORDER BY browser_id'
     );
     for (const row of rows) {
+      if (claimedId && claimedId !== row.browser_id) continue;
       if (!verifyKey(hello.key, row)) continue;
-      if (hello.browserId && hello.browserId !== row.browser_id) {
-        return null;
-      }
       return {
         browserId: row.browser_id,
         browserLabel: row.label || hello.browserLabel || row.browser_id,
@@ -161,6 +160,24 @@ export class ServerCore {
         }),
         tabs: parseJson(row.tabs_json, [])
       };
+    }
+    if (claimedId) {
+      const revoked = this.db.all(
+        'SELECT salt, hash, fingerprint FROM browser_revoked_tokens WHERE browser_id = ? ORDER BY revoked_at DESC',
+        [claimedId]
+      );
+      for (const row of revoked) {
+        if (!verifyKey(hello.key, row)) continue;
+        this.audit({
+          action: 'ws.hello',
+          ok: false,
+          code: ERROR_CODES.UNAUTHORIZED,
+          reason: 'revoked_token',
+          browserId: claimedId,
+          fingerprint: row.fingerprint
+        });
+        return null;
+      }
     }
     return null;
   }
@@ -245,40 +262,86 @@ export class ServerCore {
       allowDestructive: Boolean(input?.allowDestructive),
       allowProjects: input?.allowProjects === false ? false : true
     };
-    const hashed = hashKey(key);
-    const now = new Date().toISOString();
-    this.db.run(
-      `INSERT INTO browsers (
-         browser_id, label, salt, hash, fingerprint, host_ip, permissions_json, tabs_json, status, connected_at, updated_at
-       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-       ON CONFLICT(browser_id) DO UPDATE SET
-         label = excluded.label,
-         salt = excluded.salt,
-         hash = excluded.hash,
-         fingerprint = excluded.fingerprint,
-         host_ip = excluded.host_ip,
-         permissions_json = excluded.permissions_json,
-         updated_at = excluded.updated_at,
-         status = CASE
-           WHEN browsers.status = 'online' THEN browsers.status
-           ELSE excluded.status
-         END`,
-      [
-        browserId,
-        browserLabel,
-        hashed.salt,
-        hashed.hash,
-        hashed.fingerprint,
-        meta.hostIp || '',
-        JSON.stringify(permissions),
-        JSON.stringify([]),
-        'registered',
-        null,
-        now
-      ]
+    const existing = this.db.get(
+      'SELECT browser_id, salt, hash, fingerprint FROM browsers WHERE browser_id = ?',
+      [browserId]
     );
-    this.audit({ action: 'browser.enroll', browserId, fingerprint: hashed.fingerprint, ok: true });
-    return { browserId, browserLabel, fingerprint: hashed.fingerprint, permissions };
+    const sameToken = Boolean(existing && verifyKey(key, existing));
+    const hashed = sameToken
+      ? {
+          salt: String(existing!.salt),
+          hash: String(existing!.hash),
+          fingerprint: String(existing!.fingerprint)
+        }
+      : hashKey(key);
+    const now = new Date().toISOString();
+    let superseded: string | null = null;
+    this.db.transaction((db) => {
+      if (existing && !sameToken) {
+        superseded = String(existing.fingerprint || '');
+        db.run(
+          `INSERT INTO browser_revoked_tokens (
+             id, browser_id, salt, hash, fingerprint, revoked_at, reason
+           ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+          [
+            'brv_' + browserId + '_' + (existing.fingerprint || 'unknown') + '_' + Date.now().toString(36),
+            browserId,
+            existing.salt,
+            existing.hash,
+            existing.fingerprint,
+            now,
+            'superseded'
+          ]
+        );
+      }
+      db.run(
+        `INSERT INTO browsers (
+           browser_id, label, salt, hash, fingerprint, host_ip, permissions_json, tabs_json, status, connected_at, updated_at
+         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+         ON CONFLICT(browser_id) DO UPDATE SET
+           label = excluded.label,
+           salt = excluded.salt,
+           hash = excluded.hash,
+           fingerprint = excluded.fingerprint,
+           host_ip = excluded.host_ip,
+           permissions_json = excluded.permissions_json,
+           updated_at = excluded.updated_at,
+           status = CASE
+             WHEN browsers.status = 'online' THEN browsers.status
+             ELSE excluded.status
+           END`,
+        [
+          browserId,
+          browserLabel,
+          hashed.salt,
+          hashed.hash,
+          hashed.fingerprint,
+          meta.hostIp || '',
+          JSON.stringify(permissions),
+          JSON.stringify([]),
+          'registered',
+          null,
+          now
+        ]
+      );
+    });
+    if (superseded && this.hub) {
+      this.hub.disconnectBrowser(browserId, 'browser token superseded');
+    }
+    this.audit({
+      action: 'browser.enroll',
+      browserId,
+      fingerprint: hashed.fingerprint,
+      supersededFingerprint: superseded,
+      ok: true
+    });
+    return {
+      browserId,
+      browserLabel,
+      fingerprint: hashed.fingerprint,
+      permissions,
+      superseded: Boolean(superseded)
+    };
   }
 
   syncRegisteredBrowsers() {
@@ -322,8 +385,9 @@ export class ServerCore {
 
   markBrowserOffline(browserId: string | null | undefined): void {
     if (!browserId) return;
-    this.db.run('UPDATE browsers SET status = ?, updated_at = ? WHERE browser_id = ?', [
+    this.db.run('UPDATE browsers SET status = ?, tabs_json = ?, updated_at = ? WHERE browser_id = ?', [
       'offline',
+      '[]',
       new Date().toISOString(),
       browserId
     ]);
@@ -348,7 +412,7 @@ export class ServerCore {
         allowDestructive: false,
         allowProjects: true
       });
-      const tabs = parseJson(row.tabs_json, []);
+      const storedTabs = parseJson(row.tabs_json, []);
       return {
         browserId,
         browserLabel: connected?.browserLabel || row.label || browserId,
@@ -358,7 +422,7 @@ export class ServerCore {
         allowCreate: connected?.allowCreate ?? permissions.allowCreate,
         allowDestructive: connected?.allowDestructive ?? permissions.allowDestructive,
         allowProjects: connected?.allowProjects ?? permissions.allowProjects,
-        tabs: connected?.tabs || tabs,
+        tabs: connected ? connected.tabs || storedTabs : [],
         connectedAt: connected?.connectedAt || row.connected_at || null,
         updatedAt: row.updated_at || null,
         status: connected ? 'online' : row.status || 'registered',
@@ -540,6 +604,10 @@ export class ServerCore {
 
   platformCapabilities(platform: string, args?: OpArgs) {
     return this.callOp('platform.capabilities', platform, args || {});
+  }
+
+  tabsEnsure(platform: string, args?: OpArgs) {
+    return this.callOp('tabs.ensure', platform, args || {});
   }
 
   async resolveChatId(platform: string, chatId: string): Promise<string> {

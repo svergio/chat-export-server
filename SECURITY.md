@@ -24,4 +24,6 @@ Include affected version or commit, reproduction steps, and impact. You can expe
 
 ## Secrets
 
-Never commit bearer tokens (`cem_...`, `ceb_...`, legacy `cek_...`), `mcp.json` files that contain them, or `~/.chat-export` contents. If a token leaks, rotate it immediately and report the exposure through the channel above.
+Never commit bearer tokens (`cem_...`, `ceb_...`, legacy `cek_...`), `mcp.json` files that contain them, `CHAT_EXPORT_ADMIN_PASS` / dashboard passwords, or `~/.chat-export` contents. Keep local `.env` out of git (see `.gitignore`) and restrict it to the owner (`chmod 600 .env`). `.env.example` must stay placeholder-only. If a token leaks, rotate it immediately and report the exposure through the channel above.
+
+Destructive dashboard actions (`POST /dashboard/api/jobs/cancel`, `POST /dashboard/api/mcp-token/rotate`) require an authenticated session **and** JSON body `{ "confirm": true }`.

@@ -51,6 +51,16 @@ export function schemaStatements({
       connected_at TEXT,
       updated_at TEXT
     )`,
+    `CREATE TABLE IF NOT EXISTS browser_revoked_tokens (
+      id TEXT PRIMARY KEY,
+      browser_id TEXT NOT NULL,
+      salt TEXT NOT NULL,
+      hash TEXT NOT NULL,
+      fingerprint TEXT NOT NULL,
+      revoked_at TEXT NOT NULL,
+      reason TEXT
+    )`,
+    'CREATE INDEX IF NOT EXISTS idx_browser_revoked_browser ON browser_revoked_tokens(browser_id, revoked_at)',
     `CREATE TABLE IF NOT EXISTS jobs (
       id TEXT PRIMARY KEY,
       lane_browser_id TEXT,

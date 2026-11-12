@@ -13,7 +13,7 @@ export const PLATFORMS = Object.freeze([
 ]);
 
 /** @typedef {'chats.list' | 'chats.get' | 'chats.export' | 'chats.create' | 'chats.delete' | 'chats.send' |
- *   'platform.capabilities' | 'platform.host_state' |
+ *   'platform.capabilities' | 'platform.host_state' | 'tabs.ensure' |
  *   'containers.list' | 'containers.chats' | 'containers.create' | 'containers.delete' | 'containers.move_chat'} Op */
 export const OPS = Object.freeze([
   'chats.list',
@@ -24,6 +24,7 @@ export const OPS = Object.freeze([
   'chats.send',
   'platform.capabilities',
   'platform.host_state',
+  'tabs.ensure',
   'containers.list',
   'containers.chats',
   'containers.create',
@@ -36,6 +37,7 @@ export const DESTRUCTIVE_OPS = Object.freeze(['chats.delete', 'containers.delete
 /** @typedef {'md' | 'yaml' | 'json' | 'html' | 'pdf'} ExportFormat */
 export const EXPORT_FORMATS = Object.freeze(['md', 'yaml', 'json', 'html', 'pdf']);
 
+/** @typedef {'chat-export/1' | 'sharegpt/1'} ExportSchema */
 /** Export text layout schemas (`name/version`). Default: chat-export/1 */
 export const EXPORT_SCHEMAS = Object.freeze(['chat-export/1', 'sharegpt/1']);
 export const DEFAULT_EXPORT_SCHEMA = 'chat-export/1';

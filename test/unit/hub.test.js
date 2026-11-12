@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { ERROR_CODES } from '@chat-export/protocol';
-import { withServer, connectMockBrowser } from '../helpers.js';
+import { withServer, connectMockBrowser, makeBrowserToken } from '../helpers.js';
 
 describe('BrowserHub', () => {
   it('hello, bind, rpc, settings, timeout, unbind on close', async () => {
@@ -83,6 +83,76 @@ describe('BrowserHub', () => {
           }),
         /UNAUTHORIZED/
       );
+    });
+  });
+
+  it('re-enroll invalidates prior cek_/ceb_ tokens for same browserId', async () => {
+    await withServer(async (server) => {
+      const { core, hub, port } = server;
+      core.keyNew();
+      const browserId = 'b-5b508c84';
+      const legacyKey = 'cek_' + 'a'.repeat(48);
+      const first = core.browserEnroll({
+        browserId,
+        key: legacyKey,
+        browserLabel: 'Legacy'
+      });
+      assert.equal(first.superseded, false);
+
+      const live = await connectMockBrowser(port, {
+        key: legacyKey,
+        browserId,
+        browserLabel: 'Legacy'
+      });
+      assert.equal(hub.browsers.has(browserId), true);
+
+      const nextKey = makeBrowserToken('rotate-ceb-1');
+      const rotated = core.browserEnroll({
+        browserId,
+        key: nextKey,
+        browserLabel: 'Rotated'
+      });
+      assert.equal(rotated.superseded, true);
+      assert.notEqual(rotated.fingerprint, first.fingerprint);
+
+      await new Promise((r) => setTimeout(r, 40));
+      assert.equal(hub.browsers.has(browserId), false);
+
+      await assert.rejects(
+        () =>
+          connectMockBrowser(port, {
+            key: legacyKey,
+            browserId,
+            browserLabel: 'Legacy'
+          }),
+        /UNAUTHORIZED/
+      );
+
+      const replaced = makeBrowserToken('rotate-ceb-2');
+      const again = core.browserEnroll({
+        browserId,
+        key: replaced,
+        browserLabel: 'Rotated again'
+      });
+      assert.equal(again.superseded, true);
+
+      await assert.rejects(
+        () =>
+          connectMockBrowser(port, {
+            key: nextKey,
+            browserId
+          }),
+        /UNAUTHORIZED/
+      );
+
+      const ok = await connectMockBrowser(port, {
+        key: replaced,
+        browserId,
+        browserLabel: 'Rotated again'
+      });
+      assert.equal(ok.welcome.browserId, browserId);
+      ok.close();
+      live.close();
     });
   });
 

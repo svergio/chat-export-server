@@ -286,6 +286,7 @@ describe('MCP contract (mock extension)', () => {
       'browsers_bind',
       'browsers_status',
       'platforms_list',
+      'tabs_ensure',
       'platforms_capabilities',
       'chats_list',
       'chats_get',
@@ -315,6 +316,42 @@ describe('MCP contract (mock extension)', () => {
     assert.match(src, /chats_create[\s\S]*?toggles:\s*z\.array\(z\.string\(\)\)/);
     assert.match(src, /chats_create[\s\S]*?files:\s*z\.array\(FileRef\)/);
     assert.match(src, /chats_send[\s\S]*?files:\s*z\.array\(FileRef\)/);
+  });
+
+  it('tabs_ensure forwards tabs.ensure over rpc', async () => {
+    /** @type {object | null} */
+    let seen = null;
+    await withServer(async (server) => {
+      const { core, port } = server;
+      const { key } = core.keyNew();
+      await connectMockBrowser(port, {
+        core,
+        key,
+        browserId: 'b-tabs-ensure',
+        platformsEnabled: ['chatgpt'],
+        onRpc: (msg) => {
+          seen = msg;
+          return {
+            data: {
+              tabId: 7,
+              platform: 'chatgpt',
+              url: 'https://chatgpt.com/',
+              chatId: '',
+              title: 'ChatGPT',
+              active: false,
+              created: true
+            }
+          };
+        }
+      });
+      core.browsersBind('b-tabs-ensure');
+      const out = await core.tabsEnsure('chatgpt', {});
+      assert.equal(seen?.op, 'tabs.ensure');
+      assert.equal(seen?.platform, 'chatgpt');
+      assert.equal(out.tabId, 7);
+      assert.equal(out.created, true);
+      assert.equal(out.chatId, '');
+    });
   });
 
   for (const platform of ['claude', 'qwen', 'deepseek', 'perplexity']) {

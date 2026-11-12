@@ -7,6 +7,7 @@ import { BrowserHub } from './hub/browser-hub.js';
 import { handleMcpHttp } from './mcp/http.js';
 import { startStdioMcp } from './mcp/stdio.js';
 import { resolveHome } from './core/paths.js';
+import { clearPidFile, writePidFile } from './core/pid-file.js';
 import { ALERT_CODES } from './core/logger.js';
 import { createDashboardApi } from './dashboard-api.js';
 import type { JobManagerOptions } from './core/jobs/job-manager.js';
@@ -235,6 +236,20 @@ export async function startServer(opts: StartServerOptions = {}) {
     httpServer.listen(port, host, () => resolve());
   });
 
+  const pidPath = core.config.paths.serverPid;
+  const pidInfo = writePidFile(pidPath);
+  if (pidInfo.warnedLiveForeign) {
+    core.logger.warn({
+      component: 'server',
+      message: 'server.pid referenced another live process; refreshed to this pid without killing it',
+      previousPid: pidInfo.previousPid,
+      pid: process.pid,
+      pidPath
+    });
+  } else {
+    core.logger.info({ component: 'server', message: 'wrote server.pid', pid: process.pid, pidPath });
+  }
+
   let stdio: Awaited<ReturnType<typeof startStdioMcp>> | null = null;
   if (opts.stdio) {
     stdio = await startStdioMcp(core);
@@ -251,6 +266,7 @@ export async function startServer(opts: StartServerOptions = {}) {
     startedAt,
     dashboardEnabled: core.config.dashboard?.enabled !== false,
     async close() {
+      clearPidFile(pidPath);
       hub.close();
       if (stdio) {
         await stdio.transport.close().catch(() => {});
