@@ -746,7 +746,7 @@ function summarizeArgs(op: string, args: any): Record<string, unknown> {
     }
     return row;
   }
-  if (op === 'chats.export') return { chatId: args.chatId, formats: args.formats };
+  if (op === 'chats.export') return { chatId: args.chatId, formats: args.formats, schema: args.schema };
   if (op === 'chats.list') {
     return {
       query: args.query,

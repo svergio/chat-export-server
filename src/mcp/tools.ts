@@ -1,7 +1,13 @@
 import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { ToolAnnotations } from '@modelcontextprotocol/sdk/types.js';
-import { PLATFORMS, EXPORT_FORMATS, ERROR_CODES, RETRYABLE_ERROR_CODES } from '@chat-export/protocol';
+import {
+  PLATFORMS,
+  EXPORT_FORMATS,
+  EXPORT_SCHEMAS,
+  ERROR_CODES,
+  RETRYABLE_ERROR_CODES
+} from '@chat-export/protocol';
 import { toProtocolError } from '../core/errors.js';
 import type { ServerCore } from '../core/server-core.js';
 
@@ -21,6 +27,9 @@ const Platform = z
 const ExportFormat = z
   .enum([...EXPORT_FORMATS] as [string, ...string[]])
   .describe('Export format id supported by the extension builders');
+const ExportSchema = z
+  .enum([...EXPORT_SCHEMAS] as [string, ...string[]])
+  .describe('Export text schema id (name/version), e.g. chat-export/1 or sharegpt/1');
 const JobKind = z
   .enum(['ask', 'export', 'export_batch', 'delete', 'delete_batch'])
   .describe('Background job kind for the bound browser lane');
@@ -382,6 +391,9 @@ export function registerTools(server: McpServer, core: ServerCore): void {
         platform: Platform,
         chatId: z.string().describe('Chat id to export'),
         formats: z.array(ExportFormat).min(1).describe('One or more export formats to write'),
+        schema: ExportSchema.optional().describe(
+          'Text layout schema (name/version). Default: server settings.exportSchema then browser default chat-export/1'
+        ),
         outDir: z.string().optional().describe('Absolute path under HOME; default server exportDir'),
         branch: Branch.optional(),
         async: z
@@ -391,14 +403,18 @@ export function registerTools(server: McpServer, core: ServerCore): void {
       },
       annotations: annMutateUi
     },
-    async ({ platform, chatId, formats, outDir, branch, async: asyncExport }) => {
+    async ({ platform, chatId, formats, schema, outDir, branch, async: asyncExport }) => {
+      const resolvedSchema =
+        schema ||
+        (core.config.settings && core.config.settings.exportSchema) ||
+        'chat-export/1';
       if (asyncExport === true) {
-        const spec: ToolArgs = { kind: 'export', platform, chatId, formats };
+        const spec: ToolArgs = { kind: 'export', platform, chatId, formats, schema: resolvedSchema };
         if (outDir !== undefined) spec.outDir = outDir;
         if (branch !== undefined) spec.branch = branch;
         return core.jobs.enqueue(spec as Parameters<typeof core.jobs.enqueue>[0]);
       }
-      const args: ToolArgs = { chatId, formats };
+      const args: ToolArgs = { chatId, formats, schema: resolvedSchema };
       if (outDir !== undefined) args.outDir = outDir;
       if (branch !== undefined) args.branch = branch;
       return core.chatsExport(platform, args);
@@ -797,6 +813,7 @@ export function registerTools(server: McpServer, core: ServerCore): void {
         query: z.string().optional().describe('Optional filter query for batch discovery'),
         max: z.number().int().positive().optional().describe('Max items for batch jobs'),
         formats: z.array(ExportFormat).optional().describe('Export formats for export kinds'),
+        schema: ExportSchema.optional().describe('Export text schema for export kinds'),
         outDir: z.string().optional().describe('Output directory for export kinds'),
         branch: z.string().optional().describe('Branch selector when applicable'),
         confirm: z.boolean().optional().describe('Required true for delete/delete_batch'),
@@ -804,7 +821,16 @@ export function registerTools(server: McpServer, core: ServerCore): void {
       },
       annotations: annJobsMutate
     },
-    async (input) => core.jobs.enqueue(input)
+    async (input) => {
+      if (
+        (input.kind === 'export' || input.kind === 'export_batch') &&
+        input.schema === undefined &&
+        core.config.settings?.exportSchema
+      ) {
+        input = Object.assign({}, input, { schema: core.config.settings.exportSchema });
+      }
+      return core.jobs.enqueue(input);
+    }
   );
 
   registerDetailedTool(

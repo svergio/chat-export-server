@@ -151,6 +151,7 @@ function exportArgs(input: Record<string, any>, chatId: string) {
   const args: Record<string, any> = { chatId, formats: input.formats };
   if (input.outDir !== undefined) args.outDir = input.outDir;
   if (input.branch !== undefined) args.branch = input.branch;
+  if (input.schema !== undefined) args.schema = input.schema;
   return args;
 }
 

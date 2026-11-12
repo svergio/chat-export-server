@@ -99,6 +99,13 @@
         "pdf"
       ]
     },
+    "ExportSchema": {
+      "type": "string",
+      "enum": [
+        "chat-export/1",
+        "sharegpt/1"
+      ]
+    },
     "ErrorCode": {
       "type": "string",
       "enum": [
@@ -778,6 +785,9 @@
             "active",
             "all"
           ]
+        },
+        "schema": {
+          "$ref": "#/$defs/ExportSchema"
         }
       },
       "required": [
@@ -809,6 +819,9 @@
             "active",
             "all"
           ]
+        },
+        "schema": {
+          "$ref": "#/$defs/ExportSchema"
         }
       },
       "required": [

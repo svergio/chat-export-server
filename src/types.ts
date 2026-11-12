@@ -44,6 +44,8 @@ export interface RegisteredBrowser {
 export interface ServerSettings {
   platformsEnabled: string[];
   allowDestructive: boolean;
+  /** Default export text schema id (`name/version`), e.g. chat-export/1 */
+  exportSchema: string;
 }
 
 export interface ChatExportConfig {

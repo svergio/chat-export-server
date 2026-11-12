@@ -14,6 +14,8 @@ declare module '@chat-export/protocol' {
   export const OPS: readonly string[];
   export const DESTRUCTIVE_OPS: readonly string[];
   export const EXPORT_FORMATS: readonly ['md', 'yaml', 'json', 'html', 'pdf'];
+  export const EXPORT_SCHEMAS: readonly ['chat-export/1', 'sharegpt/1'];
+  export const DEFAULT_EXPORT_SCHEMA: 'chat-export/1';
   export const ROLES: readonly ['user', 'assistant', 'system'];
   export const CONTENT_RPC_TYPE: string;
   export const LIST_LIMIT_MAX: number;

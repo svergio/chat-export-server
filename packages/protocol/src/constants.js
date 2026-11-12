@@ -36,6 +36,10 @@ export const DESTRUCTIVE_OPS = Object.freeze(['chats.delete', 'containers.delete
 /** @typedef {'md' | 'yaml' | 'json' | 'html' | 'pdf'} ExportFormat */
 export const EXPORT_FORMATS = Object.freeze(['md', 'yaml', 'json', 'html', 'pdf']);
 
+/** Export text layout schemas (`name/version`). Default: chat-export/1 */
+export const EXPORT_SCHEMAS = Object.freeze(['chat-export/1', 'sharegpt/1']);
+export const DEFAULT_EXPORT_SCHEMA = 'chat-export/1';
+
 export const ROLES = Object.freeze(['user', 'assistant', 'system']);
 
 /**

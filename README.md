@@ -159,10 +159,13 @@ Created on first start. Example (secrets redacted):
   "registeredBrowsers": [],
   "settings": {
     "platformsEnabled": ["chatgpt", "grok", "grok-x", "copilot", "claude"],
-    "allowDestructive": false
+    "allowDestructive": false,
+    "exportSchema": "chat-export/1"
   }
 }
 ```
+
+`settings.exportSchema` defaults to `chat-export/1` (also `sharegpt/1`). MCP `chats_export` / export jobs accept optional `schema`; omitted → this setting, then the browser default. See wiki [Export formats](https://github.com/svergio/chat-export-extension/wiki/Export-Formats).
 
 Change **`dashboard.password`** before exposing the host beyond loopback. Server listens on **`127.0.0.1:8765`** by default (`/health`, `/mcp`, `/ws`, `/dashboard/`).
 

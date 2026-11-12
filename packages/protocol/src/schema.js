@@ -3,6 +3,7 @@ import {
   PLATFORMS,
   OPS,
   EXPORT_FORMATS,
+  EXPORT_SCHEMAS,
   ROLES,
   ERROR_CODES,
   WS_TYPES,
@@ -78,6 +79,7 @@ const defs = {
   Platform: { type: 'string', enum: [...PLATFORMS] },
   Op: { type: 'string', enum: [...OPS] },
   ExportFormat: { type: 'string', enum: [...EXPORT_FORMATS] },
+  ExportSchema: { type: 'string', enum: [...EXPORT_SCHEMAS] },
   ErrorCode: { type: 'string', enum: Object.values(ERROR_CODES) },
   BrowserTab: object(
     {
@@ -226,7 +228,8 @@ const defs = {
       chatId: str,
       formats: { type: 'array', items: ref('ExportFormat'), minItems: 1, uniqueItems: true },
       outDir: str,
-      branch: { type: 'string', enum: ['active', 'all'] }
+      branch: { type: 'string', enum: ['active', 'all'] },
+      schema: ref('ExportSchema')
     },
     ['chatId', 'formats']
   ),
@@ -235,7 +238,8 @@ const defs = {
     {
       chatId: str,
       formats: { type: 'array', items: ref('ExportFormat'), minItems: 1, uniqueItems: true },
-      branch: { type: 'string', enum: ['active', 'all'] }
+      branch: { type: 'string', enum: ['active', 'all'] },
+      schema: ref('ExportSchema')
     },
     ['chatId', 'formats']
   ),

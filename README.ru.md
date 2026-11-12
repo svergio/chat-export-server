@@ -124,10 +124,13 @@ docker --context colima compose down
   },
   "settings": {
     "platformsEnabled": ["chatgpt", "grok", "grok-x", "copilot", "claude"],
-    "allowDestructive": false
+    "allowDestructive": false,
+    "exportSchema": "chat-export/1"
   }
 }
 ```
+
+`settings.exportSchema` по умолчанию `chat-export/1` (также `sharegpt/1`). MCP `chats_export` / jobs принимают опциональный `schema`; без него — эта настройка, затем дефолт браузера. Вики: [Форматы экспорта](https://github.com/svergio/chat-export-extension/wiki/Export-Formats-RU).
 
 Сервер по умолчанию: **`127.0.0.1:8765`** (`/health`, `/mcp`, `/ws`, `/dashboard/`).
 

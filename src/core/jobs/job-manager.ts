@@ -139,6 +139,7 @@ export class JobManager {
         input.outDir = spec.outDir;
       }
       if (spec.branch !== undefined) input.branch = spec.branch;
+      if (spec.schema !== undefined) input.schema = String(spec.schema);
     }
     if (kind === 'delete' || kind === 'delete_batch') {
       input.confirm = spec.confirm === true;

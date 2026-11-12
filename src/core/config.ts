@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { PLATFORMS } from '@chat-export/protocol';
+import { PLATFORMS, EXPORT_SCHEMAS, DEFAULT_EXPORT_SCHEMA } from '@chat-export/protocol';
 import { envBool, envInt, envString, parseBrowserTokensEnv } from './env.js';
 import { pathsFor, resolveHome } from './paths.js';
 import type {
@@ -97,7 +97,8 @@ export function defaultConfig(home: string): ChatExportConfig {
     dashboard: normalizeDashboard(),
     settings: {
       platformsEnabled: [...PLATFORMS],
-      allowDestructive: false
+      allowDestructive: false,
+      exportSchema: DEFAULT_EXPORT_SCHEMA
     }
   };
 }
@@ -131,7 +132,12 @@ export function loadConfig(home: string = resolveHome()): LoadedConfig {
       platformsEnabled: Array.isArray(raw.settings?.platformsEnabled)
         ? raw.settings.platformsEnabled.filter((x: string) => (PLATFORMS as readonly string[]).includes(x))
         : defaults.settings.platformsEnabled,
-      allowDestructive: Boolean(raw.settings?.allowDestructive)
+      allowDestructive: Boolean(raw.settings?.allowDestructive),
+      exportSchema:
+        typeof raw.settings?.exportSchema === 'string' &&
+        (EXPORT_SCHEMAS as readonly string[]).includes(raw.settings.exportSchema)
+          ? raw.settings.exportSchema
+          : defaults.settings.exportSchema
     }
   };
 
@@ -172,7 +178,12 @@ export function saveConfig(home: string, config: Partial<ChatExportConfig>): Cha
     dashboard: normalizeDashboard(config.dashboard),
     settings: {
       platformsEnabled: config.settings?.platformsEnabled || [...PLATFORMS],
-      allowDestructive: Boolean(config.settings?.allowDestructive)
+      allowDestructive: Boolean(config.settings?.allowDestructive),
+      exportSchema:
+        typeof config.settings?.exportSchema === 'string' &&
+        (EXPORT_SCHEMAS as readonly string[]).includes(config.settings.exportSchema)
+          ? config.settings.exportSchema
+          : DEFAULT_EXPORT_SCHEMA
     }
   };
   const tmp = p.config + '.tmp';
