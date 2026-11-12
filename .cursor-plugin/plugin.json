@@ -1,7 +1,7 @@
 {
   "name": "chat-export",
   "description": "Local MCP bridge for ChatGPT, Claude, Grok, Copilot, Qwen, DeepSeek and Perplexity via the Chat Export Chrome extension",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "author": {
     "name": "CEC lab"
   },

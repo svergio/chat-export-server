@@ -7,11 +7,11 @@
     "url": "https://github.com/svergio/chat-export-server",
     "source": "github"
   },
-  "version": "1.0.4",
+  "version": "1.0.5",
   "packages": [
     {
       "registryType": "oci",
-      "identifier": "ghcr.io/svergio/chat-export-server:1.0.4",
+      "identifier": "ghcr.io/svergio/chat-export-server:1.0.5",
       "transport": {
         "type": "stdio"
       },

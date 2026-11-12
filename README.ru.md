@@ -8,7 +8,7 @@
 
 **Локальный MCP-сервер** для расширения [Chat Export](https://github.com/svergio/chat-export-extension). Список, чтение, экспорт, создание, удаление и **вопросы** в ваших чатах на **восьми** площадках (ChatGPT, Grok, X Grok, Claude, GitHub Copilot, Qwen, DeepSeek, Perplexity) — через расширение в **вашем** браузере. Всё на `127.0.0.1`: очереди задач, SQLite-кеш, аудит, опциональный [дашборд](https://github.com/svergio/chat-export-dashboard).
 
-В каталоге [Glama](https://glama.ai/mcp/servers/svergio/chat-export-server) (v1.0.4, TDQS 4.4/5).
+В каталоге [Glama](https://glama.ai/mcp/servers/svergio/chat-export-server) (v1.0.5, TDQS 4.4/5).
 
 ## Автономный продукт
 
