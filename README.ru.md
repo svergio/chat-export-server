@@ -10,6 +10,10 @@
 
 В каталоге [Glama](https://glama.ai/mcp/servers/svergio/chat-export-server) (v1.0.4, TDQS 4.4/5).
 
+## Автономный продукт
+
+`chat-export-server` вместе с [расширением Chrome](https://github.com/svergio/chat-export-extension) — полный локальный стек. Операции с чатами в браузере идут через WebSocket-мост расширения — **без** Chrome DevTools MCP, Playwright и без встроенного кода агентов. Деплой **нативно**, **Docker / Colima** или **Kubernetes** (`deploy/k8s`). Любой MCP-клиент (Cursor, Claude Desktop, Open WebUI, локальные LLM вроде Bonsai-27B) — **опционален**.
+
 ## Проблема
 
 Агентам в IDE нужен **структурный доступ** к веб-сессиям LLM без утечки cookies и без облачных API. Нужны MCP, очереди и повторы — при этом данные не покидают ваш ПК.

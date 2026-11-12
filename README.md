@@ -10,6 +10,10 @@
 
 Listed on [Glama](https://glama.ai/mcp/servers/svergio/chat-export-server) (v1.0.4, TDQS 4.4/5).
 
+## Standalone
+
+`chat-export-server` plus the [Chrome extension](https://github.com/svergio/chat-export-extension) is a complete local stack. Browser chat ops run through the extension WebSocket bridge — **no** Chrome DevTools MCP, Playwright, or vendored agent code. Ship with **native** install, **Docker / Colima**, or **Kubernetes** (`deploy/k8s`). Any MCP client (Cursor, Claude Desktop, Open WebUI, local LLMs such as Bonsai-27B) is **optional**.
+
 ## Why this MCP (for awesome-list reviewers)
 
 Most LLM MCP servers wrap a **vendor HTTP API** (keys, quotas, cloud data path). Chat Export is different: the agent talks MCP to a **local** process; that process drives the **web UIs you are already logged into** via the Chrome extension bridge. No OpenAI/Anthropic/xAI API keys for chat ops, no chat bodies leaving `127.0.0.1`, and delete/create stay off until you opt in (`allowDestructive` + `confirm`). Pair with the [extension zip](https://github.com/svergio/chat-export-extension/releases/tag/v2.0.3); point Cursor (or any MCP client) at `http://127.0.0.1:8765/mcp`.
