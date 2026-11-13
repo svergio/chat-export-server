@@ -19,7 +19,7 @@ Include affected version or commit, reproduction steps, and impact. You can expe
 
 - Never bind the server to a non-loopback address without a firewall, TLS termination, and token rotation.
 - Change `dashboard.password` in `~/.chat-export/config.json` (the default is `changeme`).
-- Treat `~/.chat-export/` (database, logs, `mcp-token.txt`, `keys.json`) and `.cursor/mcp.json` as secrets: they hold chat content and bearer tokens.
+- Treat `~/.chat-export/` (SQLite database with hashed MCP/browser tokens, logs, optional `mcp-token.txt` plaintext artifact) and `.cursor/mcp.json` as secrets: they hold chat content and bearer tokens. Tokens are not stored in `keys.json`.
 - Rotate the MCP token (`chat-export-server key` or the dashboard) if it was ever pasted into an issue, log, or shared config.
 
 ## Secrets

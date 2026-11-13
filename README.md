@@ -8,7 +8,7 @@
 
 **Local MCP server** for the [Chat Export](https://github.com/svergio/chat-export-extension) Chrome extension. List, read, export, create, delete, and **ask** in your own chats on **eleven** web providers (ChatGPT, Grok, X Grok, Claude, GitHub Copilot, Qwen, DeepSeek, Perplexity, Kimi, Z.ai, MiniMax) — through the extension in **your** browser. (**JanitorAI** is extension export-bar only and is not in the MCP protocol.) Everything stays on `127.0.0.1`: job queues, SQLite chat cache, audit log, optional [dashboard](https://github.com/svergio/chat-export-dashboard) UI.
 
-Listed on [Glama](https://glama.ai/mcp/servers/svergio/chat-export-server) (v1.0.8, Kimi / Z.ai / MiniMax MCP). Listed on [Mcprush](https://mcprush.com/svergio/chat-export-mcp).
+Listed on [Glama](https://glama.ai/mcp/servers/svergio/chat-export-server) (v1.0.9, Kimi / Z.ai / MiniMax MCP). Listed on [Mcprush](https://mcprush.com/svergio/chat-export-mcp).
 
 ## Standalone
 
@@ -84,11 +84,15 @@ Data under `~/.chat-export` (override `CHAT_EXPORT_HOME`):
 
 ```text
 ~/.chat-export/
-  config.json    # host, port, exportDir
-  keys.json      # hashes only (chmod 600)
+  config.json    # host, port, exportDir, settings (incl. advancedMcpTosAcceptedAt)
+  chat-export.db # SQLite: mcp_tokens, browsers, browser_revoked_tokens, jobs, chat cache
   audit.log      # MCP/RPC audit
   exports/       # chats_export output
 ```
+
+MCP and browser bearer tokens are stored as hashes in SQLite (`mcp_tokens` / `browsers` / `browser_revoked_tokens`). Plaintext is printed once by `chat-export-server key new` (and browser enroll); it is not kept in `keys.json`.
+
+Before create/send/delete MCP mutates, accept Advanced MCP ToS once: `chat-export-server tos accept` or `POST /legal/accept` (loopback). Check with `GET /legal` or `tos status`.
 
 ```sh
 chat-export-server key rotate
@@ -179,7 +183,7 @@ Change **`dashboard.password`** before exposing the host beyond loopback. Server
 | `cek_` / `cem_` | MCP and CLI (`Authorization: Bearer …` on `/mcp`) |
 | `ceb_` | Chrome extension WebSocket (`/ws`); enroll via CLI or [dashboard](https://github.com/svergio/chat-export-dashboard) |
 
-Only **hashes** of MCP keys are stored in `keys.json` (mode `600`). Plaintext is shown once at `chat-export-server key new`.
+Only **hashes** of MCP/browser keys are stored in SQLite (`mcp_tokens`, `browsers`, `browser_revoked_tokens`). Plaintext is shown once at `chat-export-server key new` / browser enroll.
 
 ### Detached daemon (maintainer workspace)
 

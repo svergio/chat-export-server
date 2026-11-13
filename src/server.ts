@@ -121,7 +121,12 @@ export async function startServer(opts: StartServerOptions = {}) {
         forbid(res, 'host not allowed');
         return;
       }
-      if (url.pathname !== '/health' && url.pathname !== '/legal' && !isAllowedOrigin(req)) {
+      if (
+        url.pathname !== '/health' &&
+        url.pathname !== '/legal' &&
+        url.pathname !== '/legal/accept' &&
+        !isAllowedOrigin(req)
+      ) {
         core.audit({ action: 'http.origin', ok: false, code: 'FORBIDDEN', origin: String(req.headers.origin || ''), path: url.pathname });
         forbid(res, 'origin not allowed');
         return;
@@ -132,6 +137,7 @@ export async function startServer(opts: StartServerOptions = {}) {
         return;
       }
       if (url.pathname === '/legal' && req.method === 'GET') {
+        const legal = core.legalStatus();
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(
           JSON.stringify({
@@ -141,10 +147,28 @@ export async function startServer(opts: StartServerOptions = {}) {
             warranty: 'AS IS, WITHOUT WARRANTY OF ANY KIND',
             localFirst: true,
             document: 'LEGAL.md',
+            ...legal,
             issues: {
               server: 'https://github.com/svergio/chat-export-server/issues',
               extension: 'https://github.com/svergio/chat-export-extension/issues'
             }
+          })
+        );
+        return;
+      }
+      if (url.pathname === '/legal/accept' && req.method === 'POST') {
+        if (!isLoopbackAddress(req.socket.remoteAddress || '')) {
+          forbid(res, 'localhost only');
+          return;
+        }
+        const accepted = core.acceptAdvancedMcpTos();
+        core.audit({ action: 'legal.accept', ok: true });
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(
+          JSON.stringify({
+            ok: true,
+            ...core.legalStatus(),
+            settings: { advancedMcpTosAcceptedAt: accepted.settings.advancedMcpTosAcceptedAt }
           })
         );
         return;

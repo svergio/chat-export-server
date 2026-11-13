@@ -32,7 +32,7 @@ export function runJob(core: RunnerCore, job: JobRecord, ctx: LaneContext, opts:
     case 'ask':
       return runAsk(core, job, ctx, opts);
     case 'export':
-      return runExport(core, job);
+      return runExport(core, job, ctx);
     case 'export_batch':
       return runExportBatch(core, job, ctx);
     case 'delete':
@@ -111,6 +111,15 @@ async function gateBeforeMutate(
   assertNotBusy(await hostState(core, platform, chatId, cache), platform);
 }
 
+async function ensureTabIfRequested(core: RunnerCore, platform: string, input: Record<string, any>, chatId?: string) {
+  if (input.ensureTab !== true) return;
+  await core.tabsEnsure(platform, chatId ? { chatId } : {});
+}
+
+function captchaArg(input: Record<string, any>): Record<string, any> {
+  return input.onCaptcha !== undefined ? { onCaptcha: input.onCaptcha } : {};
+}
+
 async function runAsk(core: RunnerCore, job: JobRecord, ctx: LaneContext, opts: RunOptions) {
   const { input, platform } = job;
   const pollMs = opts.pollMs ?? DEFAULT_POLL_MS;
@@ -122,6 +131,7 @@ async function runAsk(core: RunnerCore, job: JobRecord, ctx: LaneContext, opts: 
   }
 
   if (!state.sent) {
+    await ensureTabIfRequested(core, platform, input, input.chatId);
     await gateBeforeMutate(core, platform, input.chatId, input, cache, ctx);
     ctx.checkCancel();
     ctx.progress({ current: 'sending' });
@@ -132,7 +142,8 @@ async function runAsk(core: RunnerCore, job: JobRecord, ctx: LaneContext, opts: 
       const created = await core.chatsCreate(platform, {
         text: input.prompt,
         ...(input.title !== undefined ? { title: input.title } : {}),
-        ...pickChatOptions(input)
+        ...pickChatOptions(input),
+        ...captchaArg(input)
       });
       chatId = created.chatId;
     } else {
@@ -152,7 +163,12 @@ async function runAsk(core: RunnerCore, job: JobRecord, ctx: LaneContext, opts: 
         await ctx.sleep(Math.min(pollMs, 400));
       }
       ctx.checkCancel();
-      await core.chatsSend(platform, { chatId, text: input.prompt, ...pickChatOptions(input) });
+      await core.chatsSend(platform, {
+        chatId,
+        text: input.prompt,
+        ...pickChatOptions(input),
+        ...captchaArg(input)
+      });
     }
     state = { ...state, sent: true, chatId, minAfter, baselineLen };
     ctx.saveState({ sent: true, chatId, minAfter, baselineLen });
@@ -194,10 +210,14 @@ function exportArgs(input: Record<string, any>, chatId: string) {
   if (input.outDir !== undefined) args.outDir = input.outDir;
   if (input.branch !== undefined) args.branch = input.branch;
   if (input.schema !== undefined) args.schema = input.schema;
+  if (input.onCaptcha !== undefined) args.onCaptcha = input.onCaptcha;
+  if (input.ensureTab !== undefined) args.ensureTab = input.ensureTab;
   return args;
 }
 
-function runExport(core: RunnerCore, job: JobRecord) {
+async function runExport(core: RunnerCore, job: JobRecord, ctx: LaneContext) {
+  await ensureTabIfRequested(core, job.platform, job.input, job.input.chatId);
+  await gateBeforeMutate(core, job.platform, job.input.chatId, job.input, {}, ctx);
   return core.chatsExport(job.platform, exportArgs(job.input, job.input.chatId));
 }
 
@@ -279,6 +299,8 @@ async function runBatch(
 
 function runExportBatch(core: RunnerCore, job: JobRecord, ctx: LaneContext) {
   return runBatch(core, job, ctx, async (item) => {
+    await ensureTabIfRequested(core, job.platform, job.input, item.chatId);
+    await gateBeforeMutate(core, job.platform, item.chatId, job.input, {}, ctx);
     const r = await core.chatsExport(job.platform, exportArgs(job.input, item.chatId));
     return { dir: r.dir, paths: r.paths, title: r.title, turns: r.turns };
   });
@@ -306,20 +328,29 @@ async function assertTestChat(core: RunnerCore, platform: string, chatId: string
   );
 }
 
-async function deleteOne(core: RunnerCore, job: JobRecord, chatId: string, knownTitle?: string) {
+async function deleteOne(
+  core: RunnerCore,
+  job: JobRecord,
+  ctx: LaneContext,
+  chatId: string,
+  knownTitle?: string
+) {
   const { platform, input } = job;
+  await ensureTabIfRequested(core, platform, input, chatId);
+  await gateBeforeMutate(core, platform, chatId, input, {}, ctx);
   if (input.testOnly !== false) await assertTestChat(core, platform, chatId, knownTitle);
-  return core.chatsDelete(platform, { chatId }, { confirm: input.confirm === true });
+  const args: Record<string, any> = { chatId, ...captchaArg(input) };
+  return core.chatsDelete(platform, args, { confirm: input.confirm === true });
 }
 
 async function runDelete(core: RunnerCore, job: JobRecord, ctx: LaneContext) {
   ctx.checkCancel();
-  return deleteOne(core, job, job.input.chatId);
+  return deleteOne(core, job, ctx, job.input.chatId);
 }
 
 function runDeleteBatch(core: RunnerCore, job: JobRecord, ctx: LaneContext) {
   return runBatch(core, job, ctx, async (item) => {
-    const r = await deleteOne(core, job, item.chatId, item.title);
+    const r = await deleteOne(core, job, ctx, item.chatId, item.title);
     return { deleted: Boolean(r?.deleted) };
   });
 }

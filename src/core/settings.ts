@@ -58,6 +58,25 @@ export function assertCreateAllowed(op: string, browser?: Pick<RegisteredBrowser
   }
 }
 
+const ADVANCED_MCP_TOS_OPS = new Set([
+  ...CREATE_OPS,
+  ...DESTRUCTIVE_OPS,
+  ...PROJECT_OPS
+]);
+
+export function assertAdvancedMcpTos(
+  op: string,
+  settings: { advancedMcpTosAcceptedAt?: string | null } | null | undefined
+): void {
+  if (!ADVANCED_MCP_TOS_OPS.has(op)) return;
+  const at = settings?.advancedMcpTosAcceptedAt;
+  if (typeof at === 'string' && at.trim()) return;
+  throw new ProtocolError(
+    ERROR_CODES.BAD_REQUEST,
+    'Advanced MCP ToS not accepted; run chat-export-server tos accept or POST /legal/accept'
+  );
+}
+
 export function assertProjectsAllowed(
   op: string,
   browser?: (Pick<RegisteredBrowser, 'allowProjects'> & DestructiveGate) | null,

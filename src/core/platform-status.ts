@@ -10,6 +10,7 @@ export type PlatformGateState =
   | 'composer_blocked'
   | 'no_tab'
   | 'offline'
+  | 'disabled'
   | 'error'
   | 'unknown';
 

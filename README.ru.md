@@ -8,7 +8,7 @@
 
 **Локальный MCP-сервер** для расширения [Chat Export](https://github.com/svergio/chat-export-extension). Список, чтение, экспорт, создание, удаление и **вопросы** в ваших чатах на **одиннадцати** площадках (ChatGPT, Grok, X Grok, Claude, GitHub Copilot, Qwen, DeepSeek, Perplexity, Kimi, Z.ai, MiniMax) — через расширение в **вашем** браузере. (**JanitorAI** — только панель экспорта в расширении, в MCP/protocol не входит.) Всё на `127.0.0.1`: очереди задач, SQLite-кеш, аудит, опциональный [дашборд](https://github.com/svergio/chat-export-dashboard).
 
-В каталоге [Glama](https://glama.ai/mcp/servers/svergio/chat-export-server) (v1.0.8, Kimi / Z.ai / MiniMax MCP). Также в [Mcprush](https://mcprush.com/svergio/chat-export-mcp).
+В каталоге [Glama](https://glama.ai/mcp/servers/svergio/chat-export-server) (v1.0.9, Kimi / Z.ai / MiniMax MCP). Также в [Mcprush](https://mcprush.com/svergio/chat-export-mcp).
 
 ## Автономный продукт
 
@@ -82,11 +82,15 @@ chat-export-server start
 
 ```text
 ~/.chat-export/
-  config.json
-  keys.json      # только хеши (chmod 600)
+  config.json    # host, port, exportDir, settings (в т.ч. advancedMcpTosAcceptedAt)
+  chat-export.db # SQLite: mcp_tokens, browsers, browser_revoked_tokens, jobs, кеш чатов
   audit.log
   exports/
 ```
+
+Токены MCP и браузера хранятся как хеши в SQLite. Plaintext печатается один раз при `key new` / enroll; файла `keys.json` для этого нет.
+
+Перед create/send/delete через MCP один раз примите Advanced MCP ToS: `chat-export-server tos accept` или `POST /legal/accept` (loopback). Статус: `GET /legal` / `tos status`.
 
 ```sh
 chat-export-server key rotate
@@ -176,7 +180,7 @@ docker --context colima compose down
 | `cek_` / `cem_` | MCP и CLI (`Authorization: Bearer …`) |
 | `ceb_` | Расширение Chrome, WebSocket `/ws` |
 
-Хеши MCP-ключей в `keys.json`; plaintext — один раз при `key new`.
+Хеши MCP/browser-ключей в SQLite (`mcp_tokens`, `browsers`, `browser_revoked_tokens`); plaintext — один раз при `key new` / enroll.
 
 После настройки MCP выполните **`browsers_bind`**, чтобы инструменты целились в подключённый профиль Chrome.
 

@@ -15,6 +15,8 @@ Usage:
   chat-export-server key rotate
   chat-export-server key list
   chat-export-server browser add --id BROWSER_ID --token ceb_... [--label NAME]
+  chat-export-server tos accept
+  chat-export-server tos status
   chat-export-server status
 
 Env (see .env.example):
@@ -148,6 +150,33 @@ async function main(): Promise<void> {
       return;
     }
     process.stderr.write('unknown browser subcommand\n' + usage());
+    process.exit(1);
+  }
+
+  if (parsed.cmd === 'tos') {
+    const core = new ServerCore({ home, serverVersion: PKG_VERSION });
+    const sub = parsed.sub || parsed.positionals[0];
+    if (sub === 'accept') {
+      const cfg = core.acceptAdvancedMcpTos();
+      process.stdout.write(
+        JSON.stringify(
+          {
+            ok: true,
+            advancedMcpTosAcceptedAt: cfg.settings.advancedMcpTosAcceptedAt
+          },
+          null,
+          2
+        ) + '\n'
+      );
+      core.close();
+      return;
+    }
+    if (sub === 'status') {
+      process.stdout.write(JSON.stringify(core.legalStatus(), null, 2) + '\n');
+      core.close();
+      return;
+    }
+    process.stderr.write('unknown tos subcommand\n' + usage());
     process.exit(1);
   }
 

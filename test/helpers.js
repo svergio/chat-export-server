@@ -21,6 +21,9 @@ export async function withServer(fn, opts = {}) {
     stdio: false,
     ...opts
   });
+  if (opts.acceptTos !== false) {
+    server.core.acceptAdvancedMcpTos();
+  }
   try {
     return await fn(server, home);
   } finally {

@@ -14,7 +14,7 @@ The software is provided **"AS IS"**, without warranty of any kind, express or i
 
 ### 2. Third-Party Terms of Service & Account Risk
 
-Chat Export interacts with third-party AI web interfaces and internal page APIs (including **ChatGPT**, **Grok**, **X Grok**, **Claude**, **Microsoft Copilot**, **Qwen**, **DeepSeek**, and **Perplexity**) inside your own authenticated browser session.
+Chat Export interacts with third-party AI web interfaces and internal page APIs (including **ChatGPT**, **Grok**, **X Grok**, **Claude**, **Microsoft Copilot**, **Qwen**, **DeepSeek**, **Perplexity**, **Kimi (Moonshot)**, **Z.ai (Zhipu)**, and **MiniMax**) inside your own authenticated browser session.
 
 - Automated DOM interaction, script injection, bulk conversation export, or MCP-driven prompt execution **may violate the Terms of Service (ToS)** of these third-party platforms.
 - Third-party providers may apply rate limits, CAPTCHA challenges, session invalidation, or **temporary/permanent account suspension or ban**.
@@ -27,7 +27,7 @@ Chat Export interacts with third-party AI web interfaces and internal page APIs 
 
 ### 4. No Affiliation
 
-Chat Export is an independent open-source project and is not affiliated with, endorsed by, or sponsored by OpenAI, xAI, X Corp., Anthropic, Microsoft, Alibaba Cloud (Qwen), DeepSeek, or Perplexity AI.
+Chat Export is an independent open-source project and is not affiliated with, endorsed by, or sponsored by OpenAI, xAI, X Corp., Anthropic, Microsoft, Alibaba Cloud (Qwen), DeepSeek, Perplexity AI, Moonshot AI (Kimi), Zhipu AI (Z.ai), or MiniMax.
 
 ### 5. Reporting Issues
 
@@ -48,7 +48,7 @@ Web UIs change frequently. If a provider update breaks selectors, export formatt
 
 ### 2. Условия использования сторонних платформ и риски для аккаунтов
 
-Chat Export взаимодействует со сторонними веб-интерфейсами и внутренними API ИИ-платформ (**ChatGPT**, **Grok**, **X Grok**, **Claude**, **Microsoft Copilot**, **Qwen**, **DeepSeek**, **Perplexity**) внутри вашей авторизованной браузерной сессии.
+Chat Export взаимодействует со сторонними веб-интерфейсами и внутренними API ИИ-платформ (**ChatGPT**, **Grok**, **X Grok**, **Claude**, **Microsoft Copilot**, **Qwen**, **DeepSeek**, **Perplexity**, **Kimi (Moonshot)**, **Z.ai (Zhipu)**, **MiniMax**) внутри вашей авторизованной браузерной сессии.
 
 - Автоматизированное управление DOM, массовый экспорт диалогов или выполнение команд через MCP **может нарушать Условия использования (Terms of Service)** указанных сервисов.
 - Провайдеры могут применить ограничение частоты запросов (rate-limiting), проверку CAPTCHA, принудительный выход из сессии либо **временную или постоянную блокировку (бан) аккаунта**.
@@ -61,7 +61,7 @@ Chat Export взаимодействует со сторонними веб-ин
 
 ### 4. Отсутствие аффилированности
 
-Chat Export — независимый проект с открытым исходным кодом, не связанный, не одобренный и не спонсируемый OpenAI, xAI, X Corp., Anthropic, Microsoft, Alibaba Cloud (Qwen), DeepSeek или Perplexity AI.
+Chat Export — независимый проект с открытым исходным кодом, не связанный, не одобренный и не спонсируемый OpenAI, xAI, X Corp., Anthropic, Microsoft, Alibaba Cloud (Qwen), DeepSeek, Perplexity AI, Moonshot AI (Kimi), Zhipu AI (Z.ai) или MiniMax.
 
 ### 5. Сообщения об ошибках
 

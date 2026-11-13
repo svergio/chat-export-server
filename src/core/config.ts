@@ -98,7 +98,8 @@ export function defaultConfig(home: string): ChatExportConfig {
     settings: {
       platformsEnabled: [...PLATFORMS],
       allowDestructive: false,
-      exportSchema: DEFAULT_EXPORT_SCHEMA
+      exportSchema: DEFAULT_EXPORT_SCHEMA,
+      advancedMcpTosAcceptedAt: null
     }
   };
 }
@@ -137,7 +138,12 @@ export function loadConfig(home: string = resolveHome()): LoadedConfig {
         typeof raw.settings?.exportSchema === 'string' &&
         (EXPORT_SCHEMAS as readonly string[]).includes(raw.settings.exportSchema)
           ? raw.settings.exportSchema
-          : defaults.settings.exportSchema
+          : defaults.settings.exportSchema,
+      advancedMcpTosAcceptedAt:
+        typeof raw.settings?.advancedMcpTosAcceptedAt === 'string' &&
+        raw.settings.advancedMcpTosAcceptedAt.trim()
+          ? raw.settings.advancedMcpTosAcceptedAt.trim()
+          : null
     }
   };
 
@@ -183,7 +189,12 @@ export function saveConfig(home: string, config: Partial<ChatExportConfig>): Cha
         typeof config.settings?.exportSchema === 'string' &&
         (EXPORT_SCHEMAS as readonly string[]).includes(config.settings.exportSchema)
           ? config.settings.exportSchema
-          : DEFAULT_EXPORT_SCHEMA
+          : DEFAULT_EXPORT_SCHEMA,
+      advancedMcpTosAcceptedAt:
+        typeof config.settings?.advancedMcpTosAcceptedAt === 'string' &&
+        config.settings.advancedMcpTosAcceptedAt.trim()
+          ? config.settings.advancedMcpTosAcceptedAt.trim()
+          : null
     }
   };
   const tmp = p.config + '.tmp';
@@ -194,7 +205,11 @@ export function saveConfig(home: string, config: Partial<ChatExportConfig>): Cha
 
 export function updateSettings(
   home: string,
-  patch: { platformsEnabled?: string[]; allowDestructive?: boolean }
+  patch: {
+    platformsEnabled?: string[];
+    allowDestructive?: boolean;
+    advancedMcpTosAcceptedAt?: string | null;
+  }
 ): LoadedConfig {
   const cfg = loadConfig(home);
   if (patch.platformsEnabled) {
@@ -202,6 +217,12 @@ export function updateSettings(
   }
   if (patch.allowDestructive !== undefined) {
     cfg.settings.allowDestructive = Boolean(patch.allowDestructive);
+  }
+  if (patch.advancedMcpTosAcceptedAt !== undefined) {
+    cfg.settings.advancedMcpTosAcceptedAt =
+      typeof patch.advancedMcpTosAcceptedAt === 'string' && patch.advancedMcpTosAcceptedAt.trim()
+        ? patch.advancedMcpTosAcceptedAt.trim()
+        : null;
   }
   saveConfig(home, cfg);
   return loadConfig(home);

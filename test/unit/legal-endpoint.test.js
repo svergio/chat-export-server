@@ -26,6 +26,17 @@ describe('server /health and /legal endpoints', () => {
       assert.equal(legalJson.localFirst, true);
       assert.ok(legalJson.issues?.server?.includes('chat-export-server/issues'));
       assert.ok(legalJson.issues?.extension?.includes('chat-export-extension/issues'));
+      assert.equal(legalJson.advancedMcpTosAccepted, false);
+
+      const acceptRes = await fetch(`${baseUrl}/legal/accept`, { method: 'POST' });
+      assert.equal(acceptRes.status, 200);
+      const acceptJson = await acceptRes.json();
+      assert.equal(acceptJson.ok, true);
+      assert.equal(acceptJson.advancedMcpTosAccepted, true);
+      assert.ok(acceptJson.advancedMcpTosAcceptedAt);
+
+      const legal2 = await (await fetch(`${baseUrl}/legal`)).json();
+      assert.equal(legal2.advancedMcpTosAccepted, true);
     } finally {
       await srv.close();
       fs.rmSync(tmpHome, { recursive: true, force: true });

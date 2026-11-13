@@ -23,9 +23,7 @@ type ToolMeta = {
 
 const Platform = z
   .enum([...PLATFORMS] as [string, ...string[]])
-  .describe(
-    'Provider id: chatgpt | grok | grok-x | claude | copilot | qwen | deepseek | perplexity | kimi | zai | minimax'
-  );
+  .describe('Provider id: ' + PLATFORMS.join(' | '));
 const ExportFormat = z
   .enum([...EXPORT_FORMATS] as [string, ...string[]])
   .describe('Export format id supported by the extension builders');
@@ -311,7 +309,7 @@ export function registerTools(server: McpServer, core: ServerCore): void {
     'platforms_status',
     {
       description:
-        'Probe gate/limit status per provider on the bound browser without sending a prompt. Returns state ok|rate_limit|busy|auth_wall|captcha|generating|composer_blocked|no_tab|offline|error plus code/kind/banner/retryable. Prefer before chat_ask when choosing a platform; set ensureTab:true to open a start tab before probing. Uses platform.host_state on open tabs; no_tab platforms include lastAlert only. Captcha is never auto-solved.',
+        'Probe gate/limit status per provider on the bound browser without sending a prompt. Returns state ok|rate_limit|busy|auth_wall|captcha|generating|composer_blocked|no_tab|offline|disabled|error plus code/kind/banner/retryable. Server-disabled platforms return state disabled with code PLATFORM_DISABLED instead of failing the whole call. Prefer before chat_ask when choosing a platform; set ensureTab:true to open a start tab before probing. Uses platform.host_state on open tabs; no_tab platforms include lastAlert only. Captcha is never auto-solved.',
       inputSchema: {
         platform: Platform.optional().describe('Probe one provider; omit to scan all enabled on the bound browser'),
         ensureTab: z
@@ -524,6 +522,7 @@ export function registerTools(server: McpServer, core: ServerCore): void {
         if (outDir !== undefined) spec.outDir = outDir;
         if (branch !== undefined) spec.branch = branch;
         if (onCaptcha !== undefined) spec.onCaptcha = onCaptcha;
+        if (ensureTab !== undefined) spec.ensureTab = ensureTab;
         return core.jobs.enqueue(spec as Parameters<typeof core.jobs.enqueue>[0]);
       }
       const args: ToolArgs = { chatId, formats, schema: resolvedSchema };
@@ -909,7 +908,7 @@ export function registerTools(server: McpServer, core: ServerCore): void {
     'jobs_enqueue',
     {
       description:
-        'Enqueue a background job on the bound browser lane (ask, export, export_batch, delete, delete_batch) and return job_id immediately. Prefer for long/bulk work; use chat_ask/chats_export synchronously when you can wait. Supports onCaptcha for ask/export/delete kinds. Captcha is never auto-solved. Poll with jobs_status; cancel with jobs_cancel. Requires browsers_bind; delete kinds need confirm + allowDestructive.',
+        'Enqueue a background job on the bound browser lane (ask, export, export_batch, delete, delete_batch) and return job_id immediately. Prefer for long/bulk work; use chat_ask/chats_export synchronously when you can wait. Supports onCaptcha and ensureTab for ask/export/delete kinds. Captcha is never auto-solved. Poll with jobs_status; cancel with jobs_cancel. Requires browsers_bind; delete kinds need confirm + allowDestructive.',
       inputSchema: {
         kind: JobKind,
         platform: Platform,
@@ -938,7 +937,8 @@ export function registerTools(server: McpServer, core: ServerCore): void {
         branch: z.string().optional().describe('Branch selector when applicable'),
         confirm: z.boolean().optional().describe('Required true for delete/delete_batch'),
         testOnly: z.boolean().optional().describe('When true, validate only without mutating'),
-        onCaptcha: OnCaptcha.optional()
+        onCaptcha: OnCaptcha.optional(),
+        ensureTab: EnsureTab
       },
       annotations: annJobsMutate
     },

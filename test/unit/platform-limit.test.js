@@ -73,6 +73,7 @@ describe('platform limit signals', () => {
           }
         }
       });
+      core.acceptAdvancedMcpTos();
       await assert.rejects(
         () => core.callOp('chats.send', 'chatgpt', { chatId: 'c1', text: 'hi' }),
         (err) => err.code === ERROR_CODES.RATE_LIMIT

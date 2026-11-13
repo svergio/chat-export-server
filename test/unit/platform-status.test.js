@@ -62,6 +62,72 @@ describe('platform-status helpers', () => {
         composerReady: true
       }
     );
+    assert.equal(
+      normalizeHostGate({
+        busy: true,
+        code: 'UNAUTHORIZED',
+        kind: 'auth_wall',
+        banner: 'Sign in',
+        generating: false,
+        composerReady: false
+      }).state,
+      'auth_wall'
+    );
+    assert.equal(
+      normalizeHostGate({
+        busy: false,
+        generating: false,
+        composerReady: true,
+        code: null
+      }).state,
+      'ok'
+    );
+  });
+
+  it('CN platform fixtures map captcha/rate_limit/auth_wall/ok', () => {
+    for (const platform of ['kimi', 'zai', 'minimax']) {
+      assert.equal(
+        normalizeHostGate({
+          busy: true,
+          code: 'CAPTCHA',
+          kind: 'captcha',
+          banner: platform + ' captcha',
+          generating: false,
+          composerReady: true
+        }).state,
+        'captcha'
+      );
+      assert.equal(
+        normalizeHostGate({
+          busy: true,
+          code: 'RATE_LIMIT',
+          kind: 'quota',
+          banner: platform + ' limited',
+          generating: false,
+          composerReady: true
+        }).state,
+        'rate_limit'
+      );
+      assert.equal(
+        normalizeHostGate({
+          busy: true,
+          code: 'UNAUTHORIZED',
+          kind: 'auth_wall',
+          banner: platform + ' auth',
+          generating: false,
+          composerReady: false
+        }).state,
+        'auth_wall'
+      );
+      assert.equal(
+        normalizeHostGate({
+          busy: false,
+          generating: false,
+          composerReady: true
+        }).state,
+        'ok'
+      );
+    }
   });
 
   it('pickPlatformTargets and findLastPlatformAlert', () => {

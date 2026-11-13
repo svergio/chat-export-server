@@ -13,7 +13,16 @@ export { LaneScheduler, JobCancelled, isRetryable, jobError, DEFAULT_BACKOFF_MS 
 export { runJob, TEST_PREFIX } from './runners.js';
 
 const PRUNE_INTERVAL_MS = 60 * 60 * 1000;
-const ASK_OPTION_KEYS = ['title', 'model', 'mode', 'toggles', 'tools', 'files', 'onCaptcha'] as const;
+const ASK_OPTION_KEYS = [
+  'title',
+  'model',
+  'mode',
+  'toggles',
+  'tools',
+  'files',
+  'onCaptcha',
+  'ensureTab'
+] as const;
 
 export function clampAskTimeout(value: unknown): number {
   const n = Number(value);
@@ -141,11 +150,13 @@ export class JobManager {
       if (spec.branch !== undefined) input.branch = spec.branch;
       if (spec.schema !== undefined) input.schema = String(spec.schema);
       if (spec.onCaptcha !== undefined) input.onCaptcha = spec.onCaptcha;
+      if (spec.ensureTab !== undefined) input.ensureTab = spec.ensureTab === true;
     }
     if (kind === 'delete' || kind === 'delete_batch') {
       input.confirm = spec.confirm === true;
       input.testOnly = spec.testOnly !== false;
       if (spec.onCaptcha !== undefined) input.onCaptcha = spec.onCaptcha;
+      if (spec.ensureTab !== undefined) input.ensureTab = spec.ensureTab === true;
     }
     if (kind === 'export' || kind === 'delete') {
       if (!spec.chatId) invalid('chatId required for ' + kind);

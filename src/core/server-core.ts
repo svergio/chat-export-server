@@ -7,6 +7,7 @@ import {
   OP_SCHEMAS
 } from '@chat-export/protocol';
 import { loadConfig, saveConfig, updateSettings, resolveExportDir } from './config.js';
+import { PACKAGE_VERSION } from './pkg-version.js';
 import {
   generateMcpToken,
   hashKey,
@@ -17,6 +18,7 @@ import {
 } from './keys.js';
 import { appendAudit, readAuditLines } from './audit.js';
 import {
+  assertAdvancedMcpTos,
   assertCreateAllowed,
   assertDestructiveAllowed,
   assertPlatformEnabled,
@@ -72,7 +74,7 @@ export class ServerCore {
     this.home = opts.home || resolveHome();
     this.config = loadConfig(this.home);
     this.hub = opts.hub || null;
-    this.serverVersion = opts.serverVersion || '1.0.1';
+    this.serverVersion = opts.serverVersion || PACKAGE_VERSION;
     this._db = opts.db || null;
     this._chatCache = null;
     this._jobs = null;
@@ -594,7 +596,29 @@ export class ServerCore {
     const platforms = [];
 
     for (const platform of targets) {
-      assertPlatformEnabled(platform, this.config.settings, browser);
+      try {
+        assertPlatformEnabled(platform, this.config.settings, browser);
+      } catch (err: any) {
+        const pe = toProtocolError(err);
+        if (pe.code === ERROR_CODES.PLATFORM_DISABLED) {
+          platforms.push({
+            platform,
+            tabOpen: false,
+            state: 'disabled' as const,
+            code: ERROR_CODES.PLATFORM_DISABLED,
+            kind: null,
+            retryable: false,
+            banner: pe.message || null,
+            generating: null,
+            composerReady: null,
+            checkedAt,
+            lastAlert: findLastPlatformAlert(alerts, platform),
+            error: { code: ERROR_CODES.PLATFORM_DISABLED, message: pe.message || String(err) }
+          });
+          continue;
+        }
+        throw err;
+      }
       const lastAlert = findLastPlatformAlert(alerts, platform);
       let tabOpen = Array.isArray(browser.tabs) && browser.tabs.some((t) => t.platform === platform);
       if (!tabOpen && ensureTab) {
@@ -725,6 +749,7 @@ export class ServerCore {
     assertPlatformEnabled(platform, this.config.settings, browser);
 
     try {
+      assertAdvancedMcpTos(op, this.config.settings);
       assertCreateAllowed(op, browser);
       assertProjectsAllowed(op, browser, { confirm: mcpOpts.confirm });
       assertDestructiveAllowed(op, this.config.settings, browser, { confirm: mcpOpts.confirm });
@@ -892,11 +917,30 @@ export class ServerCore {
       }
     }
     const page = await this.chatsList(platform, { query: id, limit: 30 });
+    const needle = id.normalize('NFC').toLowerCase();
+    const allowTitleMatch = needle.length >= 4;
     for (const item of page?.items || []) {
-      if (item?.chatId === id) return id;
-      if (item?.title && String(item.title).includes(id)) return String(item.chatId);
+      if (item?.chatId != null && String(item.chatId) === id) return String(item.chatId);
+      if (!allowTitleMatch || !item?.title) continue;
+      const title = String(item.title).normalize('NFC').toLowerCase();
+      if (title === needle) return String(item.chatId);
     }
     throw new ProtocolError(ERROR_CODES.NOT_FOUND, 'chat not found: ' + id);
+  }
+
+  acceptAdvancedMcpTos(at?: string | null): LoadedConfig {
+    const when =
+      typeof at === 'string' && at.trim() ? at.trim() : new Date().toISOString();
+    this.config = updateSettings(this.home, { advancedMcpTosAcceptedAt: when });
+    return this.config;
+  }
+
+  legalStatus() {
+    const at = this.config.settings.advancedMcpTosAcceptedAt;
+    return {
+      advancedMcpTosAccepted: typeof at === 'string' && Boolean(at.trim()),
+      advancedMcpTosAcceptedAt: typeof at === 'string' && at.trim() ? at.trim() : null
+    };
   }
 
   #withLoadedFiles(args: OpArgs): OpArgs {
@@ -932,6 +976,7 @@ export class ServerCore {
       await this.tabsEnsure(platform, chatId ? { chatId } : {});
     }
     const spec: OpArgs = { kind: 'ask', platform, prompt, onCaptcha };
+    if (ensureTab) spec.ensureTab = true;
     const passthrough = ['chatId', 'browserId', 'timeout_s', 'title', 'model', 'mode', 'toggles', 'tools', 'files'] as const;
     for (const k of passthrough) {
       if (args[k] !== undefined) spec[k] = args[k];

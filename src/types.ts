@@ -47,6 +47,8 @@ export interface ServerSettings {
   allowDestructive: boolean;
   /** Default export text schema id (`name/version`), e.g. chat-export/1 */
   exportSchema: string;
+  /** ISO timestamp when Advanced MCP ToS was accepted; null/absent = not accepted */
+  advancedMcpTosAcceptedAt?: string | null;
 }
 
 export interface ChatExportConfig {
