@@ -238,16 +238,16 @@ const defs = {
       composerReady: { type: 'boolean' },
       code: {
         type: ['string', 'null'],
-        enum: ['RATE_LIMIT', 'PLATFORM_BUSY', 'UNAUTHORIZED', null]
+        enum: ['RATE_LIMIT', 'PLATFORM_BUSY', 'UNAUTHORIZED', 'CAPTCHA', null]
       },
       kind: {
         type: ['string', 'null'],
-        enum: ['paywall', 'quota', 'busy', 'auth_wall', null]
+        enum: ['paywall', 'quota', 'busy', 'auth_wall', 'captcha', 'http', null]
       },
       retryable: { type: 'boolean' },
       state: {
         type: 'string',
-        enum: ['ok', 'rate_limit', 'busy', 'auth_wall', 'generating', 'composer_blocked']
+        enum: ['ok', 'rate_limit', 'busy', 'auth_wall', 'captcha', 'generating', 'composer_blocked']
       }
     },
     ['platform', 'generating', 'busy', 'banner', 'composerReady']

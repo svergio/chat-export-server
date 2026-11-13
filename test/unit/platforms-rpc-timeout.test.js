@@ -8,11 +8,15 @@ import {
 } from '../../dist/core/attachments.js';
 
 describe('PLATFORMS + send RPC timeout', () => {
-  it('exposes eight platforms', () => {
-    assert.equal(PLATFORMS.length, 8);
+  it('exposes eleven platforms', () => {
+    assert.equal(PLATFORMS.length, 11);
     assert.ok(PLATFORMS.includes('qwen'));
     assert.ok(PLATFORMS.includes('deepseek'));
     assert.ok(PLATFORMS.includes('perplexity'));
+    assert.ok(PLATFORMS.includes('kimi'));
+    assert.ok(PLATFORMS.includes('zai'));
+    assert.ok(PLATFORMS.includes('minimax'));
+    assert.ok(!PLATFORMS.includes('janitorai'));
   });
 
   it('floors chats.send / chats.create timeout', () => {

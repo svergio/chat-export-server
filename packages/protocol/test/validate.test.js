@@ -18,8 +18,25 @@ test('protocol version and platforms', () => {
   assert.equal(PROTOCOL_VERSION, 1);
   assert.deepEqual(
     [...PLATFORMS],
-    ['chatgpt', 'grok', 'grok-x', 'copilot', 'claude', 'qwen', 'deepseek', 'perplexity']
+    [
+      'chatgpt',
+      'grok',
+      'grok-x',
+      'copilot',
+      'claude',
+      'qwen',
+      'deepseek',
+      'perplexity',
+      'kimi',
+      'zai',
+      'minimax'
+    ]
   );
+  assert.equal(PLATFORMS.includes('janitorai'), false);
+  assert.equal(validate('Platform', 'janitorai').valid, false);
+  for (const id of ['kimi', 'zai', 'minimax']) {
+    assert.equal(validate('Platform', id).valid, true, id);
+  }
 });
 
 test('error codes include core contract set', () => {
@@ -33,10 +50,30 @@ test('error codes include core contract set', () => {
     'HOST_ERROR',
     'NOT_FOUND',
     'CREATE_DISABLED',
-    'PROJECTS_DISABLED'
+    'PROJECTS_DISABLED',
+    'PLATFORM_BUSY',
+    'RATE_LIMIT',
+    'CAPTCHA'
   ]) {
     assert.equal(ERROR_CODES[code], code);
   }
+});
+
+test('platform.host_state accepts captcha gate fields', () => {
+  assert.equal(
+    validateOpResult('platform.host_state', {
+      platform: 'chatgpt',
+      generating: false,
+      busy: true,
+      banner: 'Verify you are human',
+      composerReady: true,
+      code: 'CAPTCHA',
+      kind: 'captcha',
+      retryable: false,
+      state: 'captcha'
+    }).valid,
+    true
+  );
 });
 
 test('container ops are registered', () => {

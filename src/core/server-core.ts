@@ -32,6 +32,12 @@ import { createLogger, type FileLogger } from './logger.js';
 import { JobManager, clampAskTimeout, type JobManagerOptions } from './jobs/job-manager.js';
 import { isTerminal } from './jobs/job-store.js';
 import { loadFiles, type FileRef } from './attachments.js';
+import {
+  enforceCaptchaPolicy,
+  stripCaptchaArgs,
+  withHost,
+  type HostEnvelope
+} from './captcha-policy.js';
 import type { BrowserHub } from '../hub/browser-hub.js';
 import type { DatabaseAdapter, LoadedConfig, Row } from '../types.js';
 
@@ -821,18 +827,48 @@ export class ServerCore {
     return this.callOp('chats.get', platform, args || {});
   }
 
-  chatsExport(platform: string, args?: OpArgs) {
-    return this.callOp('chats.export', platform, args || {});
+  async #prepareLiveMutate(
+    platform: string,
+    args: OpArgs = {},
+    opts: { loadFiles?: boolean; chatIdKey?: string } = {}
+  ): Promise<{ wire: OpArgs; host: HostEnvelope }> {
+    const { wire: stripped, onCaptcha, ensureTab } = stripCaptchaArgs({ ...(args || {}) });
+    let wire: OpArgs = opts.loadFiles ? this.#withLoadedFiles(stripped) : stripped;
+    const chatIdKey = opts.chatIdKey || 'chatId';
+    const chatId = typeof wire[chatIdKey] === 'string' ? String(wire[chatIdKey]) : undefined;
+    if (ensureTab) {
+      await this.tabsEnsure(platform, chatId ? { chatId } : {});
+    }
+    const host = await enforceCaptchaPolicy({
+      platform,
+      onCaptcha,
+      fetchHost: async () => {
+        try {
+          return await this.callOp('platform.host_state', platform, chatId ? { chatId } : {});
+        } catch {
+          return null;
+        }
+      }
+    });
+    return { wire, host };
   }
 
-  chatsCreate(platform: string, args?: OpArgs) {
-    const input = args && typeof args === 'object' ? this.#withLoadedFiles({ ...args }) : {};
-    return this.callOp('chats.create', platform, input);
+  async chatsExport(platform: string, args?: OpArgs) {
+    const { wire, host } = await this.#prepareLiveMutate(platform, args || {});
+    const data = await this.callOp('chats.export', platform, wire);
+    return withHost(data, host);
   }
 
-  chatsSend(platform: string, args?: OpArgs) {
-    const input = args && typeof args === 'object' ? this.#withLoadedFiles({ ...args }) : {};
-    return this.callOp('chats.send', platform, input);
+  async chatsCreate(platform: string, args?: OpArgs) {
+    const { wire, host } = await this.#prepareLiveMutate(platform, args || {}, { loadFiles: true });
+    const data = await this.callOp('chats.create', platform, wire);
+    return withHost(data, host);
+  }
+
+  async chatsSend(platform: string, args?: OpArgs) {
+    const { wire, host } = await this.#prepareLiveMutate(platform, args || {}, { loadFiles: true });
+    const data = await this.callOp('chats.send', platform, wire);
+    return withHost(data, host);
   }
 
   platformCapabilities(platform: string, args?: OpArgs) {
@@ -870,8 +906,10 @@ export class ServerCore {
     return { ...args, files: loadFiles(args.files as FileRef[], { home: this.home }) };
   }
 
-  chatsDelete(platform: string, args?: OpArgs, mcpOpts?: CallOpOptions) {
-    return this.callOp('chats.delete', platform, args || {}, mcpOpts || {});
+  async chatsDelete(platform: string, args?: OpArgs, mcpOpts?: CallOpOptions) {
+    const { wire, host } = await this.#prepareLiveMutate(platform, args || {});
+    const data = await this.callOp('chats.delete', platform, wire, mcpOpts || {});
+    return withHost(data, host);
   }
 
   chatOutline(platform: string, args?: OpArgs) {
@@ -888,7 +926,12 @@ export class ServerCore {
     if (!platform) throw new ProtocolError(ERROR_CODES.INVALID_ARGS, 'platform required');
     if (!prompt) throw new ProtocolError(ERROR_CODES.INVALID_ARGS, 'prompt required');
     const wait = args.wait !== false;
-    const spec: OpArgs = { kind: 'ask', platform, prompt };
+    const { onCaptcha, ensureTab } = stripCaptchaArgs(args);
+    if (ensureTab) {
+      const chatId = typeof args.chatId === 'string' ? args.chatId : undefined;
+      await this.tabsEnsure(platform, chatId ? { chatId } : {});
+    }
+    const spec: OpArgs = { kind: 'ask', platform, prompt, onCaptcha };
     const passthrough = ['chatId', 'browserId', 'timeout_s', 'title', 'model', 'mode', 'toggles', 'tools', 'files'] as const;
     for (const k of passthrough) {
       if (args[k] !== undefined) spec[k] = args[k];
@@ -904,7 +947,8 @@ export class ServerCore {
     }
     if (done.status === 'error') {
       const code = done.error?.code || ERROR_CODES.HOST_ERROR;
-      throw new ProtocolError(code, done.error?.message || 'ask failed', done.error || undefined);
+      const details = done.error && typeof done.error === 'object' ? { ...done.error } : undefined;
+      throw new ProtocolError(code, done.error?.message || 'ask failed', details);
     }
     if (done.status === 'cancelled') {
       throw new ProtocolError(ERROR_CODES.BAD_REQUEST, 'ask cancelled', { job_id: done.id });
@@ -956,7 +1000,13 @@ export class ServerCore {
   }
 
   #isPlatformLimit(code?: string | null, detail?: unknown): boolean {
-    if (code === ERROR_CODES.RATE_LIMIT || code === ERROR_CODES.PLATFORM_BUSY) return true;
+    if (
+      code === ERROR_CODES.RATE_LIMIT ||
+      code === ERROR_CODES.PLATFORM_BUSY ||
+      code === ERROR_CODES.CAPTCHA
+    ) {
+      return true;
+    }
     if (code !== ERROR_CODES.UNAUTHORIZED) return false;
     const kind = detail && typeof detail === 'object' ? (detail as Record<string, unknown>).kind : null;
     return kind === 'auth_wall';

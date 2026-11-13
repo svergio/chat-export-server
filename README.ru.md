@@ -1,4 +1,4 @@
-[English](README.md) | [Русский](README.ru.md) · [![Поддержать на DonationAlerts](https://img.shields.io/badge/Поддержать-DonationAlerts-orange)](https://www.donationalerts.com/r/svwergio_mel) · [![chat-export-server MCP server](https://glama.ai/mcp/servers/svergio/chat-export-server/badges/score.svg)](https://glama.ai/mcp/servers/svergio/chat-export-server) · [![MCP Servers](https://img.shields.io/badge/MCP_Servers-listed-2563eb)](https://mcpservers.org/ru/)
+[English](README.md) | [Русский](README.ru.md) · [![Поддержать на DonationAlerts](https://img.shields.io/badge/Поддержать-DonationAlerts-orange)](https://www.donationalerts.com/r/svwergio_mel) · [![chat-export-server MCP server](https://glama.ai/mcp/servers/svergio/chat-export-server/badges/score.svg)](https://glama.ai/mcp/servers/svergio/chat-export-server) · [![MCP Servers](https://img.shields.io/badge/MCP_Servers-listed-2563eb)](https://mcpservers.org/ru/) · [![Chat Export MCP server](https://mcprush.com/badge/chat-export-mcp/card.svg)](https://mcprush.com/to/chat-export-mcp?ref=badge)
 
 # chat-export-server
 
@@ -6,9 +6,9 @@
   <img src="docs/media/demo-server.gif" alt="Старт на :8765, health, два профиля Chrome online/offline" width="720" />
 </p>
 
-**Локальный MCP-сервер** для расширения [Chat Export](https://github.com/svergio/chat-export-extension). Список, чтение, экспорт, создание, удаление и **вопросы** в ваших чатах на **восьми** площадках (ChatGPT, Grok, X Grok, Claude, GitHub Copilot, Qwen, DeepSeek, Perplexity) — через расширение в **вашем** браузере. Всё на `127.0.0.1`: очереди задач, SQLite-кеш, аудит, опциональный [дашборд](https://github.com/svergio/chat-export-dashboard).
+**Локальный MCP-сервер** для расширения [Chat Export](https://github.com/svergio/chat-export-extension). Список, чтение, экспорт, создание, удаление и **вопросы** в ваших чатах на **одиннадцати** площадках (ChatGPT, Grok, X Grok, Claude, GitHub Copilot, Qwen, DeepSeek, Perplexity, Kimi, Z.ai, MiniMax) — через расширение в **вашем** браузере. (**JanitorAI** — только панель экспорта в расширении, в MCP/protocol не входит.) Всё на `127.0.0.1`: очереди задач, SQLite-кеш, аудит, опциональный [дашборд](https://github.com/svergio/chat-export-dashboard).
 
-В каталоге [Glama](https://glama.ai/mcp/servers/svergio/chat-export-server) (v1.0.7, TDQS rescored after platforms_status).
+В каталоге [Glama](https://glama.ai/mcp/servers/svergio/chat-export-server) (v1.0.8, Kimi / Z.ai / MiniMax MCP). Также в [Mcprush](https://mcprush.com/svergio/chat-export-mcp).
 
 ## Автономный продукт
 
@@ -34,6 +34,9 @@
 | Qwen | то же |
 | DeepSeek | то же |
 | Perplexity | то же |
+| Kimi (`kimi.com`) | то же |
+| Z.ai (`chat.z.ai`) | то же |
+| MiniMax (`agent.minimax.io`) | то же |
 
 ## Архитектура
 

@@ -72,7 +72,10 @@
         "claude",
         "qwen",
         "deepseek",
-        "perplexity"
+        "perplexity",
+        "kimi",
+        "zai",
+        "minimax"
       ]
     },
     "Op": {
@@ -168,7 +171,8 @@
         "BAD_REQUEST",
         "INVALID_ARGS",
         "PLATFORM_BUSY",
-        "RATE_LIMIT"
+        "RATE_LIMIT",
+        "CAPTCHA"
       ]
     },
     "BrowserTab": {
@@ -807,6 +811,7 @@
             "RATE_LIMIT",
             "PLATFORM_BUSY",
             "UNAUTHORIZED",
+            "CAPTCHA",
             null
           ]
         },
@@ -820,6 +825,8 @@
             "quota",
             "busy",
             "auth_wall",
+            "captcha",
+            "http",
             null
           ]
         },
@@ -833,6 +840,7 @@
             "rate_limit",
             "busy",
             "auth_wall",
+            "captcha",
             "generating",
             "composer_blocked"
           ]

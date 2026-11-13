@@ -21,6 +21,7 @@ export const ALERT_CODES = new Set<string>([
   ERROR_CODES.PROJECTS_DISABLED,
   'PLATFORM_BUSY',
   'RATE_LIMIT',
+  'CAPTCHA',
   'WS_DISCONNECT'
 ]);
 

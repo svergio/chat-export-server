@@ -1,5 +1,6 @@
 import { ERROR_CODES, ProtocolError } from '@chat-export/protocol';
 import { lastAssistantReply, isPlaceholderReply } from '../chat-views.js';
+import { enforceCaptchaPolicy, parseOnCaptcha, hostEnvelope } from '../captcha-policy.js';
 import { isRetryable, type LaneContext } from './lanes.js';
 import type { JobRecord } from './job-store.js';
 import type { ServerCore } from '../server-core.js';
@@ -64,10 +65,17 @@ async function hostState(core: RunnerCore, platform: string, chatId: string | un
 function assertNotBusy(state: any, platform: string): void {
   if (!state?.busy) return;
   const code =
-    state.code === ERROR_CODES.RATE_LIMIT || state.code === ERROR_CODES.UNAUTHORIZED
+    state.code === ERROR_CODES.RATE_LIMIT ||
+    state.code === ERROR_CODES.UNAUTHORIZED ||
+    state.code === ERROR_CODES.CAPTCHA
       ? state.code
       : ERROR_CODES.PLATFORM_BUSY;
-  const kind = typeof state.kind === 'string' ? state.kind : undefined;
+  const kind =
+    typeof state.kind === 'string'
+      ? state.kind
+      : code === ERROR_CODES.CAPTCHA
+        ? 'captcha'
+        : undefined;
   const retryable =
     typeof state.retryable === 'boolean'
       ? state.retryable
@@ -75,8 +83,32 @@ function assertNotBusy(state: any, platform: string): void {
   throw new ProtocolError(code, state.banner || platform + ' is busy', {
     retryable,
     banner: state.banner || null,
+    host: hostEnvelope(state),
     ...(kind ? { kind } : {})
   });
+}
+
+async function gateBeforeMutate(
+  core: RunnerCore,
+  platform: string,
+  chatId: string | undefined,
+  input: Record<string, any>,
+  cache: { unsupported?: boolean },
+  ctx: LaneContext
+) {
+  const onCaptcha = parseOnCaptcha(input.onCaptcha);
+  const timeoutMs =
+    typeof input.timeout_s === 'number' && Number.isFinite(input.timeout_s)
+      ? Math.max(1000, Math.trunc(input.timeout_s) * 1000)
+      : 120_000;
+  await enforceCaptchaPolicy({
+    platform,
+    onCaptcha,
+    fetchHost: () => hostState(core, platform, chatId, cache),
+    sleep: (ms) => ctx.sleep(ms),
+    timeoutMs
+  });
+  assertNotBusy(await hostState(core, platform, chatId, cache), platform);
 }
 
 async function runAsk(core: RunnerCore, job: JobRecord, ctx: LaneContext, opts: RunOptions) {
@@ -90,7 +122,7 @@ async function runAsk(core: RunnerCore, job: JobRecord, ctx: LaneContext, opts: 
   }
 
   if (!state.sent) {
-    assertNotBusy(await hostState(core, platform, input.chatId, cache), platform);
+    await gateBeforeMutate(core, platform, input.chatId, input, cache, ctx);
     ctx.checkCancel();
     ctx.progress({ current: 'sending' });
     let chatId: string;

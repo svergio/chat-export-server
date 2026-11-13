@@ -23,7 +23,9 @@ type ToolMeta = {
 
 const Platform = z
   .enum([...PLATFORMS] as [string, ...string[]])
-  .describe('Provider id: chatgpt | grok | grok-x | claude | copilot | qwen | deepseek | perplexity');
+  .describe(
+    'Provider id: chatgpt | grok | grok-x | claude | copilot | qwen | deepseek | perplexity | kimi | zai | minimax'
+  );
 const ExportFormat = z
   .enum([...EXPORT_FORMATS] as [string, ...string[]])
   .describe('Export format id supported by the extension builders');
@@ -41,6 +43,15 @@ const FileRef = z.object({
   name: z.string().optional().describe('Display filename override'),
   mime: z.string().optional().describe('MIME type hint')
 });
+const OnCaptcha = z
+  .enum(['stop', 'wait_human', 'allow_agent'])
+  .describe(
+    'Captcha policy (default stop). Captcha is never auto-solved. stop=error immediately; wait_human=poll host_state until cleared; allow_agent=return structured challenge and only permit UI action when the operator opted in via the client prompt'
+  );
+const EnsureTab = z
+  .boolean()
+  .optional()
+  .describe('If true, tabs_ensure before the mutate when needed (default false)');
 
 const annReadLive: ToolAnnotations = {
   readOnlyHint: true,
@@ -118,6 +129,18 @@ function hintForError(code: string, platform?: string | null, details?: Record<s
   if (code === ERROR_CODES.PLATFORM_BUSY) {
     return 'Provider overloaded or temporarily unavailable; retry later';
   }
+  if (code === ERROR_CODES.CAPTCHA) {
+    if (details?.allowAgentCaptcha) {
+      return (
+        (typeof details.hint === 'string' && details.hint) ||
+        'Captcha is never auto-solved. allow_agent only permits UI action when the operator opted in via the client prompt; otherwise hand off to a human.'
+      );
+    }
+    return (
+      (typeof details?.hint === 'string' && details.hint) ||
+      'Solve the captcha in the browser tab or hand off to a human. Captcha is never auto-solved.'
+    );
+  }
   if (code === ERROR_CODES.PLATFORM_DISABLED) {
     return 'Enable the platform in server settings and the extension popup';
   }
@@ -141,10 +164,33 @@ function detailedErrorBody(core: ServerCore, tool: string, err: unknown, ctx: Er
   const context = core.mcpErrorContext(platform);
   const code = pe.code || ERROR_CODES.HOST_ERROR;
   const retryable =
-    typeof peDetails?.retryable === 'boolean' ? peDetails.retryable : RETRYABLE_CODES.has(code);
+    code === ERROR_CODES.CAPTCHA
+      ? false
+      : typeof peDetails?.retryable === 'boolean'
+        ? peDetails.retryable
+        : RETRYABLE_CODES.has(code);
+  const hostFromDetails =
+    peDetails?.host && typeof peDetails.host === 'object'
+      ? (peDetails.host as Record<string, unknown>)
+      : null;
+  const host =
+    hostFromDetails ||
+    (code === ERROR_CODES.CAPTCHA
+      ? {
+          state: 'captcha',
+          code: ERROR_CODES.CAPTCHA,
+          kind: (peDetails?.kind as string) || 'captcha',
+          retryable: false,
+          banner: (peDetails?.banner as string) || pe.message || null,
+          generating: null,
+          composerReady: null,
+          ...(peDetails?.challenge ? { challenge: peDetails.challenge } : {})
+        }
+      : null);
   return {
     ok: false,
     tool,
+    ...(host ? { host } : {}),
     error: {
       code,
       message: pe.message,
@@ -265,7 +311,7 @@ export function registerTools(server: McpServer, core: ServerCore): void {
     'platforms_status',
     {
       description:
-        'Probe gate/limit status per provider on the bound browser without sending a prompt. Returns state ok|rate_limit|busy|auth_wall|generating|composer_blocked|no_tab|offline|error plus code/kind/banner/retryable. Prefer before chat_ask when choosing a platform; set ensureTab:true to open a start tab before probing. Uses platform.host_state on open tabs; no_tab platforms include lastAlert only.',
+        'Probe gate/limit status per provider on the bound browser without sending a prompt. Returns state ok|rate_limit|busy|auth_wall|captcha|generating|composer_blocked|no_tab|offline|error plus code/kind/banner/retryable. Prefer before chat_ask when choosing a platform; set ensureTab:true to open a start tab before probing. Uses platform.host_state on open tabs; no_tab platforms include lastAlert only. Captcha is never auto-solved.',
       inputSchema: {
         platform: Platform.optional().describe('Probe one provider; omit to scan all enabled on the bound browser'),
         ensureTab: z
@@ -311,11 +357,13 @@ export function registerTools(server: McpServer, core: ServerCore): void {
     core,
     'platforms_capabilities',
     {
-      description: 'Read composer capabilities (models, modes, toggles, attach) from the bound browser tab.',
+      description:
+        'Read composer capabilities (models, modes, toggles, tools, attach limits) from the open provider tab. Prefer before chat_ask/chats_send/chats_create when setting model|mode|toggles|tools so ids match the live UI. Use platforms_status for gate/busy/captcha; platforms_list for enablement only. Requires browsers_bind and an open tab.',
       inputSchema: {
         platform: Platform,
-        refresh: z.boolean().optional()
-      }
+        refresh: z.boolean().optional().describe('When true, re-probe the tab instead of a cached snapshot')
+      },
+      annotations: annReadLive
     },
     async ({ platform, refresh }) => {
       const args: ToolArgs = {};
@@ -447,7 +495,7 @@ export function registerTools(server: McpServer, core: ServerCore): void {
     'chats_export',
     {
       description:
-        'Export one chat via extension builders and write files under exportDir (returns paths). Prefer for durable files; use chats_get for in-memory payload, jobs_enqueue kind=export/export_batch for bulk/async queues. Set async:true to return job_id instead of blocking. Requires browsers_bind; writes to disk.',
+        'Export one chat via extension builders and write files under exportDir (returns paths + host gate). Prefer for durable files; use chats_get for in-memory payload, jobs_enqueue kind=export/export_batch for bulk/async queues. Set async:true to return job_id instead of blocking. Captcha is never auto-solved. Requires browsers_bind; writes to disk.',
       inputSchema: {
         platform: Platform,
         chatId: z.string().describe('Chat id to export'),
@@ -460,11 +508,13 @@ export function registerTools(server: McpServer, core: ServerCore): void {
         async: z
           .boolean()
           .optional()
-          .describe('When true, enqueue via jobs and return job_id instead of blocking')
+          .describe('When true, enqueue via jobs and return job_id instead of blocking'),
+        onCaptcha: OnCaptcha.optional(),
+        ensureTab: EnsureTab
       },
       annotations: annMutateUi
     },
-    async ({ platform, chatId, formats, schema, outDir, branch, async: asyncExport }) => {
+    async ({ platform, chatId, formats, schema, outDir, branch, async: asyncExport, onCaptcha, ensureTab }) => {
       const resolvedSchema =
         schema ||
         (core.config.settings && core.config.settings.exportSchema) ||
@@ -473,11 +523,14 @@ export function registerTools(server: McpServer, core: ServerCore): void {
         const spec: ToolArgs = { kind: 'export', platform, chatId, formats, schema: resolvedSchema };
         if (outDir !== undefined) spec.outDir = outDir;
         if (branch !== undefined) spec.branch = branch;
+        if (onCaptcha !== undefined) spec.onCaptcha = onCaptcha;
         return core.jobs.enqueue(spec as Parameters<typeof core.jobs.enqueue>[0]);
       }
       const args: ToolArgs = { chatId, formats, schema: resolvedSchema };
       if (outDir !== undefined) args.outDir = outDir;
       if (branch !== undefined) args.branch = branch;
+      if (onCaptcha !== undefined) args.onCaptcha = onCaptcha;
+      if (ensureTab !== undefined) args.ensureTab = ensureTab;
       return core.chatsExport(platform, args);
     }
   );
@@ -488,20 +541,22 @@ export function registerTools(server: McpServer, core: ServerCore): void {
     'chats_create',
     {
       description:
-        'Create a new chat on the provider UI in the bound browser and seed it with text. Prefer chat_ask when you also need to wait for the assistant reply; use chats_create only to open/seed a chat. Requires browsers_bind and allowCreate on the extension.',
+        'Create a new chat on the provider UI and seed it with text (no reply wait). Prefer chat_ask when you also need the assistant reply; use chats_send for follow-ups. Supports model|mode|toggles|tools|files|onCaptcha|ensureTab. Captcha is never auto-solved. Requires browsers_bind and allowCreate.',
       inputSchema: {
         platform: Platform,
         text: z.string().min(1).describe('Initial user message text to place in the new chat'),
         title: z.string().optional().describe('Optional title when the provider supports setting one'),
-        model: z.string().optional(),
-        mode: z.string().optional(),
-        toggles: z.array(z.string()).optional(),
-        tools: z.array(z.string()).optional(),
-        files: z.array(FileRef).optional()
+        model: z.string().optional().describe('Provider model id; prefer platforms_capabilities first'),
+        mode: z.string().optional().describe('Provider mode/style id when applicable'),
+        toggles: z.array(z.string()).optional().describe('Provider UI toggle ids to enable'),
+        tools: z.array(z.string()).optional().describe('Provider tool/plugin ids to enable'),
+        files: z.array(FileRef).optional().describe('Local files to attach'),
+        onCaptcha: OnCaptcha.optional(),
+        ensureTab: EnsureTab
       },
       annotations: annMutateUi
     },
-    async ({ platform, text, title, model, mode, toggles, tools, files }) => {
+    async ({ platform, text, title, model, mode, toggles, tools, files, onCaptcha, ensureTab }) => {
       const args: ToolArgs = { text };
       if (title !== undefined) args.title = title;
       if (model !== undefined) args.model = model;
@@ -509,6 +564,8 @@ export function registerTools(server: McpServer, core: ServerCore): void {
       if (toggles !== undefined) args.toggles = toggles;
       if (tools !== undefined) args.tools = tools;
       if (files !== undefined) args.files = files;
+      if (onCaptcha !== undefined) args.onCaptcha = onCaptcha;
+      if (ensureTab !== undefined) args.ensureTab = ensureTab;
       return core.chatsCreate(platform, args);
     }
   );
@@ -518,25 +575,31 @@ export function registerTools(server: McpServer, core: ServerCore): void {
     core,
     'chats_send',
     {
-      description: 'Send a follow-up message in an existing chat via the bound browser.',
+      description:
+        'Send a follow-up message in an existing chat without waiting for the assistant reply. Prefer chat_ask when you need the reply; use chats_create to open a new chat. Supports model|mode|toggles|tools|files|onCaptcha|ensureTab. Captcha is never auto-solved. Requires browsers_bind.',
       inputSchema: {
         platform: Platform,
-        chatId: z.string().min(1),
-        text: z.string().min(1),
-        model: z.string().optional(),
-        mode: z.string().optional(),
-        toggles: z.array(z.string()).optional(),
-        tools: z.array(z.string()).optional(),
-        files: z.array(FileRef).optional()
-      }
+        chatId: z.string().min(1).describe('Existing chat id to send into'),
+        text: z.string().min(1).describe('Follow-up user message text'),
+        model: z.string().optional().describe('Provider model id; prefer platforms_capabilities first'),
+        mode: z.string().optional().describe('Provider mode/style id when applicable'),
+        toggles: z.array(z.string()).optional().describe('Provider UI toggle ids to enable'),
+        tools: z.array(z.string()).optional().describe('Provider tool/plugin ids to enable'),
+        files: z.array(FileRef).optional().describe('Local files to attach'),
+        onCaptcha: OnCaptcha.optional(),
+        ensureTab: EnsureTab
+      },
+      annotations: annMutateUi
     },
-    async ({ platform, chatId, text, model, mode, toggles, tools, files }) => {
+    async ({ platform, chatId, text, model, mode, toggles, tools, files, onCaptcha, ensureTab }) => {
       const args: ToolArgs = { chatId, text };
       if (model !== undefined) args.model = model;
       if (mode !== undefined) args.mode = mode;
       if (toggles !== undefined) args.toggles = toggles;
       if (tools !== undefined) args.tools = tools;
       if (files !== undefined) args.files = files;
+      if (onCaptcha !== undefined) args.onCaptcha = onCaptcha;
+      if (ensureTab !== undefined) args.ensureTab = ensureTab;
       return core.chatsSend(platform, args);
     }
   );
@@ -547,7 +610,7 @@ export function registerTools(server: McpServer, core: ServerCore): void {
     'chat_ask',
     {
       description:
-        'Send a prompt on a platform (new or existing chat) via the bound browser and wait for the assistant reply. Prefer over chats_create+manual wait; use jobs_enqueue kind=ask or wait:false for non-blocking. Requires browsers_bind; drives live provider UI (openWorld).',
+        'Send a prompt (new or existing chat) via the bound browser and wait for the assistant reply. Prefer over chats_create+chats_send when you need the reply; use wait:false or jobs_enqueue kind=ask for non-blocking. Supports model|mode|toggles|tools|files|onCaptcha|ensureTab. Captcha is never auto-solved; allow_agent is operator-opt-in in the client prompt. Requires browsers_bind.',
       inputSchema: {
         platform: Platform,
         prompt: z.string().min(1).describe('User prompt to send'),
@@ -566,7 +629,9 @@ export function registerTools(server: McpServer, core: ServerCore): void {
         mode: z.string().optional().describe('Provider mode/style id when applicable'),
         toggles: z.array(z.string()).optional().describe('Provider UI toggle ids to enable'),
         tools: z.array(z.string()).optional().describe('Provider tool/plugin ids to enable'),
-        files: z.array(FileRef).optional().describe('Local files to attach to the prompt')
+        files: z.array(FileRef).optional().describe('Local files to attach to the prompt'),
+        onCaptcha: OnCaptcha.optional(),
+        ensureTab: EnsureTab
       },
       annotations: annMutateUi
     },
@@ -710,20 +775,7 @@ export function registerTools(server: McpServer, core: ServerCore): void {
     'projects_list',
     {
       description:
-        'List projects/folders (containers) on a platform via the bound browser. Prefer this over containers_list (identical legacy alias). Use projects_chats for chats inside one project, chats_list for all chats. Requires browsers_bind.',
-      inputSchema: ContainersListInput,
-      annotations: annReadLive
-    },
-    async (input) => core.containersList(input.platform, pickContainersListArgs(input))
-  );
-
-  registerDetailedTool(
-    server,
-    core,
-    'containers_list',
-    {
-      description:
-        'Legacy alias identical to projects_list. Prefer projects_list for new agents; same args and result. Lists projects/folders on a platform via the bound browser.',
+        'List projects/folders (containers) on a platform via the bound browser. Prefer projects_list (MCP alias containers_list was removed). Use projects_chats for chats inside one project, chats_list for all chats. Wire op remains containers.list. Requires browsers_bind.',
       inputSchema: ContainersListInput,
       annotations: annReadLive
     },
@@ -833,15 +885,22 @@ export function registerTools(server: McpServer, core: ServerCore): void {
     'chats_delete',
     {
       description:
-        'Permanently delete a chat on the provider UI. Destructive and audited: requires confirm:true plus allowDestructive on server and browser. Prefer chats_export first if you need a copy; chat_cache_delete only removes local cache.',
+        'Permanently delete a chat on the provider UI. Destructive and audited: requires confirm:true plus allowDestructive on server and browser. Prefer chats_export first if you need a copy; chat_cache_delete only removes local cache. Captcha is never auto-solved.',
       inputSchema: {
         platform: Platform,
         chatId: z.string().min(1).describe('Chat id to delete on the provider'),
-        confirm: z.boolean().describe('Must be true to proceed with deletion')
+        confirm: z.boolean().describe('Must be true to proceed with deletion'),
+        onCaptcha: OnCaptcha.optional(),
+        ensureTab: EnsureTab
       },
       annotations: annDestructiveHost
     },
-    async ({ platform, chatId, confirm }) => core.chatsDelete(platform, { chatId }, { confirm })
+    async ({ platform, chatId, confirm, onCaptcha, ensureTab }) => {
+      const args: ToolArgs = { chatId };
+      if (onCaptcha !== undefined) args.onCaptcha = onCaptcha;
+      if (ensureTab !== undefined) args.ensureTab = ensureTab;
+      return core.chatsDelete(platform, args, { confirm });
+    }
   );
 
   registerDetailedTool(
@@ -850,7 +909,7 @@ export function registerTools(server: McpServer, core: ServerCore): void {
     'jobs_enqueue',
     {
       description:
-        'Enqueue a background job on the bound browser lane (ask, export, export_batch, delete, delete_batch) and return job_id immediately. Prefer for long/bulk work; use chat_ask/chats_export synchronously when you can wait. Poll with jobs_status; cancel with jobs_cancel. Requires browsers_bind; delete kinds need confirm + allowDestructive.',
+        'Enqueue a background job on the bound browser lane (ask, export, export_batch, delete, delete_batch) and return job_id immediately. Prefer for long/bulk work; use chat_ask/chats_export synchronously when you can wait. Supports onCaptcha for ask/export/delete kinds. Captcha is never auto-solved. Poll with jobs_status; cancel with jobs_cancel. Requires browsers_bind; delete kinds need confirm + allowDestructive.',
       inputSchema: {
         kind: JobKind,
         platform: Platform,
@@ -878,7 +937,8 @@ export function registerTools(server: McpServer, core: ServerCore): void {
         outDir: z.string().optional().describe('Output directory for export kinds'),
         branch: z.string().optional().describe('Branch selector when applicable'),
         confirm: z.boolean().optional().describe('Required true for delete/delete_batch'),
-        testOnly: z.boolean().optional().describe('When true, validate only without mutating')
+        testOnly: z.boolean().optional().describe('When true, validate only without mutating'),
+        onCaptcha: OnCaptcha.optional()
       },
       annotations: annJobsMutate
     },

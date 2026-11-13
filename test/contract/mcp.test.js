@@ -293,7 +293,7 @@ describe('MCP contract (mock extension)', () => {
       'chat_outline',
       'chat_read',
       'chat_ask',
-      'containers_list',
+      'platforms_status',
       'projects_list',
       'projects_chats',
       'projects_create',
@@ -316,6 +316,8 @@ describe('MCP contract (mock extension)', () => {
     assert.match(src, /chats_create[\s\S]*?toggles:\s*z\.array\(z\.string\(\)\)/);
     assert.match(src, /chats_create[\s\S]*?files:\s*z\.array\(FileRef\)/);
     assert.match(src, /chats_send[\s\S]*?files:\s*z\.array\(FileRef\)/);
+    assert.match(src, /chats_send[\s\S]*?onCaptcha:\s*OnCaptcha/);
+    assert.doesNotMatch(src, /'containers_list'/);
   });
 
   it('tabs_ensure forwards tabs.ensure over rpc', async () => {
@@ -550,6 +552,77 @@ describe('MCP contract (mock extension)', () => {
       });
       assert.equal(read.turns.length, 1);
       assert.ok(read.turns[0].text.length <= 80);
+    });
+  });
+
+  it('chat_ask CAPTCHA from host_state is non-retryable and does not send', async () => {
+    let sendCount = 0;
+    await withServer(async (server) => {
+      const { core, port } = server;
+      const { key } = core.keyNew();
+      await connectMockBrowser(port, {
+        core,
+        key,
+        browserId: 'b-captcha',
+        platformsEnabled: ['grok'],
+        onRpc: (msg) => {
+          if (msg.op === 'platform.host_state') {
+            return {
+              data: {
+                platform: 'grok',
+                generating: false,
+                busy: true,
+                banner: 'Verify you are human',
+                composerReady: false,
+                code: 'CAPTCHA',
+                kind: 'captcha',
+                retryable: false,
+                state: 'captcha',
+                challenge: { tag: 'iframe', src: 'https://hcaptcha.example/x' }
+              }
+            };
+          }
+          if (msg.op === 'chats.send' || msg.op === 'chats.create') {
+            sendCount += 1;
+            return { data: { platform: 'grok', chatId: 'c1', title: 't', url: '', createdAt: null, updatedAt: null } };
+          }
+          if (msg.op === 'chats.get') {
+            return {
+              data: {
+                platform: 'grok',
+                chatId: 'c1',
+                title: 't',
+                messages: [{ role: 'user', text: 'hi' }]
+              }
+            };
+          }
+          return { data: {} };
+        }
+      });
+      core.browsersBind('b-captcha');
+      await assert.rejects(
+        () => core.chatAsk({ platform: 'grok', prompt: 'hi', chatId: 'c1', timeout_s: 10 }),
+        (e) => {
+          const nested = e.details?.details || e.details || {};
+          return (
+            e.code === ERROR_CODES.CAPTCHA &&
+            e.details?.retryable === false &&
+            (nested.kind === 'captcha' || e.details?.kind === 'captcha')
+          );
+        }
+      );
+      assert.equal(sendCount, 0);
+
+      await assert.rejects(
+        () =>
+          core.chatsSend('grok', {
+            chatId: 'c1',
+            text: 'hi',
+            onCaptcha: 'allow_agent'
+          }),
+        (e) => e.code === ERROR_CODES.CAPTCHA && e.details?.allowAgentCaptcha === true && sendCount === 0
+      );
+      assert.equal(sendCount, 0);
     });
   });
 

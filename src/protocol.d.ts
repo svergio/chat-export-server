@@ -9,7 +9,10 @@ declare module '@chat-export/protocol' {
     'claude',
     'qwen',
     'deepseek',
-    'perplexity'
+    'perplexity',
+    'kimi',
+    'zai',
+    'minimax'
   ];
   export const OPS: readonly string[];
   export const DESTRUCTIVE_OPS: readonly string[];
@@ -36,6 +39,7 @@ declare module '@chat-export/protocol' {
     INVALID_ARGS: 'INVALID_ARGS';
     PLATFORM_BUSY: 'PLATFORM_BUSY';
     RATE_LIMIT: 'RATE_LIMIT';
+    CAPTCHA: 'CAPTCHA';
     [extra: string]: string;
   }>;
 

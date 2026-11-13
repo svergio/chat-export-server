@@ -1,4 +1,4 @@
-[English](README.md) | [Русский](README.ru.md) · [![Support on DonationAlerts](https://img.shields.io/badge/Support-DonationAlerts-orange)](https://www.donationalerts.com/r/svwergio_mel) · [![chat-export-server MCP server](https://glama.ai/mcp/servers/svergio/chat-export-server/badges/score.svg)](https://glama.ai/mcp/servers/svergio/chat-export-server) · [![MCP Servers](https://img.shields.io/badge/MCP_Servers-listed-2563eb)](https://mcpservers.org/ru/)
+[English](README.md) | [Русский](README.ru.md) · [![Support on DonationAlerts](https://img.shields.io/badge/Support-DonationAlerts-orange)](https://www.donationalerts.com/r/svwergio_mel) · [![chat-export-server MCP server](https://glama.ai/mcp/servers/svergio/chat-export-server/badges/score.svg)](https://glama.ai/mcp/servers/svergio/chat-export-server) · [![MCP Servers](https://img.shields.io/badge/MCP_Servers-listed-2563eb)](https://mcpservers.org/ru/) · [![Chat Export MCP server](https://mcprush.com/badge/chat-export-mcp/card.svg)](https://mcprush.com/to/chat-export-mcp?ref=badge)
 
 # chat-export-server
 
@@ -6,9 +6,9 @@
   <img src="docs/media/demo-server.gif" alt="Native start on :8765, health, two Chrome profiles online/offline" width="720" />
 </p>
 
-**Local MCP server** for the [Chat Export](https://github.com/svergio/chat-export-extension) Chrome extension. List, read, export, create, delete, and **ask** in your own chats on **eight** web providers (ChatGPT, Grok, X Grok, Claude, GitHub Copilot, Qwen, DeepSeek, Perplexity) — through the extension in **your** browser. Everything stays on `127.0.0.1`: job queues, SQLite chat cache, audit log, optional [dashboard](https://github.com/svergio/chat-export-dashboard) UI.
+**Local MCP server** for the [Chat Export](https://github.com/svergio/chat-export-extension) Chrome extension. List, read, export, create, delete, and **ask** in your own chats on **eleven** web providers (ChatGPT, Grok, X Grok, Claude, GitHub Copilot, Qwen, DeepSeek, Perplexity, Kimi, Z.ai, MiniMax) — through the extension in **your** browser. (**JanitorAI** is extension export-bar only and is not in the MCP protocol.) Everything stays on `127.0.0.1`: job queues, SQLite chat cache, audit log, optional [dashboard](https://github.com/svergio/chat-export-dashboard) UI.
 
-Listed on [Glama](https://glama.ai/mcp/servers/svergio/chat-export-server) (v1.0.7, TDQS rescored after platforms_status).
+Listed on [Glama](https://glama.ai/mcp/servers/svergio/chat-export-server) (v1.0.8, Kimi / Z.ai / MiniMax MCP). Listed on [Mcprush](https://mcprush.com/svergio/chat-export-mcp).
 
 ## Standalone
 
@@ -16,7 +16,7 @@ Listed on [Glama](https://glama.ai/mcp/servers/svergio/chat-export-server) (v1.0
 
 ## Why this MCP (for awesome-list reviewers)
 
-Most LLM MCP servers wrap a **vendor HTTP API** (keys, quotas, cloud data path). Chat Export is different: the agent talks MCP to a **local** process; that process drives the **web UIs you are already logged into** via the Chrome extension bridge. No OpenAI/Anthropic/xAI API keys for chat ops, no chat bodies leaving `127.0.0.1`, and delete/create stay off until you opt in (`allowDestructive` + `confirm`). Pair with the [extension zip](https://github.com/svergio/chat-export-extension/releases/tag/v2.0.5); point Cursor (or any MCP client) at `http://127.0.0.1:8765/mcp`.
+Most LLM MCP servers wrap a **vendor HTTP API** (keys, quotas, cloud data path). Chat Export is different: the agent talks MCP to a **local** process; that process drives the **web UIs you are already logged into** via the Chrome extension bridge. No OpenAI/Anthropic/xAI API keys for chat ops, no chat bodies leaving `127.0.0.1`, and delete/create stay off until you opt in (`allowDestructive` + `confirm`). Pair with the [extension zip](https://github.com/svergio/chat-export-extension/releases/tag/v2.0.9); point Cursor (or any MCP client) at `http://127.0.0.1:8765/mcp`.
 
 ## The problem
 
@@ -34,6 +34,9 @@ IDE agents need **structured access** to web LLM sessions without pasting cookie
 | Qwen (`chat.qwen.ai`) | same |
 | DeepSeek (`chat.deepseek.com`) | same |
 | Perplexity (`perplexity.ai`) | same |
+| Kimi (`kimi.com`) | same |
+| Z.ai (`chat.z.ai`) | same |
+| MiniMax (`agent.minimax.io`) | same |
 
 ## Architecture
 
@@ -250,13 +253,15 @@ stdio:
 | --- | --- |
 | `browsers_list` / `browsers_bind` / `browsers_status` | Connected Chrome profiles |
 | `platforms_list` | Enablement matrix |
+| `platforms_status` / `platforms_capabilities` | Gate probe (incl. `captcha`) / composer caps |
 | `chats_list` / `chats_get` / `chats_export` | Read and write exports |
-| `chats_create` / `chats_delete` | UI drive (delete needs `confirm: true`) |
+| `chats_create` / `chats_send` / `chats_delete` | UI drive (`onCaptcha`; delete needs `confirm: true`) |
 | `chat_ask` | Send prompt; wait or job queue |
+| `projects_list` / `projects_*` | Projects/folders (use `projects_list`; MCP alias `containers_list` removed) |
 | `jobs_*` | Async pipeline |
 | `chat_cache_*` | Temp SQLite cache for long threads |
 
-Full list evolves with releases; see wiki **MCP Tools**.
+Full list evolves with releases; see wiki **MCP Tools**. Captcha is never auto-solved.
 
 ## Optional: local LLM (e.g. Bonsai-27B)
 

@@ -1,0 +1,18 @@
+{
+  "platform": "kimi",
+  "models": [
+    { "id": "default", "label": "Default", "kind": "model" }
+  ],
+  "modes": [
+    { "id": "chat", "label": "Chat", "kind": "mode" }
+  ],
+  "toggles": [],
+  "tools": [],
+  "attach": {
+    "supported": false,
+    "multiple": false,
+    "accept": []
+  },
+  "current": { "model": "default", "mode": "chat", "toggles": [] },
+  "detectedAt": "2026-11-13T00:00:00.000Z"
+}

@@ -1,6 +1,6 @@
 export const PROTOCOL_VERSION = 1;
 
-/** @typedef {'chatgpt' | 'grok' | 'grok-x' | 'copilot' | 'claude' | 'qwen' | 'deepseek' | 'perplexity'} Platform */
+/** @typedef {'chatgpt' | 'grok' | 'grok-x' | 'copilot' | 'claude' | 'qwen' | 'deepseek' | 'perplexity' | 'kimi' | 'zai' | 'minimax'} Platform */
 export const PLATFORMS = Object.freeze([
   'chatgpt',
   'grok',
@@ -9,7 +9,10 @@ export const PLATFORMS = Object.freeze([
   'claude',
   'qwen',
   'deepseek',
-  'perplexity'
+  'perplexity',
+  'kimi',
+  'zai',
+  'minimax'
 ]);
 
 /** @typedef {'chats.list' | 'chats.get' | 'chats.export' | 'chats.create' | 'chats.delete' | 'chats.send' |
@@ -47,7 +50,7 @@ export const ROLES = Object.freeze(['user', 'assistant', 'system']);
 /**
  * @typedef {'PLATFORM_DISABLED' | 'NOT_BOUND' | 'CONFIRM_REQUIRED' | 'DESTRUCTIVE_DISABLED' |
  *   'CREATE_DISABLED' | 'PROJECTS_DISABLED' | 'UNAUTHORIZED' | 'TIMEOUT' |
- *   'HOST_ERROR' | 'NOT_FOUND' | 'BAD_REQUEST' | 'INVALID_ARGS' | 'PLATFORM_BUSY' | 'RATE_LIMIT'} ErrorCode
+ *   'HOST_ERROR' | 'NOT_FOUND' | 'BAD_REQUEST' | 'INVALID_ARGS' | 'PLATFORM_BUSY' | 'RATE_LIMIT' | 'CAPTCHA'} ErrorCode
  */
 export const ERROR_CODES = Object.freeze({
   PLATFORM_DISABLED: 'PLATFORM_DISABLED',
@@ -63,7 +66,8 @@ export const ERROR_CODES = Object.freeze({
   BAD_REQUEST: 'BAD_REQUEST',
   INVALID_ARGS: 'INVALID_ARGS',
   PLATFORM_BUSY: 'PLATFORM_BUSY',
-  RATE_LIMIT: 'RATE_LIMIT'
+  RATE_LIMIT: 'RATE_LIMIT',
+  CAPTCHA: 'CAPTCHA'
 });
 
 export const RETRYABLE_ERROR_CODES = Object.freeze(['PLATFORM_BUSY', 'RATE_LIMIT']);

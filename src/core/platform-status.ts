@@ -5,6 +5,7 @@ export type PlatformGateState =
   | 'rate_limit'
   | 'busy'
   | 'auth_wall'
+  | 'captcha'
   | 'generating'
   | 'composer_blocked'
   | 'no_tab'
@@ -34,12 +35,14 @@ export type PlatformStatusRow = {
 type GateCode =
   | typeof ERROR_CODES.RATE_LIMIT
   | typeof ERROR_CODES.PLATFORM_BUSY
-  | typeof ERROR_CODES.UNAUTHORIZED;
+  | typeof ERROR_CODES.UNAUTHORIZED
+  | typeof ERROR_CODES.CAPTCHA;
 
 const GATE_CODES: ReadonlySet<string> = new Set([
   ERROR_CODES.RATE_LIMIT,
   ERROR_CODES.PLATFORM_BUSY,
-  ERROR_CODES.UNAUTHORIZED
+  ERROR_CODES.UNAUTHORIZED,
+  ERROR_CODES.CAPTCHA
 ]);
 
 function asGateCode(code: unknown): GateCode | null {
@@ -49,6 +52,7 @@ function asGateCode(code: unknown): GateCode | null {
 
 function mapCodeToState(code: string | null | undefined): PlatformGateState | null {
   if (code === ERROR_CODES.UNAUTHORIZED) return 'auth_wall';
+  if (code === ERROR_CODES.CAPTCHA) return 'captcha';
   if (code === ERROR_CODES.RATE_LIMIT) return 'rate_limit';
   if (code === ERROR_CODES.PLATFORM_BUSY) return 'busy';
   return null;
@@ -80,11 +84,17 @@ export function normalizeHostGate(host: Record<string, any> | null | undefined):
   const code = asGateCode(host.code);
   const kind = typeof host.kind === 'string' ? host.kind : null;
   if (typeof host.state === 'string' && host.state) {
+    const retryable =
+      typeof host.retryable === 'boolean'
+        ? host.retryable
+        : code === ERROR_CODES.CAPTCHA || host.state === 'captcha'
+          ? false
+          : null;
     return {
       state: host.state as PlatformGateState,
       code,
       kind,
-      retryable: typeof host.retryable === 'boolean' ? host.retryable : null,
+      retryable,
       banner,
       generating,
       composerReady
@@ -95,7 +105,9 @@ export function normalizeHostGate(host: Record<string, any> | null | undefined):
     const retryable =
       typeof host.retryable === 'boolean'
         ? host.retryable
-        : mapped === 'busy' || (mapped === 'rate_limit' && kind !== 'paywall');
+        : mapped === 'captcha'
+          ? false
+          : mapped === 'busy' || (mapped === 'rate_limit' && kind !== 'paywall');
     return { state: mapped, code: code || ERROR_CODES.PLATFORM_BUSY, kind, retryable, banner, generating, composerReady };
   }
   if (generating) {

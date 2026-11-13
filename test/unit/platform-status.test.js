@@ -43,6 +43,25 @@ describe('platform-status helpers', () => {
     assert.equal(normalizeHostGate({ busy: false, generating: true, composerReady: true }).state, 'generating');
     assert.equal(normalizeHostGate({ busy: false, generating: false, composerReady: false }).state, 'composer_blocked');
     assert.equal(normalizeHostGate({ busy: false, generating: false, composerReady: true }).state, 'ok');
+    assert.deepEqual(
+      normalizeHostGate({
+        busy: true,
+        code: 'CAPTCHA',
+        kind: 'captcha',
+        banner: 'Verify you are human',
+        generating: false,
+        composerReady: true
+      }),
+      {
+        state: 'captcha',
+        code: 'CAPTCHA',
+        kind: 'captcha',
+        retryable: false,
+        banner: 'Verify you are human',
+        generating: false,
+        composerReady: true
+      }
+    );
   });
 
   it('pickPlatformTargets and findLastPlatformAlert', () => {
