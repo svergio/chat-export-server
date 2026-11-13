@@ -25,10 +25,30 @@ describe('captcha-policy', () => {
       banner: 'Verify you are human',
       generating: false,
       composerReady: true,
-      challenge: { src: 'https://hcaptcha.example/x', tag: 'iframe' }
+      challenge: { src: 'https://hcaptcha.example/x', tag: 'iframe', vendor: 'hcaptcha' }
     };
     assert.equal(isCaptchaGate(host), true);
     assert.equal(isCaptchaGate({ busy: true, code: 'PLATFORM_BUSY' }), false);
+    assert.equal(
+      isCaptchaGate({
+        code: 'CAPTCHA',
+        state: 'captcha',
+        banner: 'security check in reasoning',
+        generating: true,
+        captchaWidget: null
+      }),
+      false
+    );
+    assert.equal(
+      isCaptchaGate({
+        code: 'CAPTCHA',
+        state: 'captcha',
+        banner: 'Thinking security check',
+        generating: false,
+        captchaWidget: null
+      }),
+      false
+    );
     const env = hostEnvelope(host);
     assert.equal(env.state, 'captcha');
     assert.equal(env.retryable, false);
@@ -43,7 +63,8 @@ describe('captcha-policy', () => {
       state: 'captcha',
       banner: 'captcha',
       generating: false,
-      composerReady: false
+      composerReady: false,
+      challenge: { tag: 'iframe', src: 'https://hcaptcha.example/x', vendor: 'hcaptcha' }
     };
     await assert.rejects(
       () =>
@@ -90,7 +111,8 @@ describe('captcha-policy', () => {
             state: 'captcha',
             banner: 'captcha',
             generating: false,
-            composerReady: false
+            composerReady: false,
+            challenge: { tag: 'iframe', src: 'https://challenges.cloudflare.com/x', vendor: 'turnstile' }
           };
         }
         return {
@@ -107,6 +129,25 @@ describe('captcha-policy', () => {
     assert.equal(host.state, 'ok');
     assert.equal(calls, 3);
     assert.ok(sleeps.length >= 1);
+  });
+
+  it('generating thinking host is not a captcha gate', async () => {
+    const env = await enforceCaptchaPolicy({
+      platform: 'zai',
+      onCaptcha: 'stop',
+      fetchHost: async () => ({
+        busy: true,
+        code: 'CAPTCHA',
+        kind: 'captcha',
+        state: 'captcha',
+        banner: 'Thinking… security check of this approach',
+        generating: true,
+        composerReady: true,
+        captchaWidget: null
+      })
+    });
+    assert.equal(env.state, 'generating');
+    assert.equal(env.code, null);
   });
 
   it('stripCaptchaArgs removes policy fields from wire args', () => {

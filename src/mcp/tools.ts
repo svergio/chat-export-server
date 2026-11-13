@@ -122,6 +122,22 @@ function hintForError(code: string, platform?: string | null, details?: Record<s
     return 'Check MCP cem_ token and browser ceb_ token enrollment';
   }
   if (code === ERROR_CODES.RATE_LIMIT) {
+    const usage = details?.usage && typeof details.usage === 'object' ? (details.usage as Record<string, unknown>) : null;
+    if (usage && (usage.remaining != null || usage.resetAt)) {
+      const rem = usage.remaining != null ? String(usage.remaining) : '?';
+      const lim = usage.limit != null ? String(usage.limit) : '?';
+      const reset = usage.resetAt ? String(usage.resetAt) : null;
+      return (
+        'Provider quota/usage: ' +
+        rem +
+        '/' +
+        lim +
+        (usage.unit ? ' ' + String(usage.unit) : '') +
+        (usage.plan ? ' on ' + String(usage.plan) : '') +
+        (reset ? '; resets at ' + reset : '') +
+        '. Wait, switch platform/browser, or upgrade.'
+      );
+    }
     return 'Provider usage/quota/paywall on this account/tab. Stop spamming; wait, switch platform/browser, or upgrade. See error.details.kind (quota|paywall|http)';
   }
   if (code === ERROR_CODES.PLATFORM_BUSY) {
@@ -619,9 +635,9 @@ export function registerTools(server: McpServer, core: ServerCore): void {
           .number()
           .int()
           .min(10)
-          .max(300)
+          .max(600)
           .optional()
-          .describe('Max seconds to wait for the assistant reply (10-300)'),
+          .describe('Max seconds to wait for the assistant reply (10-600; kimi/zai/minimax may need >300)'),
         wait: z.boolean().optional().describe('Default true; false returns job_id immediately'),
         browserId: z.string().optional().describe('Override bound browserId for this call only'),
         model: z.string().optional().describe('Provider model id when the UI exposes a model picker'),
@@ -920,9 +936,9 @@ export function registerTools(server: McpServer, core: ServerCore): void {
           .number()
           .int()
           .min(10)
-          .max(300)
+          .max(600)
           .optional()
-          .describe('Per-op timeout seconds for ask-like work (10-300)'),
+          .describe('Per-op timeout seconds for ask-like work (10-600; kimi/zai/minimax may need >300)'),
         model: z.string().optional().describe('Provider model id for ask'),
         mode: z.string().optional().describe('Provider mode id for ask'),
         toggles: z.array(z.string()).optional().describe('Provider toggle ids for ask'),

@@ -1,5 +1,5 @@
 import { ERROR_CODES, ProtocolError } from '@chat-export/protocol';
-import { normalizeHostGate } from './platform-status.js';
+import { hasCaptchaEvidence, normalizeHostGate } from './platform-status.js';
 
 export type OnCaptcha = 'stop' | 'wait_human' | 'allow_agent';
 
@@ -9,9 +9,13 @@ export type HostEnvelope = {
   kind: string | null;
   retryable: boolean | null;
   banner: string | null;
+  bannerSource?: string | null;
   generating: boolean | null;
   composerReady: boolean | null;
   challenge?: Record<string, unknown> | null;
+  captchaWidget?: Record<string, unknown> | null;
+  usage?: Record<string, unknown> | null;
+  httpEvidence?: Record<string, unknown> | null;
 };
 
 const ON_CAPTCHA_VALUES = new Set<OnCaptcha>(['stop', 'wait_human', 'allow_agent']);
@@ -29,10 +33,13 @@ export function parseOnCaptcha(value: unknown): OnCaptcha {
 
 export function isCaptchaGate(host: Record<string, any> | null | undefined): boolean {
   if (!host || typeof host !== 'object') return false;
+  if (host.generating === true) return false;
+  if (!hasCaptchaEvidence(host)) return false;
   if (host.code === ERROR_CODES.CAPTCHA) return true;
   if (host.state === 'captcha') return true;
   if (host.kind === 'captcha') return true;
-  return false;
+  // Widget alone is enough evidence when idle.
+  return true;
 }
 
 export function hostEnvelope(host: Record<string, any> | null | undefined): HostEnvelope {
@@ -43,11 +50,17 @@ export function hostEnvelope(host: Record<string, any> | null | undefined): Host
     kind: gate.kind,
     retryable: gate.retryable,
     banner: gate.banner,
+    bannerSource: gate.bannerSource,
     generating: gate.generating,
-    composerReady: gate.composerReady
+    composerReady: gate.composerReady,
+    usage: gate.usage as Record<string, unknown> | null,
+    captchaWidget: gate.captchaWidget as Record<string, unknown> | null,
+    httpEvidence: gate.httpEvidence as Record<string, unknown> | null
   };
   if (host && typeof host === 'object' && host.challenge && typeof host.challenge === 'object') {
     out.challenge = host.challenge as Record<string, unknown>;
+  } else if (gate.captchaWidget) {
+    out.challenge = gate.captchaWidget as Record<string, unknown>;
   }
   return out;
 }
@@ -73,7 +86,8 @@ function captchaError(
       allowAgentCaptcha: allowAgent,
       onCaptcha,
       hint,
-      ...(env.challenge ? { challenge: env.challenge } : {})
+      ...(env.challenge ? { challenge: env.challenge } : {}),
+      ...(env.captchaWidget ? { captchaWidget: env.captchaWidget } : {})
     }
   );
 }

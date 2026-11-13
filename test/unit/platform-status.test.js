@@ -21,46 +21,63 @@ describe('platform-status helpers', () => {
       }).state,
       'rate_limit'
     );
-    assert.deepEqual(
-      normalizeHostGate({
-        busy: true,
-        code: 'RATE_LIMIT',
-        kind: 'quota',
-        banner: 'Too many requests',
-        generating: false,
-        composerReady: true
-      }),
-      {
-        state: 'rate_limit',
-        code: 'RATE_LIMIT',
-        kind: 'quota',
-        retryable: true,
-        banner: 'Too many requests',
-        generating: false,
-        composerReady: true
-      }
-    );
+    const rate = normalizeHostGate({
+      busy: true,
+      code: 'RATE_LIMIT',
+      kind: 'quota',
+      banner: 'Too many requests',
+      generating: false,
+      composerReady: true
+    });
+    assert.equal(rate.state, 'rate_limit');
+    assert.equal(rate.code, 'RATE_LIMIT');
+    assert.equal(rate.kind, 'quota');
+    assert.equal(rate.retryable, true);
+    assert.equal(rate.banner, 'Too many requests');
     assert.equal(normalizeHostGate({ busy: false, generating: true, composerReady: true }).state, 'generating');
     assert.equal(normalizeHostGate({ busy: false, generating: false, composerReady: false }).state, 'composer_blocked');
     assert.equal(normalizeHostGate({ busy: false, generating: false, composerReady: true }).state, 'ok');
-    assert.deepEqual(
+    const captcha = normalizeHostGate({
+      busy: true,
+      code: 'CAPTCHA',
+      kind: 'captcha',
+      banner: 'Verify you are human',
+      generating: false,
+      composerReady: true,
+      challenge: { tag: 'iframe', src: 'https://hcaptcha.example/x', vendor: 'hcaptcha' }
+    });
+    assert.equal(captcha.state, 'captcha');
+    assert.equal(captcha.code, 'CAPTCHA');
+    assert.equal(captcha.retryable, false);
+    assert.equal(
       normalizeHostGate({
         busy: true,
         code: 'CAPTCHA',
         kind: 'captcha',
-        banner: 'Verify you are human',
-        generating: false,
+        banner: 'security check in thinking',
+        generating: true,
         composerReady: true
-      }),
-      {
-        state: 'captcha',
+      }).state,
+      'generating'
+    );
+    assert.equal(
+      normalizeHostGate({
+        busy: true,
         code: 'CAPTCHA',
         kind: 'captcha',
-        retryable: false,
-        banner: 'Verify you are human',
+        banner: 'security check in thinking',
         generating: false,
         composerReady: true
-      }
+      }).state,
+      'ok'
+    );
+    assert.equal(
+      normalizeHostGate({
+        generating: false,
+        composerReady: true,
+        usage: { remaining: 0, limit: 50, unit: 'messages', plan: 'free', source: 'user_menu', confidence: 'high' }
+      }).state,
+      'rate_limit'
     );
     assert.equal(
       normalizeHostGate({
@@ -93,7 +110,8 @@ describe('platform-status helpers', () => {
           kind: 'captcha',
           banner: platform + ' captcha',
           generating: false,
-          composerReady: true
+          composerReady: true,
+          captchaWidget: { tag: 'iframe', src: 'https://challenges.cloudflare.com/x', vendor: 'turnstile' }
         }).state,
         'captcha'
       );

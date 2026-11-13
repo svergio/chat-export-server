@@ -675,8 +675,12 @@ export class ServerCore {
           kind: gate.kind,
           retryable: gate.retryable,
           banner: gate.banner,
+          bannerSource: gate.bannerSource,
           generating: gate.generating,
           composerReady: gate.composerReady,
+          usage: gate.usage,
+          captchaWidget: gate.captchaWidget,
+          httpEvidence: gate.httpEvidence,
           checkedAt,
           lastAlert,
           error: null
