@@ -1,6 +1,6 @@
 {
   "name": "chat-export-server",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Local MCP server that drives the Chat Export Chrome extension across ChatGPT, Grok, X Grok, Claude, Copilot, Qwen, DeepSeek, Perplexity, Kimi, Z.ai and MiniMax on 127.0.0.1.",
   "mcpName": "io.github.svergio/chat-export-server",
   "type": "module",

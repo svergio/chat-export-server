@@ -123,6 +123,7 @@ describe('jobs contract (mock extension)', () => {
           'ask',
           'export',
           'export_batch',
+          'library_ingest',
           'delete',
           'delete_batch'
         ]);
@@ -323,6 +324,119 @@ describe('jobs contract (mock extension)', () => {
       assert.equal(done.result.failed, 1);
       assert.equal(done.result.items[1].error.code, 'NOT_FOUND');
       assert.ok(fs.existsSync(done.result.items[2].paths[0]));
+    }, FAST_JOBS);
+  });
+
+  it('library_ingest: chats.get fills cache without export files', async () => {
+    await withServer(async (server) => {
+      const { core, port } = server;
+      const { key } = core.keyNew();
+      await connectMockBrowser(port, {
+        core,
+        key,
+        browserId: 'b-ingest',
+        onRpc: (msg) => {
+          if (msg.op === 'platform.host_state') {
+            return {
+              data: {
+                busy: true,
+                code: 'RATE_LIMIT',
+                kind: 'paywall',
+                retryable: false,
+                banner: 'Free plan',
+                generating: false,
+                composerReady: true
+              }
+            };
+          }
+          if (msg.op === 'chats.get') {
+            return {
+              data: {
+                platform: 'perplexity',
+                chatId: msg.args.chatId,
+                title: 'ingest-' + msg.args.chatId,
+                messages: [
+                  { role: 'user', text: 'needleword ' + msg.args.chatId },
+                  { role: 'assistant', text: 'ok' }
+                ]
+              }
+            };
+          }
+          return { data: {} };
+        }
+      });
+      const job = core.jobs.enqueue({
+        kind: 'library_ingest',
+        platform: 'perplexity',
+        chatIds: ['i1', 'i2']
+      });
+      const done = await waitJob(core, job.job_id);
+      assert.equal(done.status, 'done', JSON.stringify(done.error || done));
+      assert.equal(done.result.ok, 2);
+      assert.ok(done.result.items[0].cacheId);
+      const search = core.chatsSearch({ query: 'needleword' });
+      assert.ok(search.matchCount >= 2);
+      assert.ok(search.hits.some((h) => h.chatId === 'i1'));
+    }, FAST_JOBS);
+  });
+
+  it('export_batch: kind=paywall host_state does not block read/export', async () => {
+    await withServer(async (server) => {
+      const { core, port } = server;
+      const { key } = core.keyNew();
+      let exports = 0;
+      await connectMockBrowser(port, {
+        core,
+        key,
+        browserId: 'b-paywall-exp',
+        onRpc: (msg) => {
+          if (msg.op === 'platform.host_state') {
+            return {
+              data: {
+                busy: true,
+                code: 'RATE_LIMIT',
+                kind: 'paywall',
+                retryable: false,
+                banner: 'Бесплатный план · Улучшить тариф',
+                generating: false,
+                composerReady: true
+              }
+            };
+          }
+          if (msg.op === 'chats.export') {
+            exports++;
+            return {
+              data: {
+                files: [
+                  {
+                    name: msg.args.chatId + '.md',
+                    mime: 'text/markdown;charset=utf-8',
+                    text: '# ' + msg.args.chatId
+                  }
+                ],
+                payload: {
+                  platform: 'perplexity',
+                  chatId: msg.args.chatId,
+                  title: msg.args.chatId,
+                  messages: []
+                }
+              }
+            };
+          }
+          return { data: {} };
+        }
+      });
+      const job = core.jobs.enqueue({
+        kind: 'export_batch',
+        platform: 'perplexity',
+        chatIds: ['p1', 'p2'],
+        formats: ['md']
+      });
+      const done = await waitJob(core, job.job_id);
+      assert.equal(done.status, 'done', JSON.stringify(done.error || done));
+      assert.equal(exports, 2);
+      assert.equal(done.result.ok, 2);
+      assert.equal(done.result.failed, 0);
     }, FAST_JOBS);
   });
 

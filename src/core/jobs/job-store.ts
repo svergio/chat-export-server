@@ -48,7 +48,14 @@ export interface JobFilter {
   limit?: number;
 }
 
-export const JOB_KINDS = Object.freeze(['ask', 'export', 'export_batch', 'delete', 'delete_batch']);
+export const JOB_KINDS = Object.freeze([
+  'ask',
+  'export',
+  'export_batch',
+  'library_ingest',
+  'delete',
+  'delete_batch'
+]);
 export const JOB_STATUSES: readonly JobStatus[] = Object.freeze<JobStatus[]>([
   'queued',
   'assigned',

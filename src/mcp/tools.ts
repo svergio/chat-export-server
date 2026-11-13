@@ -31,7 +31,7 @@ const ExportSchema = z
   .enum([...EXPORT_SCHEMAS] as [string, ...string[]])
   .describe('Export text schema id (name/version), e.g. chat-export/1 or sharegpt/1');
 const JobKind = z
-  .enum(['ask', 'export', 'export_batch', 'delete', 'delete_batch'])
+  .enum(['ask', 'export', 'export_batch', 'library_ingest', 'delete', 'delete_batch'])
   .describe('Background job kind for the bound browser lane');
 const Branch = z
   .enum(['active', 'all'])
@@ -325,7 +325,7 @@ export function registerTools(server: McpServer, core: ServerCore): void {
     'platforms_status',
     {
       description:
-        'Probe gate/limit status per provider on the bound browser without sending a prompt. Returns state ok|rate_limit|busy|auth_wall|captcha|generating|composer_blocked|no_tab|offline|disabled|error plus code/kind/banner/retryable. Server-disabled platforms return state disabled with code PLATFORM_DISABLED instead of failing the whole call. Prefer before chat_ask when choosing a platform; set ensureTab:true to open a start tab before probing. Uses platform.host_state on open tabs; no_tab platforms include lastAlert only. Captcha is never auto-solved.',
+        'Probe composer/gate status per provider on the bound browser without sending a prompt. Returns state ok|rate_limit|busy|auth_wall|captcha|generating|composer_blocked|no_tab|offline|disabled|error plus code/kind/banner/retryable. Prefer before chat_ask / chats_send — kind=paywall (and similar free-plan banners) blocks compose, not chats_list / chats_export / export_batch. Do not abort export jobs solely because platforms_status shows paywall. Server-disabled platforms return state disabled with code PLATFORM_DISABLED instead of failing the whole call. Set ensureTab:true to open a start tab before probing. Captcha is never auto-solved.',
       inputSchema: {
         platform: Platform.optional().describe('Probe one provider; omit to scan all enabled on the bound browser'),
         ensureTab: z
@@ -684,7 +684,7 @@ export function registerTools(server: McpServer, core: ServerCore): void {
     'chat_cache_read',
     {
       description:
-        'Read cached chat blocks from local SQLite by turn range, blockId, or FTS query without hitting the browser. Prefer after chat_cache_sync/chat_outline; use chat_read when the cache may be cold and a live fetch is OK. Identify the copy via cacheId or platform+chatId.',
+        'Read cached chat blocks from local SQLite by turn range, blockId, or FTS query within one chat without hitting the browser. Prefer after chat_cache_sync/library_ingest; use chats_search for cross-chat FTS; use chat_read when the cache may be cold. Identify the copy via cacheId or platform+chatId.',
       inputSchema: {
         cacheId: z.string().optional().describe('Cache row id from a previous sync/outline'),
         platform: Platform.optional(),
@@ -692,7 +692,7 @@ export function registerTools(server: McpServer, core: ServerCore): void {
         startTurn: z.number().int().min(0).optional().describe('Inclusive start turn index'),
         endTurn: z.number().int().min(0).optional().describe('Exclusive end turn index'),
         blockId: z.string().optional().describe('Specific cached block id to return'),
-        query: z.string().optional().describe('FTS5 search query over cached turn text'),
+        query: z.string().optional().describe('FTS5 search query over this chat only; use chats_search for library-wide'),
         maxChars: z
           .number()
           .int()
@@ -763,6 +763,49 @@ export function registerTools(server: McpServer, core: ServerCore): void {
       annotations: annCacheDelete
     },
     async (input) => core.chatCacheDelete(input)
+  );
+
+  registerDetailedTool(
+    server,
+    core,
+    'chats_search',
+    {
+      description:
+        'Full-text search across the local SQLite library (all cached chats) without hitting the browser. Prefer after library_ingest / export_batch / chats_get have filled the cache. Use chat_cache_read when searching inside one known chatId. Offline; no host_state/paywall.',
+      inputSchema: {
+        query: z.string().min(1).describe('FTS5 query over cached turn text across chats'),
+        platform: Platform.optional().describe('Limit hits to one provider'),
+        browserId: z.string().optional().describe('Limit hits to one browser library'),
+        limit: z.number().int().min(1).max(200).optional().describe('Max hit rows (1-200)'),
+        maxChars: z
+          .number()
+          .int()
+          .min(200)
+          .max(200000)
+          .optional()
+          .describe('Hard cap on returned characters (200-200000)')
+      },
+      annotations: annReadLocal
+    },
+    async (input) => core.chatsSearch(input)
+  );
+
+  registerDetailedTool(
+    server,
+    core,
+    'tabs_search',
+    {
+      description:
+        'Search open-tab metadata (title/url/chatId) from the last browser tabs push, stored in SQLite. Prefer for finding an already-open chat tab without listing all browsers. Not chat body search — use chats_search for that. Local only.',
+      inputSchema: {
+        query: z.string().optional().describe('Substring match on title, url, or chatId'),
+        platform: Platform.optional().describe('Limit to one provider'),
+        browserId: z.string().optional().describe('Limit to one browserId'),
+        limit: z.number().int().min(1).max(200).optional().describe('Max rows (1-200)')
+      },
+      annotations: annReadLocal
+    },
+    async (input) => core.tabsSearch(input)
   );
 
   const ContainersListInput = {
@@ -924,7 +967,7 @@ export function registerTools(server: McpServer, core: ServerCore): void {
     'jobs_enqueue',
     {
       description:
-        'Enqueue a background job on the bound browser lane (ask, export, export_batch, delete, delete_batch) and return job_id immediately. Prefer for long/bulk work; use chat_ask/chats_export synchronously when you can wait. Supports onCaptcha and ensureTab for ask/export/delete kinds. Captcha is never auto-solved. Poll with jobs_status; cancel with jobs_cancel. Requires browsers_bind; delete kinds need confirm + allowDestructive.',
+        'Enqueue a background job on the bound browser lane (ask, export, export_batch, library_ingest, delete, delete_batch) and return job_id immediately. Prefer library_ingest to fill the local SQLite+FTS library without writing export files (then chats_search offline). Prefer export/export_batch for durable files. Paywall host_state does not block export/library_ingest. Captcha is never auto-solved. Poll with jobs_status; cancel with jobs_cancel. Requires browsers_bind; delete kinds need confirm + allowDestructive.',
       inputSchema: {
         kind: JobKind,
         platform: Platform,
@@ -944,13 +987,17 @@ export function registerTools(server: McpServer, core: ServerCore): void {
         toggles: z.array(z.string()).optional().describe('Provider toggle ids for ask'),
         tools: z.array(z.string()).optional().describe('Provider tool ids for ask'),
         files: z.array(FileRef).optional().describe('Attachments for ask'),
-        chatIds: z.array(z.string()).optional().describe('Chat ids for batch export/delete'),
+        chatIds: z.array(z.string()).optional().describe('Chat ids for batch export/delete/library_ingest'),
         query: z.string().optional().describe('Optional filter query for batch discovery'),
         max: z.number().int().positive().optional().describe('Max items for batch jobs'),
-        formats: z.array(ExportFormat).optional().describe('Export formats for export kinds'),
+        formats: z.array(ExportFormat).optional().describe('Export formats for export kinds (or library_ingest with writeFiles)'),
         schema: ExportSchema.optional().describe('Export text schema for export kinds'),
         outDir: z.string().optional().describe('Output directory for export kinds'),
         branch: z.string().optional().describe('Branch selector when applicable'),
+        writeFiles: z
+          .boolean()
+          .optional()
+          .describe('library_ingest only: when true also write export files (default false = cache only)'),
         confirm: z.boolean().optional().describe('Required true for delete/delete_batch'),
         testOnly: z.boolean().optional().describe('When true, validate only without mutating'),
         onCaptcha: OnCaptcha.optional(),

@@ -8,7 +8,7 @@
 
 **Локальный MCP-сервер** для расширения [Chat Export](https://github.com/svergio/chat-export-extension). Список, чтение, экспорт, создание, удаление и **вопросы** в ваших чатах на **одиннадцати** площадках (ChatGPT, Grok, X Grok, Claude, GitHub Copilot, Qwen, DeepSeek, Perplexity, Kimi, Z.ai, MiniMax) — через расширение в **вашем** браузере. (**JanitorAI** — только панель экспорта в расширении, в MCP/protocol не входит.) Всё на `127.0.0.1`: очереди задач, SQLite-кеш, аудит, опциональный [дашборд](https://github.com/svergio/chat-export-dashboard).
 
-В каталоге [Glama](https://glama.ai/mcp/servers/svergio/chat-export-server) (v1.0.9, Kimi / Z.ai / MiniMax MCP). Также в [Mcprush](https://mcprush.com/svergio/chat-export-mcp).
+В каталоге [Glama](https://glama.ai/mcp/servers/svergio/chat-export-server) (v1.1.1, library FTS + Kimi / Z.ai / MiniMax MCP). Также в [Mcprush](https://mcprush.com/svergio/chat-export-mcp).
 
 ## Автономный продукт
 
@@ -238,6 +238,9 @@ stdio:
 | `chat_ask` | Промпт; wait или очередь |
 | `jobs_*` | Асинхронный пайплайн |
 | `chat_cache_*` | Временный SQLite-кеш длинных тредов |
+| `chats_search` | Офлайн FTS по локальной библиотеке чатов |
+| `tabs_search` | Поиск по title/url открытых вкладок |
+| `jobs_enqueue` `library_ingest` | Массовый `chats.get` → SQLite+FTS (без файлов по умолчанию) |
 
 Полный список — в вики **MCP Tools**.
 

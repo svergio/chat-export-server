@@ -37,7 +37,10 @@ export class JobCancelled extends Error {
 }
 
 export function isRetryable(err: any): boolean {
-  return Boolean(err && (RETRYABLE_CODES.has(err.code) || err.details?.retryable === true));
+  if (!err) return false;
+  // Explicit wire/host signal wins over code-level defaults (e.g. RATE_LIMIT + paywall).
+  if (err.details?.retryable === false) return false;
+  return Boolean(RETRYABLE_CODES.has(err.code) || err.details?.retryable === true);
 }
 
 function isLaneOffline(err: any): boolean {

@@ -304,6 +304,8 @@ describe('MCP contract (mock extension)', () => {
       'chat_cache_append',
       'chat_cache_update_block',
       'chat_cache_delete',
+      'chats_search',
+      'tabs_search',
       'chats_export',
       'chats_create',
       'chats_send',

@@ -30,6 +30,7 @@ import { toProtocolError } from './errors.js';
 import { resolveHome } from './paths.js';
 import { openDatabase, describeDatabase } from './db/index.js';
 import { ChatCacheManager } from './chat-cache.js';
+import { clearTabSnapshots, replaceTabSnapshots, searchTabSnapshots } from './tab-index.js';
 import { createLogger, type FileLogger } from './logger.js';
 import { JobManager, clampAskTimeout, type JobManagerOptions } from './jobs/job-manager.js';
 import { isTerminal } from './jobs/job-store.js';
@@ -390,6 +391,11 @@ export class ServerCore {
         browserId
       ]
     );
+    try {
+      replaceTabSnapshots(this.db, browserId, tabs);
+    } catch {
+      /* index is best-effort */
+    }
   }
 
   markBrowserOffline(browserId: string | null | undefined): void {
@@ -400,6 +406,11 @@ export class ServerCore {
       new Date().toISOString(),
       browserId
     ]);
+    try {
+      clearTabSnapshots(this.db, browserId);
+    } catch {
+      /* ignore */
+    }
     this.logger.alert({
       component: 'ws',
       code: 'WS_DISCONNECT',
@@ -783,6 +794,7 @@ export class ServerCore {
           files: written.files,
           payload: data.payload
         };
+        this.#persistLibrary(platform, browser.browserId, data?.payload || data, rpcArgs.chatId);
         this.audit({
           action: op,
           platform,
@@ -791,6 +803,10 @@ export class ServerCore {
           paths: result.paths
         });
         return result;
+      }
+
+      if (op === 'chats.get') {
+        this.#persistLibrary(platform, browser.browserId, data, rpcArgs.chatId);
       }
 
       this.audit({
@@ -1023,6 +1039,30 @@ export class ServerCore {
 
   chatCacheDelete(args?: OpArgs) {
     return this.chatCache.remove(args || {});
+  }
+
+  chatsSearch(args?: OpArgs) {
+    return this.chatCache.searchLibrary(args || {});
+  }
+
+  tabsSearch(args?: OpArgs) {
+    return searchTabSnapshots(this.db, args || {});
+  }
+
+  #persistLibrary(platform: string, browserId: string, raw: unknown, chatIdHint?: unknown): void {
+    try {
+      const payload =
+        raw && typeof raw === 'object' && (raw as any).payload && typeof (raw as any).payload === 'object'
+          ? (raw as any).payload
+          : raw;
+      this.chatCache.persistAlways(payload as any, {
+        platform,
+        browserId,
+        chatId: typeof chatIdHint === 'string' ? chatIdHint : undefined
+      });
+    } catch {
+      /* library index is best-effort */
+    }
   }
 
   mcpErrorContext(platform?: string | null) {

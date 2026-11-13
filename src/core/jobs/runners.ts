@@ -10,6 +10,7 @@ import type { ServerCore } from '../server-core.js';
 export type RunnerCore = ServerCore & {
   resolveChatId(platform: string, chatId: string): Promise<string>;
   chatsSend(platform: string, args: Record<string, any>): Promise<any>;
+  chatCache: ServerCore['chatCache'];
 };
 
 interface RunOptions {
@@ -35,6 +36,8 @@ export function runJob(core: RunnerCore, job: JobRecord, ctx: LaneContext, opts:
       return runExport(core, job, ctx);
     case 'export_batch':
       return runExportBatch(core, job, ctx);
+    case 'library_ingest':
+      return runLibraryIngest(core, job, ctx);
     case 'delete':
       return runDelete(core, job, ctx);
     case 'delete_batch':
@@ -62,7 +65,14 @@ async function hostState(core: RunnerCore, platform: string, chatId: string | un
   }
 }
 
-function assertNotBusy(state: any, platform: string): void {
+function hostKind(state: any, code: string): string | undefined {
+  if (typeof state?.kind === 'string') return state.kind;
+  if (code === ERROR_CODES.CAPTCHA) return 'captcha';
+  return undefined;
+}
+
+/** Compose/mutate gates. Paywall blocks ask/send/delete, not read/export. */
+function assertNotBusy(state: any, platform: string, opts?: { allowPaywall?: boolean }): void {
   if (!state?.busy) return;
   const code =
     state.code === ERROR_CODES.RATE_LIMIT ||
@@ -70,12 +80,8 @@ function assertNotBusy(state: any, platform: string): void {
     state.code === ERROR_CODES.CAPTCHA
       ? state.code
       : ERROR_CODES.PLATFORM_BUSY;
-  const kind =
-    typeof state.kind === 'string'
-      ? state.kind
-      : code === ERROR_CODES.CAPTCHA
-        ? 'captcha'
-        : undefined;
+  const kind = hostKind(state, code);
+  if (opts?.allowPaywall && kind === 'paywall') return;
   const retryable =
     typeof state.retryable === 'boolean'
       ? state.retryable
@@ -88,13 +94,14 @@ function assertNotBusy(state: any, platform: string): void {
   });
 }
 
-async function gateBeforeMutate(
+async function gateHost(
   core: RunnerCore,
   platform: string,
   chatId: string | undefined,
   input: Record<string, any>,
   cache: { unsupported?: boolean },
-  ctx: LaneContext
+  ctx: LaneContext,
+  opts?: { allowPaywall?: boolean }
 ) {
   const onCaptcha = parseOnCaptcha(input.onCaptcha);
   const timeoutMs =
@@ -108,7 +115,29 @@ async function gateBeforeMutate(
     sleep: (ms) => ctx.sleep(ms),
     timeoutMs
   });
-  assertNotBusy(await hostState(core, platform, chatId, cache), platform);
+  assertNotBusy(await hostState(core, platform, chatId, cache), platform, opts);
+}
+
+async function gateBeforeMutate(
+  core: RunnerCore,
+  platform: string,
+  chatId: string | undefined,
+  input: Record<string, any>,
+  cache: { unsupported?: boolean },
+  ctx: LaneContext
+) {
+  await gateHost(core, platform, chatId, input, cache, ctx);
+}
+
+async function gateBeforeExport(
+  core: RunnerCore,
+  platform: string,
+  chatId: string | undefined,
+  input: Record<string, any>,
+  cache: { unsupported?: boolean },
+  ctx: LaneContext
+) {
+  await gateHost(core, platform, chatId, input, cache, ctx, { allowPaywall: true });
 }
 
 async function ensureTabIfRequested(core: RunnerCore, platform: string, input: Record<string, any>, chatId?: string) {
@@ -217,7 +246,7 @@ function exportArgs(input: Record<string, any>, chatId: string) {
 
 async function runExport(core: RunnerCore, job: JobRecord, ctx: LaneContext) {
   await ensureTabIfRequested(core, job.platform, job.input, job.input.chatId);
-  await gateBeforeMutate(core, job.platform, job.input.chatId, job.input, {}, ctx);
+  await gateBeforeExport(core, job.platform, job.input.chatId, job.input, {}, ctx);
   return core.chatsExport(job.platform, exportArgs(job.input, job.input.chatId));
 }
 
@@ -300,9 +329,47 @@ async function runBatch(
 function runExportBatch(core: RunnerCore, job: JobRecord, ctx: LaneContext) {
   return runBatch(core, job, ctx, async (item) => {
     await ensureTabIfRequested(core, job.platform, job.input, item.chatId);
-    await gateBeforeMutate(core, job.platform, item.chatId, job.input, {}, ctx);
+    await gateBeforeExport(core, job.platform, item.chatId, job.input, {}, ctx);
     const r = await core.chatsExport(job.platform, exportArgs(job.input, item.chatId));
     return { dir: r.dir, paths: r.paths, title: r.title, turns: r.turns };
+  });
+}
+
+function runLibraryIngest(core: RunnerCore, job: JobRecord, ctx: LaneContext) {
+  const writeFiles = job.input.writeFiles === true;
+  return runBatch(core, job, ctx, async (item) => {
+    await ensureTabIfRequested(core, job.platform, job.input, item.chatId);
+    await gateBeforeExport(core, job.platform, item.chatId, job.input, {}, ctx);
+    if (writeFiles) {
+      const r = await core.chatsExport(job.platform, exportArgs(job.input, item.chatId));
+      const payload = r?.payload || {};
+      const cache = core.chatCache?.persistAlways?.(payload, {
+        platform: job.platform,
+        chatId: item.chatId
+      });
+      return {
+        dir: r.dir,
+        paths: r.paths,
+        title: payload.title || item.title || '',
+        turns: Array.isArray(payload.messages) ? payload.messages.length : r.turns,
+        cacheId: cache?.cacheId || null,
+        totalTurns: cache?.totalTurns ?? null
+      };
+    }
+    const getArgs: Record<string, any> = { chatId: item.chatId };
+    if (job.input.branch !== undefined) getArgs.branch = job.input.branch;
+    const raw = await core.chatsGet(job.platform, getArgs);
+    const payload =
+      raw && typeof raw === 'object' && raw.payload && typeof raw.payload === 'object' ? raw.payload : raw;
+    const cache =
+      core.chatCache?.persistAlways?.(payload, { platform: job.platform, chatId: item.chatId }) ||
+      null;
+    return {
+      title: String(payload?.title || item.title || ''),
+      turns: Array.isArray(payload?.messages) ? payload.messages.length : 0,
+      cacheId: cache?.cacheId || null,
+      totalTurns: cache?.totalTurns ?? null
+    };
   });
 }
 

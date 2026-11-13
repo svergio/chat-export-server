@@ -85,6 +85,12 @@ export class ChatCacheManager {
 
   autoCacheIfNeeded(payload: Payload | null | undefined, meta: AutoCacheMeta = {}) {
     if (!payload || !this.#shouldAutoCache(payload)) return null;
+    return this.persistAlways(payload, meta);
+  }
+
+  /** Always write payload into library cache+FTS (no length threshold). */
+  persistAlways(payload: Payload | null | undefined, meta: AutoCacheMeta = {}) {
+    if (!payload || typeof payload !== 'object') return null;
     const plat = String(meta.platform || payload.platform || '').trim();
     const cid = String(meta.chatId || payload.chatId || '').trim();
     if (!plat || !cid) return null;
@@ -96,6 +102,76 @@ export class ChatCacheManager {
     }
     const cacheId = this.cacheIdFor(browserId, plat, cid);
     return this.#persistPayload(cacheId, browserId, plat, cid, payload, { containerId: meta.containerId });
+  }
+
+  searchLibrary({
+    query,
+    platform,
+    browserId,
+    limit = 40,
+    maxChars = READ_MAX_CHARS_DEFAULT
+  }: {
+    query?: string;
+    platform?: string;
+    browserId?: string;
+    limit?: number;
+    maxChars?: number;
+  } = {}) {
+    const q = String(query || '').trim();
+    if (!q) {
+      throw new ProtocolError(ERROR_CODES.BAD_REQUEST, 'query required');
+    }
+    const match = buildFtsMatch(q);
+    const lim = clampInt(limit, 1, 200, 40);
+    const charLimit = clampInt(maxChars, 200, 200000, READ_MAX_CHARS_DEFAULT);
+    const params: Array<string | number> = [match];
+    let where = 'WHERE cached_chat_fts MATCH ?';
+    if (platform && String(platform).trim()) {
+      where += ' AND c.platform = ?';
+      params.push(String(platform).trim());
+    }
+    if (browserId && String(browserId).trim()) {
+      where += ' AND c.browser_id = ?';
+      params.push(String(browserId).trim());
+    }
+    params.push(lim);
+    const hits = this.db.all(
+      `SELECT c.cache_id, c.browser_id, c.platform, c.chat_id, c.title,
+              b.turn_index, b.block_id, b.role, b.content, b.revision, b.updated_at,
+              snippet(cached_chat_fts, 3, '[', ']', '...', 24) AS snippet
+         FROM cached_chat_fts
+         JOIN cached_chats c ON c.cache_id = cached_chat_fts.cache_id
+         JOIN cached_chat_blocks b
+           ON b.cache_id = cached_chat_fts.cache_id
+          AND b.turn_index = cached_chat_fts.turn_index
+        ${where}
+        ORDER BY c.updated_at DESC, b.turn_index ASC
+        LIMIT ?`,
+      params
+    );
+    const { blocks: sliced, totalChars, truncated } = sliceBlocksToCharLimit(hits, charLimit);
+    return {
+      query: q,
+      platform: platform ? String(platform).trim() : null,
+      browserId: browserId ? String(browserId).trim() : null,
+      hits: sliced.map((h) => ({
+        cacheId: h.cache_id,
+        browserId: h.browser_id,
+        platform: h.platform,
+        chatId: h.chat_id,
+        title: h.title,
+        turnIndex: h.turn_index,
+        blockId: h.block_id,
+        role: h.role,
+        snippet: h.snippet || undefined,
+        content: h.content,
+        chars: String(h.content || '').length
+      })),
+      matchCount: hits.length,
+      returned: sliced.length,
+      totalChars,
+      truncated
+    };
   }
 
   read({

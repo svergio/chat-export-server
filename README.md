@@ -8,7 +8,7 @@
 
 **Local MCP server** for the [Chat Export](https://github.com/svergio/chat-export-extension) Chrome extension. List, read, export, create, delete, and **ask** in your own chats on **eleven** web providers (ChatGPT, Grok, X Grok, Claude, GitHub Copilot, Qwen, DeepSeek, Perplexity, Kimi, Z.ai, MiniMax) — through the extension in **your** browser. (**JanitorAI** is extension export-bar only and is not in the MCP protocol.) Everything stays on `127.0.0.1`: job queues, SQLite chat cache, audit log, optional [dashboard](https://github.com/svergio/chat-export-dashboard) UI.
 
-Listed on [Glama](https://glama.ai/mcp/servers/svergio/chat-export-server) (v1.1.0, Kimi / Z.ai / MiniMax MCP). Listed on [Mcprush](https://mcprush.com/svergio/chat-export-mcp).
+Listed on [Glama](https://glama.ai/mcp/servers/svergio/chat-export-server) (v1.1.1, library FTS + Kimi / Z.ai / MiniMax MCP). Listed on [Mcprush](https://mcprush.com/svergio/chat-export-mcp).
 
 ## Standalone
 
@@ -264,6 +264,9 @@ stdio:
 | `projects_list` / `projects_*` | Projects/folders (use `projects_list`; MCP alias `containers_list` removed) |
 | `jobs_*` | Async pipeline |
 | `chat_cache_*` | Temp SQLite cache for long threads |
+| `chats_search` | Offline FTS across the local chat library |
+| `tabs_search` | Search open-tab title/url snapshots |
+| `jobs_enqueue` `library_ingest` | Bulk `chats.get` → SQLite+FTS (no files by default) |
 
 Full list evolves with releases; see wiki **MCP Tools**. Captcha is never auto-solved.
 

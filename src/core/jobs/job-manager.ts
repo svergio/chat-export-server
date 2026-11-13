@@ -152,6 +152,20 @@ export class JobManager {
       if (spec.onCaptcha !== undefined) input.onCaptcha = spec.onCaptcha;
       if (spec.ensureTab !== undefined) input.ensureTab = spec.ensureTab === true;
     }
+    if (kind === 'library_ingest') {
+      if (spec.onCaptcha !== undefined) input.onCaptcha = spec.onCaptcha;
+      if (spec.ensureTab !== undefined) input.ensureTab = spec.ensureTab === true;
+      if (spec.branch !== undefined) input.branch = spec.branch;
+      if (spec.writeFiles === true) {
+        input.writeFiles = true;
+        input.formats = requireFormats(spec.formats || ['md']);
+        if (spec.outDir !== undefined && spec.outDir !== '') {
+          resolveExportOutDir(String(spec.outDir), os.homedir());
+          input.outDir = spec.outDir;
+        }
+        if (spec.schema !== undefined) input.schema = String(spec.schema);
+      }
+    }
     if (kind === 'delete' || kind === 'delete_batch') {
       input.confirm = spec.confirm === true;
       input.testOnly = spec.testOnly !== false;

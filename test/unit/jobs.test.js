@@ -173,7 +173,8 @@ describe('sqlite WAL bus', () => {
         'cached_chats',
         'cached_chat_blocks',
         'cached_chat_fts',
-        'metrics_log'
+        'metrics_log',
+        'tab_snapshots'
       ]) {
         assert.ok(names.includes(n), 'missing ' + n);
       }

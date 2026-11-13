@@ -1,4 +1,4 @@
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
 
 export const DEFAULT_AUTOINCREMENT_PK = 'INTEGER PRIMARY KEY AUTOINCREMENT';
 
@@ -118,7 +118,19 @@ export function schemaStatements({
       code TEXT,
       message TEXT,
       detail_json TEXT
-    )`
+    )`,
+    `CREATE TABLE IF NOT EXISTS tab_snapshots (
+      browser_id TEXT NOT NULL,
+      tab_id INTEGER NOT NULL,
+      platform TEXT,
+      url TEXT,
+      chat_id TEXT,
+      title TEXT,
+      seen_at TEXT NOT NULL,
+      PRIMARY KEY (browser_id, tab_id)
+    )`,
+    'CREATE INDEX IF NOT EXISTS idx_tab_snapshots_browser ON tab_snapshots(browser_id, seen_at)',
+    'CREATE INDEX IF NOT EXISTS idx_tab_snapshots_platform ON tab_snapshots(platform, title)'
   ];
   if (fts) {
     statements.push(
