@@ -58,6 +58,7 @@ jobs:
       # GLAMA_REDEPLOY_WEBHOOK_URL or GLAMA_ORGANIZATION_ID+GLAMA_SERVER_ID.
       # Without secrets this step no-ops so releases still publish OCI.
       - name: Refresh Glama registry / TDQS
+        continue-on-error: true
         env:
           GLAMA_TOKEN: ${{ secrets.GLAMA_TOKEN }}
           GLAMA_API_KEY: ${{ secrets.GLAMA_API_KEY }}
