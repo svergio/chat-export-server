@@ -2,9 +2,13 @@
 
 [English](CONTRIBUTING.md) | [Русский](CONTRIBUTING.ru.md)
 
+Вход для агента: [AGENTS.md](./AGENTS.md) (ветки, adversarial / live MCP run-list, как делать фичи).
+
 Локальный MCP-шлюз для [Chat Export](https://github.com/svergio/chat-export-extension). Вместе с `chat-export-extension` (мост) и `chat-export-dashboard` (UI в `dashboard/`).
 
-Без `Co-authored-by` в коммитах. Фичи — в `main`; adversarial/contract тесты сначала на ветке `test`.
+**Ветки:** `feature/` / `fix/` от `test`; чтобы протестить — ветка с тестами **от фичи/фикса**, затем tests → feature → `test`. **`main` только на релизе**. См. [AGENTS.md](./AGENTS.md).
+
+**Co-authored-by:** можно для AI-агента (только Chat Export). Фейковых человеческих соавторов не писать.
 
 См. также: [CONTRIBUTING extension](https://github.com/svergio/chat-export-extension/blob/main/CONTRIBUTING.ru.md), [SECURITY.md](./SECURITY.md).
 
@@ -33,7 +37,7 @@ CI на **`test`** и **`main`** (`.github/workflows/ci.yml`).
 npm test
 ```
 
-Враждебные кейсы (битые тела, токены, delete без confirm, path traversal в именах экспорта, миграции) — сначала на `test`. Сьюты детерминированные, &lt; ~15s. Merge `test` → `main` только при зелёном CI.
+Фичи и враждебные кейсы (битые тела, токены, delete без confirm, path traversal, миграции, live MCP run-list) — на **`test`**. CI-сьюты детерминированные, &lt; ~15s. Merge `test` → `main` **только на релизе**, при зелёном CI.
 
 ## Пакет protocol
 

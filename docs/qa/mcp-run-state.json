@@ -1,0 +1,1929 @@
+{
+  "nextId": null,
+  "slots": {
+    "browserId": "b-215c6f46",
+    "chatId": "f3f1c1a3-6b74-44c1-9980-602a1b056d05",
+    "lastJobId": "job_549c6a54-8a4e-4768-8a2e-6f291c7852a1",
+    "chatId2": "5ea3dbd9-fea3-4246-8a16-caa5721b659e",
+    "chatId3": "2121449740340433060",
+    "cacheId": "cc_fe3e5f796c7bc675ac78319c",
+    "cancelJobId": "job_549c6a54-8a4e-4768-8a2e-6f291c7852a1"
+  },
+  "results": {
+    "100": {
+      "status": "FAIL",
+      "detail": "BAD_REQUEST:matches no oneOf branch",
+      "at": "2026-11-14T03:40:42.937Z"
+    },
+    "101": {
+      "status": "SKIP",
+      "detail": "missing slots: containerId",
+      "at": "2026-11-14T03:40:42.937Z"
+    },
+    "102": {
+      "status": "SKIP",
+      "detail": "missing slots: containerId",
+      "at": "2026-11-14T03:40:42.938Z"
+    },
+    "103": {
+      "status": "SKIP",
+      "detail": "missing slots: containerId",
+      "at": "2026-11-14T03:40:42.938Z"
+    },
+    "104": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T03:42:12.942Z"
+    },
+    "105": {
+      "status": "FAIL",
+      "detail": "TIMEOUT:job timeout",
+      "at": "2026-11-14T03:45:13.448Z"
+    },
+    "106": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T03:46:43.462Z"
+    },
+    "107": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T03:46:48.106Z"
+    },
+    "108": {
+      "status": "FAIL",
+      "detail": "TIMEOUT:job timeout",
+      "at": "2026-11-14T03:49:48.729Z"
+    },
+    "109": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T03:49:48.771Z"
+    },
+    "110": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T03:49:48.800Z"
+    },
+    "111": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T03:49:51.342Z"
+    },
+    "112": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T03:49:51.413Z"
+    },
+    "113": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T03:49:57.109Z"
+    },
+    "114": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T03:49:58.420Z"
+    },
+    "115": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T03:50:01.132Z"
+    },
+    "116": {
+      "status": "FAIL",
+      "detail": "UNAUTHORIZED:GitHub Copilot requires login at github.com/copilot",
+      "at": "2026-11-14T03:50:04.915Z"
+    },
+    "117": {
+      "status": "FAIL",
+      "detail": "UNAUTHORIZED:GitHub Copilot requires login at github.com/copilot",
+      "at": "2026-11-14T03:50:06.091Z"
+    },
+    "118": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T03:51:36.098Z"
+    },
+    "119": {
+      "status": "FAIL",
+      "detail": "UNAUTHORIZED:GitHub Copilot requires login at github.com/copilot",
+      "at": "2026-11-14T03:51:37.833Z"
+    },
+    "120": {
+      "status": "FAIL",
+      "detail": "UNAUTHORIZED:GitHub Copilot requires login at github.com/copilot",
+      "at": "2026-11-14T03:51:38.662Z"
+    },
+    "121": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T03:54:38.670Z"
+    },
+    "122": {
+      "status": "FAIL",
+      "detail": "HOST_ERROR:Navigation rejected.",
+      "at": "2026-11-14T03:54:38.750Z"
+    },
+    "123": {
+      "status": "FAIL",
+      "detail": "NOT_FOUND:cached chat not found",
+      "at": "2026-11-14T03:54:38.788Z"
+    },
+    "124": {
+      "status": "FAIL",
+      "detail": "NOT_FOUND:cached chat not found",
+      "at": "2026-11-14T03:54:38.821Z"
+    },
+    "125": {
+      "status": "FAIL",
+      "detail": "NOT_FOUND:cached chat not found",
+      "at": "2026-11-14T03:54:38.851Z"
+    },
+    "126": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T03:54:38.881Z"
+    },
+    "127": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T03:54:38.908Z"
+    },
+    "128": {
+      "status": "FAIL",
+      "detail": "TIMEOUT:job timeout",
+      "at": "2026-11-14T03:57:39.401Z"
+    },
+    "129": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T03:57:39.450Z"
+    },
+    "130": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T03:57:39.486Z"
+    },
+    "131": {
+      "status": "FAIL",
+      "detail": "TIMEOUT:job timeout",
+      "at": "2026-11-14T04:00:40.039Z"
+    },
+    "132": {
+      "status": "FAIL",
+      "detail": "TIMEOUT:job timeout",
+      "at": "2026-11-14T04:03:40.616Z"
+    },
+    "133": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T04:03:40.668Z"
+    },
+    "134": {
+      "status": "FAIL",
+      "detail": "BAD_REQUEST:matches no oneOf branch",
+      "at": "2026-11-14T04:03:40.709Z"
+    },
+    "135": {
+      "status": "SKIP",
+      "detail": "missing slots: containerId",
+      "at": "2026-11-14T04:03:40.709Z"
+    },
+    "136": {
+      "status": "SKIP",
+      "detail": "missing slots: containerId",
+      "at": "2026-11-14T04:03:40.709Z"
+    },
+    "137": {
+      "status": "SKIP",
+      "detail": "missing slots: containerId",
+      "at": "2026-11-14T04:03:40.710Z"
+    },
+    "138": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T04:05:10.715Z"
+    },
+    "139": {
+      "status": "FAIL",
+      "detail": "TIMEOUT:job timeout",
+      "at": "2026-11-14T04:08:11.309Z"
+    },
+    "140": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T04:08:13.592Z"
+    },
+    "141": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T04:09:43.600Z"
+    },
+    "142": {
+      "status": "FAIL",
+      "detail": "TIMEOUT:job timeout",
+      "at": "2026-11-14T04:12:44.130Z"
+    },
+    "143": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T04:12:44.194Z"
+    },
+    "144": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T04:12:44.227Z"
+    },
+    "145": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T04:12:44.264Z"
+    },
+    "146": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T04:12:44.336Z"
+    },
+    "147": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T04:12:44.394Z"
+    },
+    "148": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T04:14:14.405Z"
+    },
+    "149": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T04:15:44.422Z"
+    },
+    "150": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T04:17:14.440Z"
+    },
+    "151": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T04:18:44.450Z"
+    },
+    "152": {
+      "status": "FAIL",
+      "detail": "NOT_FOUND:conversation not found: f3f1c1a3-6b74-44c1-9980-602a1b056d05",
+      "at": "2026-11-14T04:18:45.827Z"
+    },
+    "153": {
+      "status": "FAIL",
+      "detail": "NOT_FOUND:conversation not found: f3f1c1a3-6b74-44c1-9980-602a1b056d05",
+      "at": "2026-11-14T04:18:46.952Z"
+    },
+    "154": {
+      "status": "FAIL",
+      "detail": "NOT_FOUND:conversation not found: f3f1c1a3-6b74-44c1-9980-602a1b056d05",
+      "at": "2026-11-14T04:18:48.103Z"
+    },
+    "155": {
+      "status": "FAIL",
+      "detail": "NOT_FOUND:conversation not found: f3f1c1a3-6b74-44c1-9980-602a1b056d05",
+      "at": "2026-11-14T04:18:49.300Z"
+    },
+    "156": {
+      "status": "FAIL",
+      "detail": "NOT_FOUND:conversation not found: f3f1c1a3-6b74-44c1-9980-602a1b056d05",
+      "at": "2026-11-14T04:18:50.348Z"
+    },
+    "157": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T04:18:50.397Z"
+    },
+    "158": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T04:18:50.431Z"
+    },
+    "159": {
+      "status": "FAIL",
+      "detail": "NOT_FOUND:cache block not found at turnIndex 0",
+      "at": "2026-11-14T04:18:50.462Z"
+    },
+    "160": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T04:18:50.492Z"
+    },
+    "161": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T04:18:50.522Z"
+    },
+    "162": {
+      "status": "FAIL",
+      "detail": "TIMEOUT:job timeout",
+      "at": "2026-11-14T04:21:51.104Z"
+    },
+    "163": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T04:21:51.161Z"
+    },
+    "164": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T04:21:51.196Z"
+    },
+    "165": {
+      "status": "FAIL",
+      "detail": "TIMEOUT:job timeout",
+      "at": "2026-11-14T04:24:51.777Z"
+    },
+    "166": {
+      "status": "FAIL",
+      "detail": "TIMEOUT:job timeout",
+      "at": "2026-11-14T04:27:52.026Z"
+    },
+    "167": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T04:27:52.584Z"
+    },
+    "168": {
+      "status": "SKIP",
+      "detail": "unsupported:-32001",
+      "at": "2026-11-14T04:28:52.593Z"
+    },
+    "169": {
+      "status": "SKIP",
+      "detail": "missing slots: containerId",
+      "at": "2026-11-14T04:28:52.596Z"
+    },
+    "170": {
+      "status": "SKIP",
+      "detail": "missing slots: containerId",
+      "at": "2026-11-14T04:28:52.598Z"
+    },
+    "171": {
+      "status": "SKIP",
+      "detail": "missing slots: containerId",
+      "at": "2026-11-14T04:28:52.598Z"
+    },
+    "172": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T04:30:22.600Z"
+    },
+    "173": {
+      "status": "FAIL",
+      "detail": "TIMEOUT:job timeout",
+      "at": "2026-11-14T04:33:23.369Z"
+    },
+    "174": {
+      "status": "FAIL",
+      "detail": "NOT_FOUND:conversation not found: f3f1c1a3-6b74-44c1-9980-602a1b056d05",
+      "at": "2026-11-14T04:33:23.870Z"
+    },
+    "175": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T04:34:53.881Z"
+    },
+    "176": {
+      "status": "FAIL",
+      "detail": "TIMEOUT:job timeout",
+      "at": "2026-11-14T04:37:54.730Z"
+    },
+    "177": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T04:37:54.793Z"
+    },
+    "178": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T04:37:54.825Z"
+    },
+    "179": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T04:38:54.832Z"
+    },
+    "180": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T04:38:54.957Z"
+    },
+    "181": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T04:39:01.999Z"
+    },
+    "182": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T04:39:02.417Z"
+    },
+    "183": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T04:40:32.423Z"
+    },
+    "184": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T04:42:02.433Z"
+    },
+    "185": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T04:43:32.446Z"
+    },
+    "186": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T04:45:02.460Z"
+    },
+    "187": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T04:46:32.464Z"
+    },
+    "188": {
+      "status": "FAIL",
+      "detail": "NOT_FOUND:Этот диалог был удален. Перенаправление на главную страницу через 3 секунды.",
+      "at": "2026-11-14T04:46:33.546Z"
+    },
+    "189": {
+      "status": "FAIL",
+      "detail": "NOT_FOUND:Этот диалог был удален. Перенаправление на главную страницу через 3 секунды.",
+      "at": "2026-11-14T04:46:33.929Z"
+    },
+    "190": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T04:49:33.941Z"
+    },
+    "191": {
+      "status": "FAIL",
+      "detail": "NOT_FOUND:cached chat not found",
+      "at": "2026-11-14T04:49:34.025Z"
+    },
+    "192": {
+      "status": "FAIL",
+      "detail": "NOT_FOUND:cached chat not found",
+      "at": "2026-11-14T04:49:34.054Z"
+    },
+    "193": {
+      "status": "FAIL",
+      "detail": "NOT_FOUND:cached chat not found",
+      "at": "2026-11-14T04:49:34.081Z"
+    },
+    "194": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T04:49:34.109Z"
+    },
+    "195": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T04:49:34.153Z"
+    },
+    "196": {
+      "status": "FAIL",
+      "detail": "TIMEOUT:job timeout",
+      "at": "2026-11-14T04:52:34.894Z"
+    },
+    "197": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T04:52:34.931Z"
+    },
+    "198": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T04:52:34.964Z"
+    },
+    "199": {
+      "status": "FAIL",
+      "detail": "TIMEOUT:job timeout",
+      "at": "2026-11-14T04:55:35.793Z"
+    },
+    "200": {
+      "status": "FAIL",
+      "detail": "TIMEOUT:job timeout",
+      "at": "2026-11-14T04:58:36.542Z"
+    },
+    "201": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T04:58:36.606Z"
+    },
+    "202": {
+      "status": "SKIP",
+      "detail": "unsupported:HOST_ERROR",
+      "at": "2026-11-14T04:58:36.638Z"
+    },
+    "203": {
+      "status": "SKIP",
+      "detail": "missing slots: containerId",
+      "at": "2026-11-14T04:58:36.638Z"
+    },
+    "204": {
+      "status": "SKIP",
+      "detail": "missing slots: containerId",
+      "at": "2026-11-14T04:58:36.638Z"
+    },
+    "205": {
+      "status": "SKIP",
+      "detail": "missing slots: containerId",
+      "at": "2026-11-14T04:58:36.639Z"
+    },
+    "206": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T05:00:06.647Z"
+    },
+    "207": {
+      "status": "FAIL",
+      "detail": "TIMEOUT:job timeout",
+      "at": "2026-11-14T05:03:07.360Z"
+    },
+    "208": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T05:04:37.373Z"
+    },
+    "209": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T05:06:07.385Z"
+    },
+    "210": {
+      "status": "FAIL",
+      "detail": "TIMEOUT:job timeout",
+      "at": "2026-11-14T05:09:08.136Z"
+    },
+    "211": {
+      "status": "FAIL",
+      "detail": "NOT_FOUND:cached chat not found",
+      "at": "2026-11-14T05:09:08.194Z"
+    },
+    "212": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T05:09:08.224Z"
+    },
+    "213": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T05:10:08.232Z"
+    },
+    "214": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T05:10:08.319Z"
+    },
+    "215": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T05:12:08.319Z"
+    },
+    "216": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T05:13:38.324Z"
+    },
+    "217": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T05:15:08.339Z"
+    },
+    "218": {
+      "status": "FAIL",
+      "detail": "HOST_ERROR:composer not found",
+      "at": "2026-11-14T05:15:08.484Z"
+    },
+    "219": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T05:16:38.491Z"
+    },
+    "220": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T05:18:08.500Z"
+    },
+    "221": {
+      "status": "FAIL",
+      "detail": "UNAUTHORIZED:get INVALID_TOKEN",
+      "at": "2026-11-14T05:18:08.909Z"
+    },
+    "222": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T05:19:38.918Z"
+    },
+    "223": {
+      "status": "FAIL",
+      "detail": "HOST_ERROR:get invalid chat session id",
+      "at": "2026-11-14T05:19:39.448Z"
+    },
+    "224": {
+      "status": "FAIL",
+      "detail": "UNAUTHORIZED:get INVALID_TOKEN",
+      "at": "2026-11-14T05:19:39.785Z"
+    },
+    "225": {
+      "status": "FAIL",
+      "detail": "NOT_FOUND:cached chat not found",
+      "at": "2026-11-14T05:19:39.825Z"
+    },
+    "226": {
+      "status": "FAIL",
+      "detail": "NOT_FOUND:cached chat not found",
+      "at": "2026-11-14T05:19:39.854Z"
+    },
+    "227": {
+      "status": "FAIL",
+      "detail": "NOT_FOUND:cached chat not found",
+      "at": "2026-11-14T05:19:39.880Z"
+    },
+    "228": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T05:19:39.907Z"
+    },
+    "229": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T05:19:39.932Z"
+    },
+    "230": {
+      "status": "FAIL",
+      "detail": "TIMEOUT:job timeout",
+      "at": "2026-11-14T05:22:40.771Z"
+    },
+    "231": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T05:22:40.801Z"
+    },
+    "232": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T05:22:40.830Z"
+    },
+    "233": {
+      "status": "FAIL",
+      "detail": "TIMEOUT:job timeout",
+      "at": "2026-11-14T05:25:40.938Z"
+    },
+    "234": {
+      "status": "FAIL",
+      "detail": "TIMEOUT:job timeout",
+      "at": "2026-11-14T05:28:41.568Z"
+    },
+    "235": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T05:28:41.635Z"
+    },
+    "236": {
+      "status": "SKIP",
+      "detail": "unsupported:HOST_ERROR",
+      "at": "2026-11-14T05:28:41.699Z"
+    },
+    "237": {
+      "status": "SKIP",
+      "detail": "missing slots: containerId",
+      "at": "2026-11-14T05:28:41.699Z"
+    },
+    "238": {
+      "status": "SKIP",
+      "detail": "missing slots: containerId",
+      "at": "2026-11-14T05:28:41.700Z"
+    },
+    "239": {
+      "status": "SKIP",
+      "detail": "missing slots: containerId",
+      "at": "2026-11-14T05:28:41.700Z"
+    },
+    "240": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T05:30:11.706Z"
+    },
+    "241": {
+      "status": "FAIL",
+      "detail": "TIMEOUT:job timeout",
+      "at": "2026-11-14T05:33:11.861Z"
+    },
+    "242": {
+      "status": "FAIL",
+      "detail": "UNAUTHORIZED:delete INVALID_TOKEN",
+      "at": "2026-11-14T05:33:12.228Z"
+    },
+    "243": {
+      "status": "FAIL",
+      "detail": "HOST_ERROR:deepseek tab navigated away during chats.create (page reload / bfcache); result unknown",
+      "at": "2026-11-14T05:33:31.526Z"
+    },
+    "244": {
+      "status": "FAIL",
+      "detail": "TIMEOUT:job timeout",
+      "at": "2026-11-14T05:36:32.250Z"
+    },
+    "245": {
+      "status": "FAIL",
+      "detail": "NOT_FOUND:cached chat not found",
+      "at": "2026-11-14T05:36:32.297Z"
+    },
+    "246": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T05:36:32.327Z"
+    },
+    "247": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T05:36:32.355Z"
+    },
+    "248": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T05:36:32.403Z"
+    },
+    "249": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T05:36:33.379Z"
+    },
+    "250": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T05:38:03.388Z"
+    },
+    "251": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T05:39:33.405Z"
+    },
+    "252": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T05:41:03.418Z"
+    },
+    "253": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T05:42:33.431Z"
+    },
+    "254": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T05:44:03.441Z"
+    },
+    "255": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T05:45:33.460Z"
+    },
+    "256": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T05:47:03.469Z"
+    },
+    "257": {
+      "status": "FAIL",
+      "detail": "UNAUTHORIZED:thread not available via API",
+      "at": "2026-11-14T05:47:03.772Z"
+    },
+    "258": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T05:50:03.757Z"
+    },
+    "259": {
+      "status": "FAIL",
+      "detail": "NOT_FOUND:cached chat not found",
+      "at": "2026-11-14T05:50:03.837Z"
+    },
+    "260": {
+      "status": "FAIL",
+      "detail": "NOT_FOUND:cached chat not found",
+      "at": "2026-11-14T05:50:03.863Z"
+    },
+    "261": {
+      "status": "FAIL",
+      "detail": "NOT_FOUND:cached chat not found",
+      "at": "2026-11-14T05:50:03.889Z"
+    },
+    "262": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T05:50:03.914Z"
+    },
+    "263": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T05:50:03.943Z"
+    },
+    "264": {
+      "status": "FAIL",
+      "detail": "TIMEOUT:job timeout",
+      "at": "2026-11-14T05:53:04.584Z"
+    },
+    "265": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T05:53:04.667Z"
+    },
+    "266": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T05:53:04.713Z"
+    },
+    "267": {
+      "status": "FAIL",
+      "detail": "TIMEOUT:job timeout",
+      "at": "2026-11-14T05:56:05.532Z"
+    },
+    "268": {
+      "status": "FAIL",
+      "detail": "TIMEOUT:job timeout",
+      "at": "2026-11-14T05:59:06.367Z"
+    },
+    "269": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T05:59:06.478Z"
+    },
+    "270": {
+      "status": "SKIP",
+      "detail": "unsupported:HOST_ERROR",
+      "at": "2026-11-14T05:59:06.512Z"
+    },
+    "271": {
+      "status": "SKIP",
+      "detail": "missing slots: containerId",
+      "at": "2026-11-14T05:59:06.512Z"
+    },
+    "272": {
+      "status": "SKIP",
+      "detail": "missing slots: containerId",
+      "at": "2026-11-14T05:59:06.513Z"
+    },
+    "273": {
+      "status": "SKIP",
+      "detail": "missing slots: containerId",
+      "at": "2026-11-14T05:59:06.513Z"
+    },
+    "274": {
+      "status": "FAIL",
+      "detail": "RATE_LIMIT:Перейти на Pro",
+      "at": "2026-11-14T05:59:11.564Z"
+    },
+    "275": {
+      "status": "FAIL",
+      "detail": "TIMEOUT:job timeout",
+      "at": "2026-11-14T06:02:12.408Z"
+    },
+    "276": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T06:03:42.428Z"
+    },
+    "277": {
+      "status": "FAIL",
+      "detail": "RATE_LIMIT:Перейти на Pro",
+      "at": "2026-11-14T06:03:45.927Z"
+    },
+    "278": {
+      "status": "FAIL",
+      "detail": "TIMEOUT:job timeout",
+      "at": "2026-11-14T06:06:46.725Z"
+    },
+    "279": {
+      "status": "FAIL",
+      "detail": "NOT_FOUND:cached chat not found",
+      "at": "2026-11-14T06:06:46.783Z"
+    },
+    "280": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T06:06:46.812Z"
+    },
+    "281": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T06:07:46.815Z"
+    },
+    "282": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T06:07:46.906Z"
+    },
+    "283": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T06:07:46.977Z"
+    },
+    "284": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T06:09:16.985Z"
+    },
+    "285": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T06:10:46.991Z"
+    },
+    "286": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T06:12:17.004Z"
+    },
+    "287": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T06:13:47.016Z"
+    },
+    "288": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T06:15:17.025Z"
+    },
+    "289": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T06:15:18.078Z"
+    },
+    "290": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T06:15:19.046Z"
+    },
+    "291": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T06:18:19.053Z"
+    },
+    "292": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T06:18:20.053Z"
+    },
+    "293": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T06:18:20.100Z"
+    },
+    "294": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T06:18:20.130Z"
+    },
+    "295": {
+      "status": "FAIL",
+      "detail": "NOT_FOUND:cache block not found at turnIndex 0",
+      "at": "2026-11-14T06:18:20.158Z"
+    },
+    "296": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T06:18:20.186Z"
+    },
+    "297": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T06:18:20.213Z"
+    },
+    "298": {
+      "status": "FAIL",
+      "detail": "TIMEOUT:job timeout",
+      "at": "2026-11-14T06:21:20.277Z"
+    },
+    "299": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T06:21:20.326Z"
+    },
+    "300": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T06:21:20.359Z"
+    },
+    "301": {
+      "status": "FAIL",
+      "detail": "TIMEOUT:job timeout",
+      "at": "2026-11-14T06:24:20.668Z"
+    },
+    "302": {
+      "status": "FAIL",
+      "detail": "TIMEOUT:job timeout",
+      "at": "2026-11-14T06:27:20.763Z"
+    },
+    "303": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T06:27:20.827Z"
+    },
+    "304": {
+      "status": "SKIP",
+      "detail": "unsupported:HOST_ERROR",
+      "at": "2026-11-14T06:27:20.865Z"
+    },
+    "305": {
+      "status": "SKIP",
+      "detail": "missing slots: containerId",
+      "at": "2026-11-14T06:27:20.866Z"
+    },
+    "306": {
+      "status": "SKIP",
+      "detail": "missing slots: containerId",
+      "at": "2026-11-14T06:27:20.867Z"
+    },
+    "307": {
+      "status": "SKIP",
+      "detail": "missing slots: containerId",
+      "at": "2026-11-14T06:27:20.868Z"
+    },
+    "308": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T06:28:50.872Z"
+    },
+    "309": {
+      "status": "FAIL",
+      "detail": "TIMEOUT:job timeout",
+      "at": "2026-11-14T06:31:51.237Z"
+    },
+    "310": {
+      "status": "FAIL",
+      "detail": "HOST_ERROR:Kimi delete unavailable — ChatService/UI delete not found for: f3f1c1a3-6b74-44c1-9980-602a1b056d05",
+      "at": "2026-11-14T06:31:53.728Z"
+    },
+    "311": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T06:33:23.735Z"
+    },
+    "312": {
+      "status": "FAIL",
+      "detail": "TIMEOUT:job timeout",
+      "at": "2026-11-14T06:36:23.925Z"
+    },
+    "313": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T06:36:23.989Z"
+    },
+    "314": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T06:36:24.021Z"
+    },
+    "315": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T06:37:24.029Z"
+    },
+    "316": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T06:37:24.124Z"
+    },
+    "317": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T06:37:25.465Z"
+    },
+    "318": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T06:38:55.471Z"
+    },
+    "319": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T06:40:25.486Z"
+    },
+    "320": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T06:40:26.000Z"
+    },
+    "321": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T06:41:56.011Z"
+    },
+    "322": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T06:43:26.017Z"
+    },
+    "323": {
+      "status": "FAIL",
+      "detail": "NOT_FOUND:conversation not found: f3f1c1a3-6b74-44c1-9980-602a1b056d05",
+      "at": "2026-11-14T06:43:26.399Z"
+    },
+    "324": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T06:44:56.404Z"
+    },
+    "325": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T06:47:56.413Z"
+    },
+    "326": {
+      "status": "FAIL",
+      "detail": "NOT_FOUND:conversation not found: f3f1c1a3-6b74-44c1-9980-602a1b056d05",
+      "at": "2026-11-14T06:47:57.439Z"
+    },
+    "327": {
+      "status": "FAIL",
+      "detail": "NOT_FOUND:cached chat not found",
+      "at": "2026-11-14T06:47:57.469Z"
+    },
+    "328": {
+      "status": "FAIL",
+      "detail": "NOT_FOUND:cached chat not found",
+      "at": "2026-11-14T06:47:57.498Z"
+    },
+    "329": {
+      "status": "FAIL",
+      "detail": "NOT_FOUND:cached chat not found",
+      "at": "2026-11-14T06:47:57.527Z"
+    },
+    "330": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T06:47:57.558Z"
+    },
+    "331": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T06:47:57.586Z"
+    },
+    "332": {
+      "status": "FAIL",
+      "detail": "TIMEOUT:job timeout",
+      "at": "2026-11-14T06:50:58.160Z"
+    },
+    "333": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T06:50:58.212Z"
+    },
+    "334": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T06:50:58.247Z"
+    },
+    "335": {
+      "status": "FAIL",
+      "detail": "TIMEOUT:job timeout",
+      "at": "2026-11-14T06:53:58.457Z"
+    },
+    "336": {
+      "status": "FAIL",
+      "detail": "TIMEOUT:job timeout",
+      "at": "2026-11-14T06:56:58.893Z"
+    },
+    "337": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T06:56:58.932Z"
+    },
+    "338": {
+      "status": "SKIP",
+      "detail": "unsupported:HOST_ERROR",
+      "at": "2026-11-14T06:56:58.966Z"
+    },
+    "339": {
+      "status": "SKIP",
+      "detail": "missing slots: containerId",
+      "at": "2026-11-14T06:56:58.967Z"
+    },
+    "340": {
+      "status": "SKIP",
+      "detail": "missing slots: containerId",
+      "at": "2026-11-14T06:56:58.967Z"
+    },
+    "341": {
+      "status": "SKIP",
+      "detail": "missing slots: containerId",
+      "at": "2026-11-14T06:56:58.968Z"
+    },
+    "342": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T06:58:28.974Z"
+    },
+    "343": {
+      "status": "FAIL",
+      "detail": "TIMEOUT:job timeout",
+      "at": "2026-11-14T07:01:29.339Z"
+    },
+    "344": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T07:02:59.356Z"
+    },
+    "345": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T07:04:29.380Z"
+    },
+    "346": {
+      "status": "FAIL",
+      "detail": "TIMEOUT:job timeout",
+      "at": "2026-11-14T07:07:30.098Z"
+    },
+    "347": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T07:07:30.364Z"
+    },
+    "348": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T07:07:30.802Z"
+    },
+    "349": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T07:08:30.794Z"
+    },
+    "350": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T07:08:31.753Z"
+    },
+    "351": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T07:08:38.351Z"
+    },
+    "352": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T07:10:08.383Z"
+    },
+    "353": {
+      "status": "FAIL",
+      "detail": "UNAUTHORIZED:MiniMax Agent requires sign-in",
+      "at": "2026-11-14T07:10:09.299Z"
+    },
+    "354": {
+      "status": "FAIL",
+      "detail": "UNAUTHORIZED:MiniMax Agent requires sign-in",
+      "at": "2026-11-14T07:10:09.590Z"
+    },
+    "355": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T07:11:39.607Z"
+    },
+    "356": {
+      "status": "FAIL",
+      "detail": "UNAUTHORIZED:MiniMax Agent requires sign-in",
+      "at": "2026-11-14T07:11:40.437Z"
+    },
+    "357": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T07:13:10.470Z"
+    },
+    "358": {
+      "status": "FAIL",
+      "detail": "UNAUTHORIZED:MiniMax Agent requires sign-in",
+      "at": "2026-11-14T07:13:11.084Z"
+    },
+    "359": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T07:13:15.965Z"
+    },
+    "360": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T07:16:15.977Z"
+    },
+    "361": {
+      "status": "FAIL",
+      "detail": "NOT_FOUND:cached chat not found",
+      "at": "2026-11-14T07:16:16.490Z"
+    },
+    "362": {
+      "status": "FAIL",
+      "detail": "NOT_FOUND:cached chat not found",
+      "at": "2026-11-14T07:16:17.156Z"
+    },
+    "363": {
+      "status": "FAIL",
+      "detail": "NOT_FOUND:cached chat not found",
+      "at": "2026-11-14T07:16:17.551Z"
+    },
+    "364": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T07:16:17.779Z"
+    },
+    "365": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T07:16:18.046Z"
+    },
+    "366": {
+      "status": "FAIL",
+      "detail": "ok:0 failed:1 UNAUTHORIZED",
+      "at": "2026-11-14T07:16:19.881Z"
+    },
+    "367": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T07:16:20.388Z"
+    },
+    "368": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T07:16:20.698Z"
+    },
+    "369": {
+      "status": "FAIL",
+      "detail": "UNAUTHORIZED:MiniMax Agent requires sign-in",
+      "at": "2026-11-14T07:16:22.444Z"
+    },
+    "370": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T07:16:29.613Z"
+    },
+    "371": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T07:16:30.211Z"
+    },
+    "372": {
+      "status": "SKIP",
+      "detail": "unsupported:HOST_ERROR",
+      "at": "2026-11-14T07:16:30.423Z"
+    },
+    "373": {
+      "status": "SKIP",
+      "detail": "missing slots: containerId",
+      "at": "2026-11-14T07:16:30.429Z"
+    },
+    "374": {
+      "status": "SKIP",
+      "detail": "missing slots: containerId",
+      "at": "2026-11-14T07:16:30.434Z"
+    },
+    "375": {
+      "status": "SKIP",
+      "detail": "missing slots: containerId",
+      "at": "2026-11-14T07:16:30.439Z"
+    },
+    "376": {
+      "status": "FAIL",
+      "detail": "UNAUTHORIZED:MiniMax Agent requires sign-in",
+      "at": "2026-11-14T07:16:30.668Z"
+    },
+    "377": {
+      "status": "FAIL",
+      "detail": "DESTRUCTIVE_DISABLED:testOnly: chat title does not start with [ce-test]",
+      "at": "2026-11-14T07:16:36.817Z"
+    },
+    "378": {
+      "status": "FAIL",
+      "detail": "UNAUTHORIZED:MiniMax Agent requires sign-in",
+      "at": "2026-11-14T07:16:37.215Z"
+    },
+    "379": {
+      "status": "FAIL",
+      "detail": "UNAUTHORIZED:MiniMax Agent requires sign-in",
+      "at": "2026-11-14T07:16:37.459Z"
+    },
+    "380": {
+      "status": "FAIL",
+      "detail": "ok:0 failed:1 DESTRUCTIVE_DISABLED",
+      "at": "2026-11-14T07:16:43.708Z"
+    },
+    "381": {
+      "status": "FAIL",
+      "detail": "NOT_FOUND:cached chat not found",
+      "at": "2026-11-14T07:16:44.095Z"
+    },
+    "382": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T07:16:44.306Z"
+    },
+    "383": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T07:16:44.533Z"
+    },
+    "001": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T02:28:42.851Z"
+    },
+    "002": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T02:28:42.914Z"
+    },
+    "003": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T02:28:42.944Z"
+    },
+    "004": {
+      "status": "PASS",
+      "detail": "schema ok",
+      "at": "2026-11-14T02:28:43.007Z"
+    },
+    "005": {
+      "status": "SKIP",
+      "detail": "no online empty-platforms browser",
+      "at": "2026-11-14T02:28:43.068Z"
+    },
+    "006": {
+      "status": "PASS",
+      "detail": "ok:0 DESTRUCTIVE_DISABLED",
+      "at": "2026-11-14T02:30:44.531Z"
+    },
+    "007": {
+      "status": "SKIP",
+      "detail": "wire-filtered",
+      "at": "2026-11-14T02:30:44.532Z"
+    },
+    "008": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T02:30:44.564Z"
+    },
+    "009": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T02:30:44.599Z"
+    },
+    "010": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T02:30:44.659Z"
+    },
+    "011": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T02:30:44.693Z"
+    },
+    "012": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T02:33:41.974Z"
+    },
+    "013": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T02:33:44.362Z"
+    },
+    "014": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T02:33:51.344Z"
+    },
+    "015": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T02:35:21.349Z"
+    },
+    "016": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T02:36:51.359Z"
+    },
+    "017": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T02:38:21.369Z"
+    },
+    "018": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T02:39:51.398Z"
+    },
+    "019": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T02:42:51.404Z"
+    },
+    "020": {
+      "status": "FAIL",
+      "detail": "NOT_BOUND:browser disconnected",
+      "at": "2026-11-14T02:43:44.663Z"
+    },
+    "021": {
+      "status": "FAIL",
+      "detail": "missing slots: cacheId",
+      "at": "2026-11-14T02:43:44.664Z"
+    },
+    "022": {
+      "status": "FAIL",
+      "detail": "missing slots: cacheId",
+      "at": "2026-11-14T02:43:44.664Z"
+    },
+    "023": {
+      "status": "FAIL",
+      "detail": "missing slots: cacheId",
+      "at": "2026-11-14T02:43:44.664Z"
+    },
+    "024": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T02:43:44.717Z"
+    },
+    "025": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T02:43:44.748Z"
+    },
+    "026": {
+      "status": "FAIL",
+      "detail": "TIMEOUT:job timeout",
+      "at": "2026-11-14T02:46:45.188Z"
+    },
+    "027": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T02:46:45.218Z"
+    },
+    "028": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T02:46:45.262Z"
+    },
+    "029": {
+      "status": "FAIL",
+      "detail": "TIMEOUT:job timeout",
+      "at": "2026-11-14T02:49:45.431Z"
+    },
+    "030": {
+      "status": "FAIL",
+      "detail": "TIMEOUT:job timeout",
+      "at": "2026-11-14T02:52:45.829Z"
+    },
+    "031": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T02:52:46.136Z"
+    },
+    "032": {
+      "status": "SKIP",
+      "detail": "unsupported:-32001",
+      "at": "2026-11-14T02:53:46.142Z"
+    },
+    "033": {
+      "status": "SKIP",
+      "detail": "missing slots: containerId",
+      "at": "2026-11-14T02:53:46.144Z"
+    },
+    "034": {
+      "status": "SKIP",
+      "detail": "missing slots: containerId",
+      "at": "2026-11-14T02:53:46.144Z"
+    },
+    "035": {
+      "status": "SKIP",
+      "detail": "missing slots: containerId",
+      "at": "2026-11-14T02:53:46.145Z"
+    },
+    "036": {
+      "status": "FAIL",
+      "detail": "HOST_ERROR:ChatGPT submit failed",
+      "at": "2026-11-14T02:53:56.860Z"
+    },
+    "037": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId2",
+      "at": "2026-11-14T02:53:56.863Z"
+    },
+    "038": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T02:55:26.843Z"
+    },
+    "039": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T02:56:56.851Z"
+    },
+    "040": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId3",
+      "at": "2026-11-14T02:56:56.858Z"
+    },
+    "041": {
+      "status": "SKIP",
+      "detail": "missing slots: cacheId",
+      "at": "2026-11-14T02:56:56.859Z"
+    },
+    "042": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T02:56:56.937Z"
+    },
+    "043": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T02:56:56.968Z"
+    },
+    "044": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T02:56:58.037Z"
+    },
+    "045": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T02:56:58.090Z"
+    },
+    "046": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T02:58:28.095Z"
+    },
+    "047": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T02:58:30.051Z"
+    },
+    "048": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T02:58:35.160Z"
+    },
+    "049": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T03:00:05.167Z"
+    },
+    "050": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T03:01:35.179Z"
+    },
+    "051": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T03:03:05.191Z"
+    },
+    "052": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T03:04:35.201Z"
+    },
+    "053": {
+      "status": "FAIL",
+      "detail": "NOT_FOUND:conversation not found: c8553c19-d4ee-4c56-8778-fbe8fe230fcb",
+      "at": "2026-11-14T03:04:35.567Z"
+    },
+    "054": {
+      "status": "FAIL",
+      "detail": "NOT_FOUND:conversation not found: c8553c19-d4ee-4c56-8778-fbe8fe230fcb",
+      "at": "2026-11-14T03:04:35.831Z"
+    },
+    "055": {
+      "status": "FAIL",
+      "detail": "missing slots: cacheId",
+      "at": "2026-11-14T03:04:35.832Z"
+    },
+    "056": {
+      "status": "FAIL",
+      "detail": "missing slots: cacheId",
+      "at": "2026-11-14T03:04:35.832Z"
+    },
+    "057": {
+      "status": "FAIL",
+      "detail": "missing slots: cacheId",
+      "at": "2026-11-14T03:04:35.832Z"
+    },
+    "058": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T03:04:35.868Z"
+    },
+    "059": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T03:04:35.896Z"
+    },
+    "060": {
+      "status": "FAIL",
+      "detail": "TIMEOUT:job timeout",
+      "at": "2026-11-14T03:07:35.977Z"
+    },
+    "061": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T03:07:36.032Z"
+    },
+    "062": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T03:07:36.064Z"
+    },
+    "063": {
+      "status": "FAIL",
+      "detail": "TIMEOUT:job timeout",
+      "at": "2026-11-14T03:10:36.758Z"
+    },
+    "064": {
+      "status": "FAIL",
+      "detail": "TIMEOUT:job timeout",
+      "at": "2026-11-14T03:13:37.614Z"
+    },
+    "065": {
+      "status": "SKIP",
+      "detail": "unsupported:-32001",
+      "at": "2026-11-14T03:14:02.622Z"
+    },
+    "066": {
+      "status": "SKIP",
+      "detail": "unsupported:HOST_ERROR",
+      "at": "2026-11-14T03:14:18.958Z"
+    },
+    "067": {
+      "status": "SKIP",
+      "detail": "missing slots: containerId",
+      "at": "2026-11-14T03:14:18.959Z"
+    },
+    "068": {
+      "status": "SKIP",
+      "detail": "missing slots: containerId",
+      "at": "2026-11-14T03:14:18.959Z"
+    },
+    "069": {
+      "status": "SKIP",
+      "detail": "missing slots: containerId",
+      "at": "2026-11-14T03:14:18.960Z"
+    },
+    "070": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T03:14:20.293Z"
+    },
+    "071": {
+      "status": "FAIL",
+      "detail": "TIMEOUT:job timeout",
+      "at": "2026-11-14T03:17:20.390Z"
+    },
+    "072": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T03:18:50.401Z"
+    },
+    "073": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T03:18:52.113Z"
+    },
+    "074": {
+      "status": "FAIL",
+      "detail": "TIMEOUT:job timeout",
+      "at": "2026-11-14T03:21:52.161Z"
+    },
+    "075": {
+      "status": "SKIP",
+      "detail": "missing slots: cacheId",
+      "at": "2026-11-14T03:21:52.166Z"
+    },
+    "076": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T03:21:52.219Z"
+    },
+    "077": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T03:21:54.399Z"
+    },
+    "078": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T03:21:54.553Z"
+    },
+    "079": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T03:21:54.600Z"
+    },
+    "080": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T03:23:24.609Z"
+    },
+    "081": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T03:24:54.622Z"
+    },
+    "082": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T03:26:24.638Z"
+    },
+    "083": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T03:27:54.672Z"
+    },
+    "084": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T03:29:24.677Z"
+    },
+    "085": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T03:30:54.683Z"
+    },
+    "086": {
+      "status": "FAIL",
+      "detail": "NOT_FOUND:conversation not found or empty: c8553c19-d4ee-4c56-8778-fbe8fe230fcb",
+      "at": "2026-11-14T03:31:31.090Z"
+    },
+    "087": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T03:31:36.117Z"
+    },
+    "088": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T03:31:41.087Z"
+    },
+    "089": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T03:31:41.142Z"
+    },
+    "090": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T03:31:41.178Z"
+    },
+    "091": {
+      "status": "FAIL",
+      "detail": "NOT_FOUND:cache block not found at turnIndex 0",
+      "at": "2026-11-14T03:31:41.210Z"
+    },
+    "092": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T03:31:41.241Z"
+    },
+    "093": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T03:31:41.277Z"
+    },
+    "094": {
+      "status": "FAIL",
+      "detail": "TIMEOUT:job timeout",
+      "at": "2026-11-14T03:34:41.852Z"
+    },
+    "095": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T03:34:41.913Z"
+    },
+    "096": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T03:34:41.979Z"
+    },
+    "097": {
+      "status": "FAIL",
+      "detail": "TIMEOUT:job timeout",
+      "at": "2026-11-14T03:37:42.491Z"
+    },
+    "098": {
+      "status": "FAIL",
+      "detail": "TIMEOUT:job timeout",
+      "at": "2026-11-14T03:40:42.825Z"
+    },
+    "099": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T03:40:42.895Z"
+    }
+  }
+}

@@ -1,0 +1,1925 @@
+{
+  "nextId": null,
+  "slots": {
+    "browserId": "b-215c6f46",
+    "lastJobId": "job_8d8faeff-b38a-4b98-a91c-19924cf16ad5",
+    "cancelJobId": "job_8d8faeff-b38a-4b98-a91c-19924cf16ad5"
+  },
+  "results": {
+    "100": {
+      "status": "SKIP",
+      "detail": "unsupported:PROJECTS_DISABLED",
+      "at": "2026-11-14T17:10:33.850Z"
+    },
+    "101": {
+      "status": "SKIP",
+      "detail": "missing slots: containerId",
+      "at": "2026-11-14T17:10:33.851Z"
+    },
+    "102": {
+      "status": "SKIP",
+      "detail": "missing slots: containerId",
+      "at": "2026-11-14T17:10:33.851Z"
+    },
+    "103": {
+      "status": "SKIP",
+      "detail": "missing slots: containerId",
+      "at": "2026-11-14T17:10:33.851Z"
+    },
+    "104": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:10:41.198Z"
+    },
+    "105": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:10:50.601Z"
+    },
+    "106": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:10:52.015Z"
+    },
+    "107": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:10:57.195Z"
+    },
+    "108": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:11:04.083Z"
+    },
+    "109": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:11:04.118Z"
+    },
+    "110": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:11:04.149Z"
+    },
+    "111": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:11:04.182Z"
+    },
+    "112": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:11:04.303Z"
+    },
+    "113": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:12:26.198Z"
+    },
+    "114": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:12:30.465Z"
+    },
+    "115": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:12:45.212Z"
+    },
+    "116": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:12:58.195Z"
+    },
+    "117": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:13:04.245Z"
+    },
+    "118": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:13:05.460Z"
+    },
+    "119": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:13:07.124Z"
+    },
+    "120": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:13:08.494Z"
+    },
+    "121": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:13:10.219Z"
+    },
+    "122": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:13:13.850Z"
+    },
+    "123": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:13:13.898Z"
+    },
+    "124": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:13:13.933Z"
+    },
+    "125": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:13:13.976Z"
+    },
+    "126": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:13:14.008Z"
+    },
+    "127": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:13:14.044Z"
+    },
+    "128": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:13:16.647Z"
+    },
+    "129": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:13:16.679Z"
+    },
+    "130": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:13:16.713Z"
+    },
+    "131": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:13:18.470Z"
+    },
+    "132": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:13:21.075Z"
+    },
+    "133": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:13:21.113Z"
+    },
+    "134": {
+      "status": "SKIP",
+      "detail": "unsupported:PROJECTS_DISABLED",
+      "at": "2026-11-14T17:13:21.149Z"
+    },
+    "135": {
+      "status": "SKIP",
+      "detail": "missing slots: containerId",
+      "at": "2026-11-14T17:13:21.150Z"
+    },
+    "136": {
+      "status": "SKIP",
+      "detail": "missing slots: containerId",
+      "at": "2026-11-14T17:13:21.150Z"
+    },
+    "137": {
+      "status": "SKIP",
+      "detail": "missing slots: containerId",
+      "at": "2026-11-14T17:13:21.150Z"
+    },
+    "138": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:13:28.201Z"
+    },
+    "139": {
+      "status": "FAIL",
+      "detail": "DESTRUCTIVE_DISABLED:testOnly: chat title does not start with [ce-test]",
+      "at": "2026-11-14T17:13:35.835Z"
+    },
+    "140": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:13:37.504Z"
+    },
+    "141": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:13:43.202Z"
+    },
+    "142": {
+      "status": "FAIL",
+      "detail": "ok:0 failed:1 DESTRUCTIVE_DISABLED",
+      "at": "2026-11-14T17:13:53.375Z"
+    },
+    "143": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:13:53.408Z"
+    },
+    "144": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:13:53.439Z"
+    },
+    "145": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:13:53.475Z"
+    },
+    "146": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:13:53.599Z"
+    },
+    "147": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:13:54.221Z"
+    },
+    "148": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:13:59.615Z"
+    },
+    "149": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:14:01.627Z"
+    },
+    "150": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:14:04.223Z"
+    },
+    "151": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:14:08.960Z"
+    },
+    "152": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:14:09.282Z"
+    },
+    "153": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:14:09.539Z"
+    },
+    "154": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:14:10.959Z"
+    },
+    "155": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:14:11.308Z"
+    },
+    "156": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:14:11.597Z"
+    },
+    "157": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:14:11.646Z"
+    },
+    "158": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:14:11.681Z"
+    },
+    "159": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:14:11.723Z"
+    },
+    "160": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:14:11.756Z"
+    },
+    "161": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:14:11.787Z"
+    },
+    "162": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:14:12.682Z"
+    },
+    "163": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:14:12.715Z"
+    },
+    "164": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:14:12.753Z"
+    },
+    "165": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:14:13.646Z"
+    },
+    "166": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:14:14.544Z"
+    },
+    "167": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:14:14.971Z"
+    },
+    "168": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:14:15.403Z"
+    },
+    "169": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:14:16.323Z"
+    },
+    "170": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:14:16.982Z"
+    },
+    "171": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:14:17.597Z"
+    },
+    "172": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:14:27.635Z"
+    },
+    "173": {
+      "status": "FAIL",
+      "detail": "DESTRUCTIVE_DISABLED:testOnly: chat title does not start with [ce-test]",
+      "at": "2026-11-14T17:14:28.534Z"
+    },
+    "174": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:14:29.126Z"
+    },
+    "175": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:15:27.465Z"
+    },
+    "176": {
+      "status": "FAIL",
+      "detail": "ok:0 failed:1 DESTRUCTIVE_DISABLED",
+      "at": "2026-11-14T17:15:28.367Z"
+    },
+    "177": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:15:28.411Z"
+    },
+    "178": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:15:28.444Z"
+    },
+    "179": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:15:28.476Z"
+    },
+    "180": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:15:28.574Z"
+    },
+    "181": {
+      "status": "FAIL",
+      "detail": "HOST_ERROR:unauthorized: Token has expired, please log in again.",
+      "at": "2026-11-14T17:15:29.974Z"
+    },
+    "182": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:15:30.473Z"
+    },
+    "183": {
+      "status": "FAIL",
+      "detail": "HOST_ERROR:Qwen chatId timeout",
+      "at": "2026-11-14T17:18:26.194Z"
+    },
+    "184": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId",
+      "at": "2026-11-14T17:18:26.197Z"
+    },
+    "185": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId",
+      "at": "2026-11-14T17:18:26.198Z"
+    },
+    "186": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId",
+      "at": "2026-11-14T17:18:26.201Z"
+    },
+    "187": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId",
+      "at": "2026-11-14T17:18:26.203Z"
+    },
+    "188": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId",
+      "at": "2026-11-14T17:18:26.204Z"
+    },
+    "189": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId",
+      "at": "2026-11-14T17:18:26.204Z"
+    },
+    "190": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId",
+      "at": "2026-11-14T17:18:26.205Z"
+    },
+    "191": {
+      "status": "FAIL",
+      "detail": "missing slots: cacheId",
+      "at": "2026-11-14T17:18:26.205Z"
+    },
+    "192": {
+      "status": "FAIL",
+      "detail": "missing slots: cacheId",
+      "at": "2026-11-14T17:18:26.206Z"
+    },
+    "193": {
+      "status": "FAIL",
+      "detail": "missing slots: cacheId",
+      "at": "2026-11-14T17:18:26.206Z"
+    },
+    "194": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId",
+      "at": "2026-11-14T17:18:26.207Z"
+    },
+    "195": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:18:26.255Z"
+    },
+    "196": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId",
+      "at": "2026-11-14T17:18:26.256Z"
+    },
+    "197": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:18:26.289Z"
+    },
+    "198": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:18:26.325Z"
+    },
+    "199": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId",
+      "at": "2026-11-14T17:18:26.326Z"
+    },
+    "200": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId",
+      "at": "2026-11-14T17:18:26.326Z"
+    },
+    "201": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:18:26.364Z"
+    },
+    "202": {
+      "status": "SKIP",
+      "detail": "unsupported:HOST_ERROR",
+      "at": "2026-11-14T17:18:26.398Z"
+    },
+    "203": {
+      "status": "SKIP",
+      "detail": "missing slots: containerId",
+      "at": "2026-11-14T17:18:26.399Z"
+    },
+    "204": {
+      "status": "SKIP",
+      "detail": "missing slots: chatId,containerId",
+      "at": "2026-11-14T17:18:26.399Z"
+    },
+    "205": {
+      "status": "SKIP",
+      "detail": "missing slots: containerId",
+      "at": "2026-11-14T17:18:26.399Z"
+    },
+    "206": {
+      "status": "FAIL",
+      "detail": "HOST_ERROR:Qwen chatId timeout",
+      "at": "2026-11-14T17:21:26.362Z"
+    },
+    "207": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId2",
+      "at": "2026-11-14T17:21:26.369Z"
+    },
+    "208": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId",
+      "at": "2026-11-14T17:21:26.370Z"
+    },
+    "209": {
+      "status": "FAIL",
+      "detail": "HOST_ERROR:Qwen chatId timeout",
+      "at": "2026-11-14T17:24:26.347Z"
+    },
+    "210": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId3",
+      "at": "2026-11-14T17:24:26.350Z"
+    },
+    "211": {
+      "status": "SKIP",
+      "detail": "missing slots: cacheId",
+      "at": "2026-11-14T17:24:26.351Z"
+    },
+    "212": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:24:26.405Z"
+    },
+    "213": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:24:26.442Z"
+    },
+    "214": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:24:26.530Z"
+    },
+    "215": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:24:27.254Z"
+    },
+    "216": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:24:27.657Z"
+    },
+    "217": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T17:27:37.669Z"
+    },
+    "218": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId",
+      "at": "2026-11-14T17:27:37.671Z"
+    },
+    "219": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId",
+      "at": "2026-11-14T17:27:37.671Z"
+    },
+    "220": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId",
+      "at": "2026-11-14T17:27:37.672Z"
+    },
+    "221": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId",
+      "at": "2026-11-14T17:27:37.672Z"
+    },
+    "222": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId",
+      "at": "2026-11-14T17:27:37.673Z"
+    },
+    "223": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId",
+      "at": "2026-11-14T17:27:37.674Z"
+    },
+    "224": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId",
+      "at": "2026-11-14T17:27:37.674Z"
+    },
+    "225": {
+      "status": "FAIL",
+      "detail": "missing slots: cacheId",
+      "at": "2026-11-14T17:27:37.674Z"
+    },
+    "226": {
+      "status": "FAIL",
+      "detail": "missing slots: cacheId",
+      "at": "2026-11-14T17:27:37.675Z"
+    },
+    "227": {
+      "status": "FAIL",
+      "detail": "missing slots: cacheId",
+      "at": "2026-11-14T17:27:37.675Z"
+    },
+    "228": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId",
+      "at": "2026-11-14T17:27:37.675Z"
+    },
+    "229": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:27:37.752Z"
+    },
+    "230": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId",
+      "at": "2026-11-14T17:27:37.752Z"
+    },
+    "231": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:27:37.784Z"
+    },
+    "232": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:27:37.814Z"
+    },
+    "233": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId",
+      "at": "2026-11-14T17:27:37.815Z"
+    },
+    "234": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId",
+      "at": "2026-11-14T17:27:37.815Z"
+    },
+    "235": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:27:37.850Z"
+    },
+    "236": {
+      "status": "SKIP",
+      "detail": "unsupported:HOST_ERROR",
+      "at": "2026-11-14T17:27:37.883Z"
+    },
+    "237": {
+      "status": "SKIP",
+      "detail": "missing slots: containerId",
+      "at": "2026-11-14T17:27:37.883Z"
+    },
+    "238": {
+      "status": "SKIP",
+      "detail": "missing slots: chatId,containerId",
+      "at": "2026-11-14T17:27:37.883Z"
+    },
+    "239": {
+      "status": "SKIP",
+      "detail": "missing slots: containerId",
+      "at": "2026-11-14T17:27:37.884Z"
+    },
+    "240": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T17:30:47.890Z"
+    },
+    "241": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId2",
+      "at": "2026-11-14T17:30:47.894Z"
+    },
+    "242": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId",
+      "at": "2026-11-14T17:30:47.895Z"
+    },
+    "243": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T17:33:57.899Z"
+    },
+    "244": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId3",
+      "at": "2026-11-14T17:33:57.901Z"
+    },
+    "245": {
+      "status": "SKIP",
+      "detail": "missing slots: cacheId",
+      "at": "2026-11-14T17:33:57.902Z"
+    },
+    "246": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:33:57.977Z"
+    },
+    "247": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:33:58.008Z"
+    },
+    "248": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:33:58.056Z"
+    },
+    "249": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:33:58.957Z"
+    },
+    "250": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:34:00.563Z"
+    },
+    "251": {
+      "status": "FAIL",
+      "detail": "RATE_LIMIT:Перейти на Pro",
+      "at": "2026-11-14T17:34:05.344Z"
+    },
+    "252": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId",
+      "at": "2026-11-14T17:34:05.345Z"
+    },
+    "253": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId",
+      "at": "2026-11-14T17:34:05.347Z"
+    },
+    "254": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId",
+      "at": "2026-11-14T17:34:05.347Z"
+    },
+    "255": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId",
+      "at": "2026-11-14T17:34:05.348Z"
+    },
+    "256": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId",
+      "at": "2026-11-14T17:34:05.349Z"
+    },
+    "257": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId",
+      "at": "2026-11-14T17:34:05.350Z"
+    },
+    "258": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId",
+      "at": "2026-11-14T17:34:05.350Z"
+    },
+    "259": {
+      "status": "FAIL",
+      "detail": "missing slots: cacheId",
+      "at": "2026-11-14T17:34:05.351Z"
+    },
+    "260": {
+      "status": "FAIL",
+      "detail": "missing slots: cacheId",
+      "at": "2026-11-14T17:34:05.352Z"
+    },
+    "261": {
+      "status": "FAIL",
+      "detail": "missing slots: cacheId",
+      "at": "2026-11-14T17:34:05.352Z"
+    },
+    "262": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId",
+      "at": "2026-11-14T17:34:05.353Z"
+    },
+    "263": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:34:05.396Z"
+    },
+    "264": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId",
+      "at": "2026-11-14T17:34:05.397Z"
+    },
+    "265": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:34:05.429Z"
+    },
+    "266": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:34:05.462Z"
+    },
+    "267": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId",
+      "at": "2026-11-14T17:34:05.462Z"
+    },
+    "268": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId",
+      "at": "2026-11-14T17:34:05.463Z"
+    },
+    "269": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:34:05.498Z"
+    },
+    "270": {
+      "status": "SKIP",
+      "detail": "unsupported:HOST_ERROR",
+      "at": "2026-11-14T17:34:05.531Z"
+    },
+    "271": {
+      "status": "SKIP",
+      "detail": "missing slots: containerId",
+      "at": "2026-11-14T17:34:05.531Z"
+    },
+    "272": {
+      "status": "SKIP",
+      "detail": "missing slots: chatId,containerId",
+      "at": "2026-11-14T17:34:05.532Z"
+    },
+    "273": {
+      "status": "SKIP",
+      "detail": "missing slots: containerId",
+      "at": "2026-11-14T17:34:05.532Z"
+    },
+    "274": {
+      "status": "FAIL",
+      "detail": "RATE_LIMIT:Перейти на Pro",
+      "at": "2026-11-14T17:34:11.331Z"
+    },
+    "275": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId2",
+      "at": "2026-11-14T17:34:11.332Z"
+    },
+    "276": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId",
+      "at": "2026-11-14T17:34:11.332Z"
+    },
+    "277": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:34:26.346Z"
+    },
+    "278": {
+      "status": "FAIL",
+      "detail": "ok:0 failed:1 NOT_FOUND",
+      "at": "2026-11-14T17:34:28.982Z"
+    },
+    "279": {
+      "status": "SKIP",
+      "detail": "missing slots: cacheId",
+      "at": "2026-11-14T17:34:28.983Z"
+    },
+    "280": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:34:29.014Z"
+    },
+    "281": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:34:29.044Z"
+    },
+    "282": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:34:29.138Z"
+    },
+    "283": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:34:29.172Z"
+    },
+    "284": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:34:34.195Z"
+    },
+    "285": {
+      "status": "FAIL",
+      "detail": "HOST_ERROR:Kimi chatId timeout",
+      "at": "2026-11-14T17:36:36.337Z"
+    },
+    "286": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId",
+      "at": "2026-11-14T17:36:36.339Z"
+    },
+    "287": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId",
+      "at": "2026-11-14T17:36:36.340Z"
+    },
+    "288": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId",
+      "at": "2026-11-14T17:36:36.341Z"
+    },
+    "289": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId",
+      "at": "2026-11-14T17:36:36.342Z"
+    },
+    "290": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId",
+      "at": "2026-11-14T17:36:36.343Z"
+    },
+    "291": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId",
+      "at": "2026-11-14T17:36:36.343Z"
+    },
+    "292": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId",
+      "at": "2026-11-14T17:36:36.344Z"
+    },
+    "293": {
+      "status": "FAIL",
+      "detail": "missing slots: cacheId",
+      "at": "2026-11-14T17:36:36.345Z"
+    },
+    "294": {
+      "status": "FAIL",
+      "detail": "missing slots: cacheId",
+      "at": "2026-11-14T17:36:36.346Z"
+    },
+    "295": {
+      "status": "FAIL",
+      "detail": "missing slots: cacheId",
+      "at": "2026-11-14T17:36:36.346Z"
+    },
+    "296": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId",
+      "at": "2026-11-14T17:36:36.347Z"
+    },
+    "297": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:36:36.390Z"
+    },
+    "298": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId",
+      "at": "2026-11-14T17:36:36.390Z"
+    },
+    "299": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:36:36.422Z"
+    },
+    "300": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:36:36.454Z"
+    },
+    "301": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId",
+      "at": "2026-11-14T17:36:36.455Z"
+    },
+    "302": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId",
+      "at": "2026-11-14T17:36:36.455Z"
+    },
+    "303": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:36:36.487Z"
+    },
+    "304": {
+      "status": "SKIP",
+      "detail": "unsupported:HOST_ERROR",
+      "at": "2026-11-14T17:36:36.518Z"
+    },
+    "305": {
+      "status": "SKIP",
+      "detail": "missing slots: containerId",
+      "at": "2026-11-14T17:36:36.519Z"
+    },
+    "306": {
+      "status": "SKIP",
+      "detail": "missing slots: chatId,containerId",
+      "at": "2026-11-14T17:36:36.519Z"
+    },
+    "307": {
+      "status": "SKIP",
+      "detail": "missing slots: containerId",
+      "at": "2026-11-14T17:36:36.519Z"
+    },
+    "308": {
+      "status": "FAIL",
+      "detail": "HOST_ERROR:Kimi chatId timeout",
+      "at": "2026-11-14T17:38:38.337Z"
+    },
+    "309": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId2",
+      "at": "2026-11-14T17:38:38.339Z"
+    },
+    "310": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId",
+      "at": "2026-11-14T17:38:38.341Z"
+    },
+    "311": {
+      "status": "FAIL",
+      "detail": "HOST_ERROR:Kimi chatId timeout",
+      "at": "2026-11-14T17:40:40.342Z"
+    },
+    "312": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId3",
+      "at": "2026-11-14T17:40:40.345Z"
+    },
+    "313": {
+      "status": "SKIP",
+      "detail": "missing slots: cacheId",
+      "at": "2026-11-14T17:40:40.346Z"
+    },
+    "314": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:40:40.391Z"
+    },
+    "315": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:40:40.426Z"
+    },
+    "316": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:40:40.572Z"
+    },
+    "317": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:40:40.612Z"
+    },
+    "318": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:40:41.687Z"
+    },
+    "319": {
+      "status": "FAIL",
+      "detail": "HOST_ERROR:Z.ai chatId timeout",
+      "at": "2026-11-14T17:43:26.346Z"
+    },
+    "320": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId",
+      "at": "2026-11-14T17:43:26.348Z"
+    },
+    "321": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId",
+      "at": "2026-11-14T17:43:26.350Z"
+    },
+    "322": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId",
+      "at": "2026-11-14T17:43:26.350Z"
+    },
+    "323": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId",
+      "at": "2026-11-14T17:43:26.351Z"
+    },
+    "324": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId",
+      "at": "2026-11-14T17:43:26.352Z"
+    },
+    "325": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId",
+      "at": "2026-11-14T17:43:26.352Z"
+    },
+    "326": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId",
+      "at": "2026-11-14T17:43:26.353Z"
+    },
+    "327": {
+      "status": "FAIL",
+      "detail": "missing slots: cacheId",
+      "at": "2026-11-14T17:43:26.354Z"
+    },
+    "328": {
+      "status": "FAIL",
+      "detail": "missing slots: cacheId",
+      "at": "2026-11-14T17:43:26.354Z"
+    },
+    "329": {
+      "status": "FAIL",
+      "detail": "missing slots: cacheId",
+      "at": "2026-11-14T17:43:26.355Z"
+    },
+    "330": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId",
+      "at": "2026-11-14T17:43:26.355Z"
+    },
+    "331": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:43:26.395Z"
+    },
+    "332": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId",
+      "at": "2026-11-14T17:43:26.396Z"
+    },
+    "333": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:43:26.426Z"
+    },
+    "334": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:43:26.462Z"
+    },
+    "335": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId",
+      "at": "2026-11-14T17:43:26.463Z"
+    },
+    "336": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId",
+      "at": "2026-11-14T17:43:26.463Z"
+    },
+    "337": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:43:26.496Z"
+    },
+    "338": {
+      "status": "SKIP",
+      "detail": "unsupported:HOST_ERROR",
+      "at": "2026-11-14T17:43:26.528Z"
+    },
+    "339": {
+      "status": "SKIP",
+      "detail": "missing slots: containerId",
+      "at": "2026-11-14T17:43:26.528Z"
+    },
+    "340": {
+      "status": "SKIP",
+      "detail": "missing slots: chatId,containerId",
+      "at": "2026-11-14T17:43:26.529Z"
+    },
+    "341": {
+      "status": "SKIP",
+      "detail": "missing slots: containerId",
+      "at": "2026-11-14T17:43:26.530Z"
+    },
+    "342": {
+      "status": "FAIL",
+      "detail": "HOST_ERROR:Z.ai chatId timeout",
+      "at": "2026-11-14T17:46:26.355Z"
+    },
+    "343": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId2",
+      "at": "2026-11-14T17:46:26.358Z"
+    },
+    "344": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId",
+      "at": "2026-11-14T17:46:26.359Z"
+    },
+    "345": {
+      "status": "FAIL",
+      "detail": "HOST_ERROR:Z.ai chatId timeout",
+      "at": "2026-11-14T17:49:26.362Z"
+    },
+    "346": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId3",
+      "at": "2026-11-14T17:49:26.368Z"
+    },
+    "347": {
+      "status": "SKIP",
+      "detail": "missing slots: cacheId",
+      "at": "2026-11-14T17:49:26.369Z"
+    },
+    "348": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:49:26.413Z"
+    },
+    "349": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:49:26.450Z"
+    },
+    "350": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:49:26.673Z"
+    },
+    "351": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:49:27.376Z"
+    },
+    "352": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:49:27.708Z"
+    },
+    "353": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T17:52:37.712Z"
+    },
+    "354": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId",
+      "at": "2026-11-14T17:52:37.716Z"
+    },
+    "355": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId",
+      "at": "2026-11-14T17:52:37.718Z"
+    },
+    "356": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId",
+      "at": "2026-11-14T17:52:37.719Z"
+    },
+    "357": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId",
+      "at": "2026-11-14T17:52:37.720Z"
+    },
+    "358": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId",
+      "at": "2026-11-14T17:52:37.721Z"
+    },
+    "359": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId",
+      "at": "2026-11-14T17:52:37.722Z"
+    },
+    "360": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId",
+      "at": "2026-11-14T17:52:37.724Z"
+    },
+    "361": {
+      "status": "FAIL",
+      "detail": "missing slots: cacheId",
+      "at": "2026-11-14T17:52:37.725Z"
+    },
+    "362": {
+      "status": "FAIL",
+      "detail": "missing slots: cacheId",
+      "at": "2026-11-14T17:52:37.726Z"
+    },
+    "363": {
+      "status": "FAIL",
+      "detail": "missing slots: cacheId",
+      "at": "2026-11-14T17:52:37.726Z"
+    },
+    "364": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId",
+      "at": "2026-11-14T17:52:37.727Z"
+    },
+    "365": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:52:37.797Z"
+    },
+    "366": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId",
+      "at": "2026-11-14T17:52:37.798Z"
+    },
+    "367": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:52:37.825Z"
+    },
+    "368": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:52:37.853Z"
+    },
+    "369": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId",
+      "at": "2026-11-14T17:52:37.854Z"
+    },
+    "370": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId",
+      "at": "2026-11-14T17:52:37.855Z"
+    },
+    "371": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:52:37.885Z"
+    },
+    "372": {
+      "status": "SKIP",
+      "detail": "unsupported:HOST_ERROR",
+      "at": "2026-11-14T17:52:37.918Z"
+    },
+    "373": {
+      "status": "SKIP",
+      "detail": "missing slots: containerId",
+      "at": "2026-11-14T17:52:37.919Z"
+    },
+    "374": {
+      "status": "SKIP",
+      "detail": "missing slots: chatId,containerId",
+      "at": "2026-11-14T17:52:37.919Z"
+    },
+    "375": {
+      "status": "SKIP",
+      "detail": "missing slots: containerId",
+      "at": "2026-11-14T17:52:37.920Z"
+    },
+    "376": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T17:55:47.918Z"
+    },
+    "377": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId2",
+      "at": "2026-11-14T17:55:47.929Z"
+    },
+    "378": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId",
+      "at": "2026-11-14T17:55:47.931Z"
+    },
+    "379": {
+      "status": "FAIL",
+      "detail": "-32001:MCP error -32001: Request timed out",
+      "at": "2026-11-14T17:58:57.938Z"
+    },
+    "380": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId3",
+      "at": "2026-11-14T17:58:57.943Z"
+    },
+    "381": {
+      "status": "SKIP",
+      "detail": "missing slots: cacheId",
+      "at": "2026-11-14T17:58:57.945Z"
+    },
+    "382": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:58:58.022Z"
+    },
+    "383": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:58:58.050Z"
+    },
+    "001": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T16:52:55.413Z"
+    },
+    "002": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T16:52:55.441Z"
+    },
+    "003": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T16:52:55.467Z"
+    },
+    "004": {
+      "status": "PASS",
+      "detail": "schema ok",
+      "at": "2026-11-14T16:52:55.497Z"
+    },
+    "005": {
+      "status": "SKIP",
+      "detail": "no online empty-platforms browser",
+      "at": "2026-11-14T16:52:55.549Z"
+    },
+    "006": {
+      "status": "PASS",
+      "detail": "ok:0 DESTRUCTIVE_DISABLED",
+      "at": "2026-11-14T16:52:57.251Z"
+    },
+    "007": {
+      "status": "SKIP",
+      "detail": "wire-filtered",
+      "at": "2026-11-14T16:52:57.252Z"
+    },
+    "008": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T16:52:57.279Z"
+    },
+    "009": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T16:52:57.306Z"
+    },
+    "010": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T16:52:57.358Z"
+    },
+    "011": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T16:52:57.389Z"
+    },
+    "012": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T16:52:58.680Z"
+    },
+    "013": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T16:53:09.875Z"
+    },
+    "014": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T16:53:15.211Z"
+    },
+    "015": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T16:53:27.250Z"
+    },
+    "016": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T16:53:28.257Z"
+    },
+    "017": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T16:53:29.385Z"
+    },
+    "018": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T16:53:30.761Z"
+    },
+    "019": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T16:53:31.754Z"
+    },
+    "020": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T16:53:33.025Z"
+    },
+    "021": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T16:53:33.068Z"
+    },
+    "022": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T16:53:33.098Z"
+    },
+    "023": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T16:53:33.143Z"
+    },
+    "024": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T16:53:33.172Z"
+    },
+    "025": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T16:53:33.200Z"
+    },
+    "026": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T16:53:34.955Z"
+    },
+    "027": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T16:53:34.985Z"
+    },
+    "028": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T16:53:35.018Z"
+    },
+    "029": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T16:53:36.773Z"
+    },
+    "030": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T16:53:38.510Z"
+    },
+    "031": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T16:53:39.018Z"
+    },
+    "032": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T16:53:43.975Z"
+    },
+    "033": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T16:53:45.241Z"
+    },
+    "034": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T16:53:47.819Z"
+    },
+    "035": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T16:53:50.545Z"
+    },
+    "036": {
+      "status": "FAIL",
+      "detail": "HOST_ERROR:ChatGPT chatId timeout",
+      "at": "2026-11-14T16:55:26.542Z"
+    },
+    "037": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId2",
+      "at": "2026-11-14T16:55:26.552Z"
+    },
+    "038": {
+      "status": "FAIL",
+      "detail": "NOT_FOUND:conversation not found: 6af891eb-7da8-83ed-91ef-41c64da9e535",
+      "at": "2026-11-14T16:55:28.032Z"
+    },
+    "039": {
+      "status": "FAIL",
+      "detail": "HOST_ERROR:ChatGPT chatId timeout",
+      "at": "2026-11-14T16:57:26.207Z"
+    },
+    "040": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId3",
+      "at": "2026-11-14T16:57:26.209Z"
+    },
+    "041": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T16:57:26.272Z"
+    },
+    "042": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T16:57:26.303Z"
+    },
+    "043": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T16:57:26.335Z"
+    },
+    "044": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T16:57:26.682Z"
+    },
+    "045": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T16:57:26.734Z"
+    },
+    "046": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T16:57:28.569Z"
+    },
+    "047": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T16:57:31.200Z"
+    },
+    "048": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T16:58:26.203Z"
+    },
+    "049": {
+      "status": "FAIL",
+      "detail": "TIMEOUT:chat_ask wait timed out",
+      "at": "2026-11-14T17:00:11.255Z"
+    },
+    "050": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:00:14.639Z"
+    },
+    "051": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:00:15.811Z"
+    },
+    "052": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:00:18.023Z"
+    },
+    "053": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:00:19.385Z"
+    },
+    "054": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:00:27.008Z"
+    },
+    "055": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:00:27.050Z"
+    },
+    "056": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:00:27.081Z"
+    },
+    "057": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:00:27.123Z"
+    },
+    "058": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:00:27.151Z"
+    },
+    "059": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:00:27.178Z"
+    },
+    "060": {
+      "status": "FAIL",
+      "detail": "TIMEOUT:job timeout",
+      "at": "2026-11-14T17:03:37.682Z"
+    },
+    "061": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:03:37.736Z"
+    },
+    "062": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:03:37.771Z"
+    },
+    "063": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:06:30.530Z"
+    },
+    "064": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:06:31.442Z"
+    },
+    "065": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:06:31.733Z"
+    },
+    "066": {
+      "status": "SKIP",
+      "detail": "unsupported:HOST_ERROR",
+      "at": "2026-11-14T17:07:26.434Z"
+    },
+    "067": {
+      "status": "SKIP",
+      "detail": "missing slots: containerId",
+      "at": "2026-11-14T17:07:26.435Z"
+    },
+    "068": {
+      "status": "SKIP",
+      "detail": "missing slots: containerId",
+      "at": "2026-11-14T17:07:26.435Z"
+    },
+    "069": {
+      "status": "SKIP",
+      "detail": "missing slots: containerId",
+      "at": "2026-11-14T17:07:26.436Z"
+    },
+    "070": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:07:29.210Z"
+    },
+    "071": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:07:30.142Z"
+    },
+    "072": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:07:30.610Z"
+    },
+    "073": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:07:33.215Z"
+    },
+    "074": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:07:34.994Z"
+    },
+    "075": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:07:35.029Z"
+    },
+    "076": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:07:35.061Z"
+    },
+    "077": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:07:35.094Z"
+    },
+    "078": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:07:35.235Z"
+    },
+    "079": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:07:35.278Z"
+    },
+    "080": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:07:36.198Z"
+    },
+    "081": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:07:38.195Z"
+    },
+    "082": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:09:26.223Z"
+    },
+    "083": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:10:26.921Z"
+    },
+    "084": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:10:27.278Z"
+    },
+    "085": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:10:27.568Z"
+    },
+    "086": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:10:27.843Z"
+    },
+    "087": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:10:28.777Z"
+    },
+    "088": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:10:29.082Z"
+    },
+    "089": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:10:29.126Z"
+    },
+    "090": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:10:29.161Z"
+    },
+    "091": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:10:29.214Z"
+    },
+    "092": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:10:29.247Z"
+    },
+    "093": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:10:29.280Z"
+    },
+    "094": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:10:30.187Z"
+    },
+    "095": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:10:30.220Z"
+    },
+    "096": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:10:30.255Z"
+    },
+    "097": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:10:31.165Z"
+    },
+    "098": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:10:33.776Z"
+    },
+    "099": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T17:10:33.815Z"
+    }
+  }
+}

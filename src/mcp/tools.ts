@@ -967,7 +967,7 @@ export function registerTools(server: McpServer, core: ServerCore): void {
     'jobs_enqueue',
     {
       description:
-        'Enqueue a background job on the bound browser lane (ask, export, export_batch, library_ingest, delete, delete_batch) and return job_id immediately. Prefer library_ingest to fill the local SQLite+FTS library without writing export files (then chats_search offline). Prefer export/export_batch for durable files. Paywall host_state does not block export/library_ingest. Captcha is never auto-solved. Poll with jobs_status; cancel with jobs_cancel. Requires browsers_bind; delete kinds need confirm + allowDestructive.',
+        'Enqueue a background job on the bound browser lane (ask, export, export_batch, library_ingest, delete, delete_batch) and return job_id immediately. Prefer library_ingest to fill the local SQLite+FTS library without writing export files (then chats_search offline). Prefer export/export_batch for durable files. Paywall host_state does not block export/library_ingest/delete/delete_batch (still blocks ask). Captcha is never auto-solved. Poll with jobs_status; cancel with jobs_cancel. Requires browsers_bind; delete kinds need confirm + allowDestructive. delete testOnly defaults true = only [ce-test] titles (still mutates; not a dry-run).',
       inputSchema: {
         kind: JobKind,
         platform: Platform,
@@ -999,7 +999,12 @@ export function registerTools(server: McpServer, core: ServerCore): void {
           .optional()
           .describe('library_ingest only: when true also write export files (default false = cache only)'),
         confirm: z.boolean().optional().describe('Required true for delete/delete_batch'),
-        testOnly: z.boolean().optional().describe('When true, validate only without mutating'),
+        testOnly: z
+          .boolean()
+          .optional()
+          .describe(
+            'Default true: only delete chats whose title starts with [ce-test] (still mutates those). Set false to allow any title. Not a dry-run.'
+          ),
         onCaptcha: OnCaptcha.optional(),
         ensureTab: EnsureTab
       },

@@ -2,6 +2,9 @@
 /**
  * Generate docs/qa/mcp-run-list.json — flat tool×platform run list.
  *   node scripts/gen-mcp-run-list.mjs
+ *
+ * Client timeoutMs must be >= server rpcTimeoutMs (default 180s in ~/.chat-export/config.json).
+ * Override floor via CHAT_EXPORT_RPC_TIMEOUT_MS.
  */
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -9,6 +12,13 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = join(ROOT, 'docs/qa/mcp-run-list.json');
+
+const RPC_FLOOR_MS = Math.max(
+  190_000,
+  Number(process.env.CHAT_EXPORT_RPC_TIMEOUT_MS || 180_000) + 10_000
+);
+const ASK_TIMEOUT_S = 45;
+const ASK_CLIENT_MS = ASK_TIMEOUT_S * 1000 + 60_000 + 30_000;
 
 const PLATFORMS = [
   'chatgpt',
@@ -32,7 +42,6 @@ function add(c) {
   cases.push({ id, ...c });
 }
 
-// --- session (once) ---
 add({ tool: 'browsers_list', platform: '*', args: {}, needs: [], destructive: false, timeoutMs: 30000 });
 add({
   tool: 'browsers_bind',
@@ -44,7 +53,6 @@ add({
 });
 add({ tool: 'browsers_status', platform: '*', args: {}, needs: [], destructive: false, timeoutMs: 30000 });
 
-// --- traps ---
 add({
   tool: '__trap_T5_schema_testOnly',
   platform: '*',
@@ -83,20 +91,26 @@ add({
   expect: 'SKIP(wire-filtered)'
 });
 
-// --- per platform ordered coverage (all MCP tools that take platform) ---
 for (const platform of PLATFORMS) {
   const title = `[ce-test] runlist ${platform} {{ts}}`;
   const needle = `runlistNeedle{{ts}}`;
 
   add({ tool: 'platforms_list', platform, args: {}, needs: [], destructive: false, timeoutMs: 30000 });
-  add({ tool: 'tabs_ensure', platform, args: { platform }, needs: [], destructive: false, timeoutMs: 60000 });
+  add({
+    tool: 'tabs_ensure',
+    platform,
+    args: { platform },
+    needs: [],
+    destructive: false,
+    timeoutMs: RPC_FLOOR_MS
+  });
   add({
     tool: 'platforms_status',
     platform,
     args: { platform, ensureTab: false },
     needs: [],
     destructive: false,
-    timeoutMs: 60000
+    timeoutMs: RPC_FLOOR_MS
   });
   add({
     tool: 'platforms_capabilities',
@@ -104,7 +118,7 @@ for (const platform of PLATFORMS) {
     args: { platform },
     needs: [],
     destructive: false,
-    timeoutMs: 120000
+    timeoutMs: RPC_FLOOR_MS
   });
   add({
     tool: 'chats_list',
@@ -112,7 +126,7 @@ for (const platform of PLATFORMS) {
     args: { platform, limit: 10 },
     needs: [],
     destructive: false,
-    timeoutMs: 90000
+    timeoutMs: RPC_FLOOR_MS
   });
   add({
     tool: 'chats_create',
@@ -120,7 +134,7 @@ for (const platform of PLATFORMS) {
     args: { platform, title, text: `${title}\n${needle}`, ensureTab: true },
     needs: [],
     destructive: false,
-    timeoutMs: 90000,
+    timeoutMs: RPC_FLOOR_MS,
     slot: 'chatId'
   });
   add({
@@ -129,7 +143,7 @@ for (const platform of PLATFORMS) {
     args: { platform, chatId: '{{chatId}}', text: `[ce-test] ping ${needle}`, ensureTab: true },
     needs: ['chatId'],
     destructive: false,
-    timeoutMs: 90000
+    timeoutMs: Math.max(RPC_FLOOR_MS, 250_000)
   });
   add({
     tool: 'chat_ask',
@@ -138,13 +152,13 @@ for (const platform of PLATFORMS) {
       platform,
       chatId: '{{chatId}}',
       prompt: `[ce-test] reply ok ${needle}`,
-      timeout_s: 45,
+      timeout_s: ASK_TIMEOUT_S,
       ensureTab: true,
       onCaptcha: 'stop'
     },
     needs: ['chatId'],
     destructive: false,
-    timeoutMs: 90000
+    timeoutMs: Math.max(RPC_FLOOR_MS, ASK_CLIENT_MS)
   });
   add({
     tool: 'chats_get',
@@ -152,7 +166,7 @@ for (const platform of PLATFORMS) {
     args: { platform, chatId: '{{chatId}}' },
     needs: ['chatId'],
     destructive: false,
-    timeoutMs: 90000
+    timeoutMs: RPC_FLOOR_MS
   });
   add({
     tool: 'chat_outline',
@@ -160,7 +174,7 @@ for (const platform of PLATFORMS) {
     args: { platform, chatId: '{{chatId}}' },
     needs: ['chatId'],
     destructive: false,
-    timeoutMs: 90000
+    timeoutMs: RPC_FLOOR_MS
   });
   add({
     tool: 'chat_read',
@@ -168,7 +182,7 @@ for (const platform of PLATFORMS) {
     args: { platform, chatId: '{{chatId}}', startTurn: 0, endTurn: 3, maxChars: 4000 },
     needs: ['chatId'],
     destructive: false,
-    timeoutMs: 90000
+    timeoutMs: RPC_FLOOR_MS
   });
   add({
     tool: 'chats_export',
@@ -176,7 +190,7 @@ for (const platform of PLATFORMS) {
     args: { platform, chatId: '{{chatId}}', formats: ['md'] },
     needs: ['chatId'],
     destructive: false,
-    timeoutMs: 180000
+    timeoutMs: RPC_FLOOR_MS
   });
   add({
     tool: 'chat_cache_sync',
@@ -184,7 +198,7 @@ for (const platform of PLATFORMS) {
     args: { platform, chatId: '{{chatId}}' },
     needs: ['chatId'],
     destructive: false,
-    timeoutMs: 180000,
+    timeoutMs: RPC_FLOOR_MS,
     slot: 'cacheId'
   });
   add({
@@ -279,7 +293,7 @@ for (const platform of PLATFORMS) {
     args: { platform, limit: 10 },
     needs: [],
     destructive: false,
-    timeoutMs: 25000,
+    timeoutMs: RPC_FLOOR_MS,
     softFail: 'unsupported'
   });
   add({
@@ -288,7 +302,7 @@ for (const platform of PLATFORMS) {
     args: { platform, name: `[ce-test] runlist-proj ${platform} {{ts}}` },
     needs: [],
     destructive: false,
-    timeoutMs: 60000,
+    timeoutMs: RPC_FLOOR_MS,
     softFail: 'unsupported',
     slot: 'containerId'
   });
@@ -298,7 +312,7 @@ for (const platform of PLATFORMS) {
     args: { platform, containerId: '{{containerId}}', limit: 5 },
     needs: ['containerId'],
     destructive: false,
-    timeoutMs: 60000,
+    timeoutMs: RPC_FLOOR_MS,
     softFail: 'unsupported'
   });
   add({
@@ -307,7 +321,7 @@ for (const platform of PLATFORMS) {
     args: { platform, chatId: '{{chatId}}', containerId: '{{containerId}}' },
     needs: ['chatId', 'containerId'],
     destructive: false,
-    timeoutMs: 60000,
+    timeoutMs: RPC_FLOOR_MS,
     softFail: 'unsupported'
   });
   add({
@@ -316,10 +330,9 @@ for (const platform of PLATFORMS) {
     args: { platform, containerId: '{{containerId}}', confirm: true },
     needs: ['containerId'],
     destructive: true,
-    timeoutMs: 60000,
+    timeoutMs: RPC_FLOOR_MS,
     softFail: 'unsupported'
   });
-  // second chat for jobs delete
   add({
     tool: 'chats_create',
     platform,
@@ -331,7 +344,7 @@ for (const platform of PLATFORMS) {
     },
     needs: [],
     destructive: false,
-    timeoutMs: 90000,
+    timeoutMs: RPC_FLOOR_MS,
     slot: 'chatId2'
   });
   add({
@@ -350,7 +363,7 @@ for (const platform of PLATFORMS) {
     args: { platform, chatId: '{{chatId}}', confirm: true },
     needs: ['chatId'],
     destructive: true,
-    timeoutMs: 90000
+    timeoutMs: RPC_FLOOR_MS
   });
   add({
     tool: 'chats_create',
@@ -363,7 +376,7 @@ for (const platform of PLATFORMS) {
     },
     needs: [],
     destructive: false,
-    timeoutMs: 90000,
+    timeoutMs: RPC_FLOOR_MS,
     slot: 'chatId3'
   });
   add({
@@ -387,7 +400,6 @@ for (const platform of PLATFORMS) {
   });
 }
 
-// jobs_cancel once
 add({
   tool: 'jobs_enqueue',
   platform: 'perplexity',
@@ -410,6 +422,7 @@ add({
 const doc = {
   version: 1,
   generatedAt: new Date().toISOString(),
+  rpcFloorMs: RPC_FLOOR_MS,
   platforms: PLATFORMS,
   caseCount: cases.length,
   cases
@@ -417,4 +430,4 @@ const doc = {
 
 mkdirSync(dirname(OUT), { recursive: true });
 writeFileSync(OUT, JSON.stringify(doc, null, 2) + '\n');
-console.log(`Wrote ${OUT} cases=${cases.length}`);
+console.log(`Wrote ${OUT} cases=${cases.length} rpcFloorMs=${RPC_FLOOR_MS}`);
