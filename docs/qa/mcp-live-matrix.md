@@ -41,7 +41,16 @@ node scripts/mcp-run-list.mjs --only-tool=chats_delete
 
 Selection priority: `--ids` > `--from`/`--to` > `--from-state` > full list.
 
+Smoke helpers: `--fresh-state`, `--state=…`, `--run=docs/qa/mcp-run-list-RED-SMOKE.md`, `--red=…`.
+
 Deprecated: `scripts/mcp-live-matrix.mjs` (exits 2; prints pointer here).
+
+## Isolation during a walk
+
+- **One MCP client** on the bound browser (the orchestrator). Do not call Cursor `chat-export` MCP tools in parallel — dual clients cause `-32001` / zombie RPC pile-up (R5/R6).
+- Client `timeoutMs` for host RPC is ≥ server `rpcTimeoutMs` (+10s floor, see `gen-mcp-run-list.mjs` / `CHAT_EXPORT_RPC_TIMEOUT_MS`).
+- Orchestrator clears `chatId` / `cacheId` / `containerId` on **platform change** and on failed slot-setters (no cross-provider bleed).
+- Do **not** auto-SKIP auth/paywall/host errors. `softFail: unsupported` in the case JSON is only for ops the host declares unsupported (e.g. `projects_*`); everything else stays FAIL → RED.
 
 ## Case shape
 

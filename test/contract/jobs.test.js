@@ -440,6 +440,54 @@ describe('jobs contract (mock extension)', () => {
     }, FAST_JOBS);
   });
 
+  it('delete_batch: kind=paywall host_state does not block delete', async () => {
+    await withServer(async (server) => {
+      const { core, port } = server;
+      const { key } = core.keyNew();
+      const deleted = [];
+      core.updateServerSettings({ allowDestructive: true });
+      await connectMockBrowser(port, {
+        core,
+        key,
+        browserId: 'b-paywall-del',
+        allowDestructive: true,
+        onRpc: (msg) => {
+          if (msg.op === 'platform.host_state') {
+            return {
+              data: {
+                busy: true,
+                code: 'RATE_LIMIT',
+                kind: 'paywall',
+                retryable: false,
+                banner: 'Бесплатный план · Улучшить тариф',
+                generating: false,
+                composerReady: true
+              }
+            };
+          }
+          if (msg.op === 'chats.delete') {
+            deleted.push(msg.args.chatId);
+            return { data: { deleted: true, chatId: msg.args.chatId } };
+          }
+          return { data: {} };
+        }
+      });
+      const job = core.jobs.enqueue({
+        kind: 'delete_batch',
+        platform: 'perplexity',
+        chatIds: ['[ce-test]-a', 't-paywall'],
+        confirm: true,
+        testOnly: false
+      });
+      // titles unknown → assertTestChat would fetch get; with testOnly:false skip title filter
+      const done = await waitJob(core, job.job_id);
+      assert.equal(done.status, 'done', JSON.stringify(done.error || done));
+      assert.equal(done.result.ok, 2, JSON.stringify(done.result));
+      assert.equal(done.result.failed, 0);
+      assert.deepEqual(deleted, ['[ce-test]-a', 't-paywall']);
+    }, FAST_JOBS);
+  });
+
   it('delete / delete_batch: reuse confirm + allowDestructive gates, [ce-test] only, audited', async () => {
     await withServer(async (server) => {
       const { core, port } = server;

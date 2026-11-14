@@ -29,6 +29,11 @@ export function generateBrowserToken(): string {
   return randomToken(BROWSER_TOKEN_PREFIX);
 }
 
+/** Server-owned browser session id (1 extension profile ↔ 1 browser). */
+export function mintBrowserId(): string {
+  return 'b-' + randomBytes(4).toString('hex');
+}
+
 export function isMcpToken(key: unknown): boolean {
   return hasTokenPrefix(key, MCP_TOKEN_PREFIX);
 }

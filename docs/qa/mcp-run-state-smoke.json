@@ -1,0 +1,159 @@
+{
+  "nextId": null,
+  "slots": {
+    "browserId": "b-215c6f46",
+    "lastJobId": "job_2caa3f73-6aaf-4dcf-92aa-b650c1954c04"
+  },
+  "results": {
+    "100": {
+      "status": "SKIP",
+      "detail": "unsupported:OPTION_NOT_FOUND",
+      "at": "2026-11-14T10:02:39.940Z"
+    },
+    "115": {
+      "status": "FAIL",
+      "detail": "UNAUTHORIZED:GitHub Copilot requires login at github.com/copilot",
+      "at": "2026-11-14T10:02:43.110Z"
+    },
+    "122": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId",
+      "at": "2026-11-14T10:02:43.111Z"
+    },
+    "134": {
+      "status": "FAIL",
+      "detail": "UNAUTHORIZED:GitHub Copilot requires login at github.com/copilot",
+      "at": "2026-11-14T10:02:44.369Z"
+    },
+    "149": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T10:02:54.119Z"
+    },
+    "152": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T10:02:55.574Z"
+    },
+    "183": {
+      "status": "FAIL",
+      "detail": "HOST_ERROR:Qwen chatId timeout",
+      "at": "2026-11-14T10:05:26.247Z"
+    },
+    "217": {
+      "status": "FAIL",
+      "detail": "HOST_ERROR:deepseek tab navigated away during chats.create (page reload / bfcache); result unknown",
+      "at": "2026-11-14T10:05:37.630Z"
+    },
+    "251": {
+      "status": "FAIL",
+      "detail": "RATE_LIMIT:Перейти на Pro",
+      "at": "2026-11-14T10:05:43.240Z"
+    },
+    "285": {
+      "status": "FAIL",
+      "detail": "HOST_ERROR:Kimi chatId timeout",
+      "at": "2026-11-14T10:07:52.265Z"
+    },
+    "310": {
+      "status": "FAIL",
+      "detail": "missing slots: chatId",
+      "at": "2026-11-14T10:07:52.267Z"
+    },
+    "319": {
+      "status": "FAIL",
+      "detail": "HOST_ERROR:Z.ai chatId timeout",
+      "at": "2026-11-14T10:10:26.247Z"
+    },
+    "353": {
+      "status": "FAIL",
+      "detail": "UNAUTHORIZED:MiniMax Agent requires sign-in",
+      "at": "2026-11-14T10:10:29.692Z"
+    },
+    "001": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T10:02:00.512Z"
+    },
+    "002": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T10:02:00.540Z"
+    },
+    "003": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T10:02:00.568Z"
+    },
+    "012": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T10:02:02.814Z"
+    },
+    "013": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T10:02:05.540Z"
+    },
+    "014": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T10:02:11.290Z"
+    },
+    "015": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T10:02:17.578Z"
+    },
+    "016": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T10:02:18.950Z"
+    },
+    "017": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T10:02:19.697Z"
+    },
+    "018": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T10:02:20.789Z"
+    },
+    "019": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T10:02:22.409Z"
+    },
+    "020": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T10:02:23.236Z"
+    },
+    "047": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T10:02:33.250Z"
+    },
+    "053": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T10:02:33.590Z"
+    },
+    "054": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T10:02:33.818Z"
+    },
+    "081": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T10:02:39.242Z"
+    },
+    "086": {
+      "status": "FAIL",
+      "detail": "NOT_FOUND:conversation not found or empty: 2121544326282920000",
+      "at": "2026-11-14T10:02:39.895Z"
+    }
+  }
+}

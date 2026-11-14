@@ -18,17 +18,59 @@
  * Do not edit product code while this runs.
  */
 import { mkdirSync, writeFileSync, readFileSync, existsSync, appendFileSync, writeSync } from 'node:fs';
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const QA = join(ROOT, 'docs/qa');
 const LIST_PATH = join(QA, 'mcp-run-list.json');
-const STATE_PATH = join(QA, 'mcp-run-state.json');
-const RUN_PATH = join(QA, 'mcp-run-list-RUN.md');
-const RED_PATH = join(QA, 'mcp-live-matrix-RED.md');
+const DEFAULT_STATE_PATH = join(QA, 'mcp-run-state.json');
+const DEFAULT_RUN_PATH = join(QA, 'mcp-run-list-RUN.md');
+const DEFAULT_RED_PATH = join(QA, 'mcp-live-matrix-RED.md');
+
+const PLATFORM_SLOTS = ['chatId', 'chatId2', 'chatId3', 'cacheId', 'containerId'];
+
+export function clearPlatformSlots(slots) {
+  const next = { ...(slots || {}) };
+  for (const k of PLATFORM_SLOTS) delete next[k];
+  return next;
+}
+
+export function applySlotFromBody(slots, slot, body) {
+  const next = { ...(slots || {}) };
+  if (!slot) return next;
+  if (slot === 'chatId' || slot === 'chatId2' || slot === 'chatId3') {
+    const id = body?.chatId || body?.id;
+    if (id) next[slot] = id;
+    else delete next[slot];
+    return next;
+  }
+  if (slot === 'cacheId') {
+    const id = body?.cacheId || body?.id;
+    if (id) next.cacheId = id;
+    else delete next.cacheId;
+    return next;
+  }
+  if (slot === 'containerId') {
+    const id = body?.containerId || body?.id || body?.projectId;
+    if (id) next.containerId = id;
+    else delete next.containerId;
+    return next;
+  }
+  if (slot === 'cancelJobId') {
+    if (body?.job_id) next.cancelJobId = body.job_id;
+    else delete next.cancelJobId;
+  }
+  return next;
+}
+
+export function isUnsupportedSoftFail(code, msg) {
+  return /UNSUPPORTED|NOT_SUPPORTED|PROJECTS_DISABLED|OPTION_NOT_FOUND|unknown op|TIMEOUT|timed out|rpc timeout|HOST_ERROR|not supported/i.test(
+    String(code || '') + ' ' + String(msg || '')
+  );
+}
 
 function log(...a) {
   writeSync(1, a.map(String).join(' ') + '\n');
@@ -52,7 +94,11 @@ function parseArgs(argv) {
     fromState: false,
     onlyPlatform: null,
     onlyTool: null,
-    dryRun: false
+    dryRun: false,
+    statePath: DEFAULT_STATE_PATH,
+    runPath: DEFAULT_RUN_PATH,
+    redPath: DEFAULT_RED_PATH,
+    freshState: false
   };
   for (const a of argv) {
     if (a.startsWith('--url=')) o.url = a.slice(6);
@@ -69,6 +115,10 @@ function parseArgs(argv) {
     } else if (a === '--from-state') o.fromState = true;
     else if (a.startsWith('--only=')) o.onlyPlatform = a.slice(7);
     else if (a.startsWith('--only-tool=')) o.onlyTool = a.slice(12);
+    else if (a.startsWith('--state=')) o.statePath = a.slice(8);
+    else if (a.startsWith('--run=')) o.runPath = a.slice(6);
+    else if (a.startsWith('--red=')) o.redPath = a.slice(6);
+    else if (a === '--fresh-state') o.freshState = true;
     else if (a === '--dry-run') o.dryRun = true;
   }
   if (!o.token && !o.dryRun) {
@@ -101,13 +151,13 @@ function loadList() {
   return JSON.parse(readFileSync(LIST_PATH, 'utf8'));
 }
 
-function loadState() {
-  if (!existsSync(STATE_PATH)) return { nextId: null, slots: {}, results: {} };
-  return JSON.parse(readFileSync(STATE_PATH, 'utf8'));
+function loadState(path, fresh) {
+  if (fresh || !existsSync(path)) return { nextId: null, slots: {}, results: {} };
+  return JSON.parse(readFileSync(path, 'utf8'));
 }
 
-function saveState(state) {
-  writeFileSync(STATE_PATH, JSON.stringify(state, null, 2) + '\n');
+function saveState(path, state) {
+  writeFileSync(path, JSON.stringify(state, null, 2) + '\n');
 }
 
 function errCode(err) {
@@ -142,10 +192,27 @@ class Orch {
     this.opts = opts;
     this.client = null;
     this.ts = Date.now();
-    this.state = loadState();
+    this.statePath = opts.statePath || DEFAULT_STATE_PATH;
+    this.runPath = opts.runPath || DEFAULT_RUN_PATH;
+    this.redPath = opts.redPath || DEFAULT_RED_PATH;
+    this.state = loadState(this.statePath, opts.freshState);
     this.state.slots = this.state.slots || {};
     this.state.slots.browserId = opts.browserId;
     this.state.results = this.state.results || {};
+    this._lastPlatform = null;
+  }
+
+  persist() {
+    saveState(this.statePath, this.state);
+  }
+
+  maybeClearSlotsForPlatform(platform) {
+    if (!platform || platform === '*') return;
+    if (this._lastPlatform && this._lastPlatform !== platform) {
+      this.state.slots = clearPlatformSlots(this.state.slots);
+      this.state.slots.browserId = this.opts.browserId;
+    }
+    this._lastPlatform = platform;
   }
 
   async connect() {
@@ -165,9 +232,19 @@ class Orch {
   }
 
   async call(name, args, timeoutMs) {
-    const r = await this.client.callTool({ name, arguments: args }, undefined, {
-      timeout: timeoutMs || 90000
+    const ms = timeoutMs || 90000;
+    const hard = new Promise((_, reject) => {
+      const t = setTimeout(() => {
+        const err = new Error('hard timeout after ' + ms + 'ms');
+        err.code = 'TIMEOUT';
+        reject(err);
+      }, ms + 5000);
+      if (typeof t.unref === 'function') t.unref();
     });
+    const r = await Promise.race([
+      this.client.callTool({ name, arguments: args }, undefined, { timeout: ms }),
+      hard
+    ]);
     let body = null;
     const text = r?.content?.[0]?.text;
     if (typeof text === 'string' && text.trim()) {
@@ -198,21 +275,21 @@ class Orch {
   }
 
   appendRun(line) {
-    if (!existsSync(RUN_PATH) || readFileSync(RUN_PATH, 'utf8').length < 10) {
+    if (!existsSync(this.runPath) || readFileSync(this.runPath, 'utf8').length < 10) {
       writeFileSync(
-        RUN_PATH,
+        this.runPath,
         `# MCP run-list RUN\n\n- Started: ${new Date().toISOString()}\n- Browser: ${this.opts.browserId}\n\n| Id | Tool | Platform | Result |\n| --- | --- | --- | --- |\n`
       );
     }
-    appendFileSync(RUN_PATH, line + '\n');
+    appendFileSync(this.runPath, line + '\n');
   }
 
   appendRed(c, result, actual) {
-    if (!existsSync(RED_PATH)) {
-      writeFileSync(RED_PATH, '# MCP live matrix RED\n\n');
+    if (!existsSync(this.redPath)) {
+      writeFileSync(this.redPath, '# MCP live matrix RED\n\n');
     }
     appendFileSync(
-      RED_PATH,
+      this.redPath,
       `\n## ${c.id} ${c.tool} / ${c.platform}\n\n- result: ${result}\n- actual: ${String(actual).replace(/\n/g, ' ').slice(0, 600)}\n- at: ${new Date().toISOString()}\n`
     );
   }
@@ -226,7 +303,7 @@ class Orch {
       `| ${c.id} | ${c.tool} | ${c.platform} | ${result.replace(/\|/g, '/')} |`
     );
     if (status === 'FAIL') this.appendRed(c, result, detail);
-    saveState(this.state);
+    this.persist();
     return result;
   }
 
@@ -321,7 +398,8 @@ class Orch {
 
   async runCase(c) {
     this.state.nextId = c.id;
-    saveState(this.state);
+    this.maybeClearSlotsForPlatform(c.platform);
+    this.persist();
 
     if (c.expect?.startsWith('SKIP') || c.tool.startsWith('__skip_')) {
       return this.record(c, 'SKIP', String(c.expect || 'skip').replace(/^SKIP\(/, '').replace(/\)$/, ''));
@@ -344,27 +422,14 @@ class Orch {
     }
 
     try {
-      const body = await this.call(c.tool, args, c.timeoutMs || 90000);
-      if (c.slot === 'chatId' || c.slot === 'chatId2' || c.slot === 'chatId3') {
-        const id = body?.chatId || body?.id;
-        if (id) this.state.slots[c.slot] = id;
-      }
-      if (c.slot === 'cacheId') {
-        const id = body?.cacheId || body?.id;
-        if (id) this.state.slots.cacheId = id;
-      }
-      if (c.slot === 'containerId') {
-        const id = body?.containerId || body?.id || body?.projectId;
-        if (id) this.state.slots.containerId = id;
-      }
-      if (c.slot === 'cancelJobId' && body?.job_id) {
-        this.state.slots.cancelJobId = body.job_id;
-      }
+      const body = await this.call(c.tool, args, c.timeoutMs || 190000);
+      this.state.slots = applySlotFromBody(this.state.slots, c.slot, body);
       if (body?.job_id) {
         this.state.slots.lastJobId = body.job_id;
         if (c.waitJob) {
-          const st = await this.waitJob(body.job_id, Math.max(c.timeoutMs || 0, 180000));
+          const st = await this.waitJob(body.job_id, Math.max(c.timeoutMs || 0, 190000));
           if (st.status === 'error') {
+            if (c.slot) this.state.slots = applySlotFromBody(this.state.slots, c.slot, null);
             return this.record(c, 'FAIL', (st.error?.code || 'JOB_ERROR') + ':' + (st.error?.message || ''));
           }
           const res = st.result || {};
@@ -383,10 +448,10 @@ class Orch {
     } catch (err) {
       const code = errCode(err);
       const msg = errMsg(err);
-      if (
-        c.softFail === 'unsupported' &&
-        /UNSUPPORTED|NOT_SUPPORTED|unknown op|TIMEOUT|timed out|rpc timeout|HOST_ERROR/i.test(code + ' ' + msg)
-      ) {
+      if (c.slot) this.state.slots = applySlotFromBody(this.state.slots, c.slot, null);
+      // softFail: unsupported ONLY when the case JSON opts in (e.g. projects_* on hosts without projects).
+      // Never auto-SKIP UNAUTHORIZED / RATE_LIMIT / host errors — those stay FAIL for investigation.
+      if (c.softFail === 'unsupported' && isUnsupportedSoftFail(code, msg)) {
         return this.record(c, 'SKIP', 'unsupported:' + code);
       }
       return this.record(c, 'FAIL', code + ':' + msg.slice(0, 120));
@@ -426,7 +491,7 @@ async function main() {
     if (i1 < i0) throw new Error('--to before --from');
     cases = cases.slice(i0, i1 + 1);
   } else if (opts.fromState) {
-    const st = loadState();
+    const st = loadState(opts.statePath, false);
     if (st.nextId) {
       const i = cases.findIndex((c) => c.id === st.nextId);
       if (i >= 0) cases = cases.slice(i);
@@ -453,20 +518,25 @@ async function main() {
         await orch.runCase(c);
       } catch (err) {
         orch.state.nextId = c.id;
-        saveState(orch.state);
+        orch.persist();
         log(`ORCH_CRASH at ${c.id}: ${errMsg(err)}`);
         throw err;
       }
     }
     orch.state.nextId = null;
-    saveState(orch.state);
+    orch.persist();
     log('DONE');
   } finally {
     await orch.close();
   }
 }
 
-main().catch((err) => {
-  log(String(err?.stack || err));
-  process.exit(2);
-});
+const isMain =
+  !!process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href;
+
+if (isMain) {
+  main().catch((err) => {
+    log(String(err?.stack || err));
+    process.exit(2);
+  });
+}

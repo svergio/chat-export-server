@@ -1,0 +1,19 @@
+{
+  "nextId": null,
+  "slots": {
+    "browserId": "b-215c6f46",
+    "chatId": "2121546549494796561"
+  },
+  "results": {
+    "081": {
+      "status": "PASS",
+      "detail": "",
+      "at": "2026-11-14T10:11:29.238Z"
+    },
+    "086": {
+      "status": "FAIL",
+      "detail": "NOT_FOUND:conversation not found or empty: 2121546549494796561",
+      "at": "2026-11-14T10:11:29.752Z"
+    }
+  }
+}

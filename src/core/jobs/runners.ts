@@ -71,7 +71,7 @@ function hostKind(state: any, code: string): string | undefined {
   return undefined;
 }
 
-/** Compose/mutate gates. Paywall blocks ask/send/delete, not read/export. */
+/** Compose gates. Paywall blocks ask/send; read/export/delete allow marketing paywall. */
 function assertNotBusy(state: any, platform: string, opts?: { allowPaywall?: boolean }): void {
   if (!state?.busy) return;
   const code =
@@ -130,6 +130,18 @@ async function gateBeforeMutate(
 }
 
 async function gateBeforeExport(
+  core: RunnerCore,
+  platform: string,
+  chatId: string | undefined,
+  input: Record<string, any>,
+  cache: { unsupported?: boolean },
+  ctx: LaneContext
+) {
+  await gateHost(core, platform, chatId, input, cache, ctx, { allowPaywall: true });
+}
+
+/** Sidebar delete does not need composer; marketing paywall must not block it. */
+async function gateBeforeDelete(
   core: RunnerCore,
   platform: string,
   chatId: string | undefined,
@@ -404,7 +416,7 @@ async function deleteOne(
 ) {
   const { platform, input } = job;
   await ensureTabIfRequested(core, platform, input, chatId);
-  await gateBeforeMutate(core, platform, chatId, input, {}, ctx);
+  await gateBeforeDelete(core, platform, chatId, input, {}, ctx);
   if (input.testOnly !== false) await assertTestChat(core, platform, chatId, knownTitle);
   const args: Record<string, any> = { chatId, ...captchaArg(input) };
   return core.chatsDelete(platform, args, { confirm: input.confirm === true });

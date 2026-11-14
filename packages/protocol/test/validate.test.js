@@ -53,9 +53,30 @@ test('error codes include core contract set', () => {
     'PROJECTS_DISABLED',
     'PLATFORM_BUSY',
     'RATE_LIMIT',
-    'CAPTCHA'
+    'CAPTCHA',
+    'OPTION_NOT_FOUND',
+    'OPTION_LOCKED',
+    'ATTACH_UNSUPPORTED',
+    'FILE_NOT_ALLOWED',
+    'FILE_TOO_LARGE',
+    'ATTACH_TIMEOUT'
   ]) {
     assert.equal(ERROR_CODES[code], code);
+  }
+});
+
+test('rpc.response accepts PROJECTS_DISABLED and OPTION_NOT_FOUND errors', () => {
+  for (const code of ['PROJECTS_DISABLED', 'OPTION_NOT_FOUND']) {
+    assert.equal(
+      validate('RpcResponse', {
+        type: 'rpc.result',
+        id: 'x1',
+        ok: false,
+        error: { code, message: 'Projects are not supported' }
+      }).valid,
+      true,
+      code
+    );
   }
 });
 

@@ -2,9 +2,13 @@
 
 [English](CONTRIBUTING.md) | [Русский](CONTRIBUTING.ru.md)
 
+Agent entrypoint: [AGENTS.md](./AGENTS.md) (branch policy, adversarial / live MCP run-list, feature workflow).
+
 Local MCP gateway for the [Chat Export](https://github.com/svergio/chat-export-extension) Chrome extension. Pair this repo with `chat-export-extension` (browser bridge) and `chat-export-dashboard` (embedded UI under `dashboard/`).
 
-Do not add `Co-authored-by` trailers to commits. Target `main` for feature fixes; use branch `test` when you are landing adversarial or contract tests before promotion.
+**Branching:** `feature/<name>` / `fix/<name>` from long-lived `test`; to validate, open a **tests** branch from that feature/fix, then merge tests → feature → `test`. **`main` is release-only** (`test` → `main` + tag). See [AGENTS.md](./AGENTS.md).
+
+**Co-authored-by:** allowed for the AI agent that did the work (Chat Export only). No fake human co-authors.
 
 Related: extension [CONTRIBUTING.md](https://github.com/svergio/chat-export-extension/blob/main/CONTRIBUTING.md) and [SECURITY.md](./SECURITY.md).
 
@@ -35,9 +39,9 @@ CI runs on pushes and PRs to **`test`** and **`main`** (see `.github/workflows/c
 npm test               # node --test test/unit/*.test.js
 ```
 
-Prefer adding adversarial cases on branch `test` first (malformed bodies, bad tokens, destructive ops without confirm, path traversal in export names, migration edges). Keep suites deterministic and under ~15s per job.
+Land features and adversarial cases on **`test`** together (malformed bodies, bad tokens, destructive ops without confirm, path traversal in export names, migration edges, live MCP run-list). Keep CI suites deterministic and under ~15s per job.
 
-Merge `test` into `main` only when CI is green on `test`.
+Merge `test` → `main` **only on release**, when CI is green on `test`.
 
 ## Protocol package
 

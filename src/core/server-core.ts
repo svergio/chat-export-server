@@ -13,6 +13,7 @@ import {
   hashKey,
   isBrowserToken,
   isMcpToken,
+  mintBrowserId,
   verifyKey,
   writeMcpTokenArtifacts
 } from './keys.js';
@@ -155,22 +156,44 @@ export class ServerCore {
     const rows = this.db.all(
       'SELECT browser_id, label, salt, hash, fingerprint, host_ip, permissions_json, status, connected_at, updated_at, tabs_json FROM browsers ORDER BY browser_id'
     );
-    for (const row of rows) {
-      if (claimedId && claimedId !== row.browser_id) continue;
-      if (!verifyKey(hello.key, row)) continue;
-      return {
-        browserId: row.browser_id,
-        browserLabel: row.label || hello.browserLabel || row.browser_id,
-        fingerprint: row.fingerprint,
-        hostIp: meta.remoteAddress || row.host_ip || '',
-        permissions: parseJson(row.permissions_json, {
-          allowCreate: true,
-          allowDestructive: false,
-          allowProjects: true
-        }),
-        tabs: parseJson(row.tabs_json, [])
-      };
+
+    const toAuth = (row: any) => ({
+      browserId: row.browser_id,
+      browserLabel: row.label || hello.browserLabel || row.browser_id,
+      fingerprint: row.fingerprint,
+      hostIp: meta.remoteAddress || row.host_ip || '',
+      permissions: parseJson(row.permissions_json, {
+        allowCreate: true,
+        allowDestructive: false,
+        allowProjects: true
+      }),
+      tabs: parseJson(row.tabs_json, [])
+    });
+
+    // Prefer claimed browserId + key. Fallback: key alone.
+    // Two Chrome profiles can clone the same ce.browserId; the ceb_ key is the real identity.
+    if (claimedId) {
+      for (const row of rows) {
+        if (row.browser_id !== claimedId) continue;
+        if (!verifyKey(hello.key, row)) continue;
+        return toAuth(row);
+      }
     }
+    for (const row of rows) {
+      if (!verifyKey(hello.key, row)) continue;
+      if (claimedId && claimedId !== row.browser_id) {
+        this.audit({
+          action: 'ws.hello',
+          ok: true,
+          reason: 'browserId_key_mismatch_remapped',
+          claimedBrowserId: claimedId,
+          browserId: row.browser_id,
+          fingerprint: row.fingerprint
+        });
+      }
+      return toAuth(row);
+    }
+
     if (claimedId) {
       const revoked = this.db.all(
         'SELECT salt, hash, fingerprint FROM browser_revoked_tokens WHERE browser_id = ? ORDER BY revoked_at DESC',
@@ -258,24 +281,69 @@ export class ServerCore {
   }
 
   browserEnroll(input: any, meta: { hostIp?: string } = {}) {
-    const browserId = String(input?.browserId || '').trim();
+    const claimedId = String(input?.browserId || '').trim();
     const key = String(input?.key || '').trim();
-    if (!browserId) {
-      throw new ProtocolError(ERROR_CODES.BAD_REQUEST, 'browserId is required');
-    }
+    const previousKey = String(input?.previousKey || '').trim();
     if (!isBrowserToken(key)) {
       throw new ProtocolError(ERROR_CODES.BAD_REQUEST, 'browser token must start with ceb_ or legacy cek_');
     }
-    const browserLabel = String(input?.browserLabel || input?.label || browserId).trim() || browserId;
+
+    // Identity is the ceb_ key. Server owns browserId (1 extension profile ↔ 1 browser).
+    const all = this.db.all(
+      'SELECT browser_id, salt, hash, fingerprint FROM browsers ORDER BY browser_id'
+    );
+    let browserId = '';
+    let existing: any = null;
+    for (const row of all) {
+      if (!verifyKey(key, row)) continue;
+      browserId = String(row.browser_id);
+      existing = row;
+      break;
+    }
+
+    if (!browserId && claimedId && previousKey && isBrowserToken(previousKey)) {
+      const claimed = this.db.get(
+        'SELECT browser_id, salt, hash, fingerprint FROM browsers WHERE browser_id = ?',
+        [claimedId]
+      );
+      // Explicit rotate: prove possession of the prior key for this browserId.
+      if (claimed && verifyKey(previousKey, claimed)) {
+        browserId = claimedId;
+        existing = claimed;
+      }
+    }
+
+    if (!browserId) {
+      if (claimedId) {
+        const claimed = this.db.get(
+          'SELECT browser_id, salt, hash, fingerprint FROM browsers WHERE browser_id = ?',
+          [claimedId]
+        );
+        // Adopt free claimed id only when unused; never steal another browser's id.
+        if (!claimed) browserId = claimedId;
+      }
+      if (!browserId) {
+        do {
+          browserId = mintBrowserId();
+        } while (
+          this.db.get('SELECT browser_id FROM browsers WHERE browser_id = ?', [browserId])
+        );
+      }
+    }
+
+    const browserLabel =
+      String(input?.browserLabel || input?.label || browserId).trim() || browserId;
     const permissions = {
       allowCreate: input?.allowCreate === false ? false : true,
       allowDestructive: Boolean(input?.allowDestructive),
       allowProjects: input?.allowProjects === false ? false : true
     };
-    const existing = this.db.get(
-      'SELECT browser_id, salt, hash, fingerprint FROM browsers WHERE browser_id = ?',
-      [browserId]
-    );
+    if (!existing) {
+      existing = this.db.get(
+        'SELECT browser_id, salt, hash, fingerprint FROM browsers WHERE browser_id = ?',
+        [browserId]
+      );
+    }
     const sameToken = Boolean(existing && verifyKey(key, existing));
     const hashed = sameToken
       ? {
@@ -341,6 +409,7 @@ export class ServerCore {
     this.audit({
       action: 'browser.enroll',
       browserId,
+      claimedBrowserId: claimedId || null,
       fingerprint: hashed.fingerprint,
       supersededFingerprint: superseded,
       ok: true
@@ -445,7 +514,8 @@ export class ServerCore {
         tabs: connected ? connected.tabs || storedTabs : [],
         connectedAt: connected?.connectedAt || row.connected_at || null,
         updatedAt: row.updated_at || null,
-        status: connected ? 'online' : row.status || 'registered',
+        // Never advertise DB leftover "online" without a live WS session (blocks bind after restart).
+        status: connected ? 'online' : row.status === 'online' ? 'registered' : row.status || 'registered',
         bound: Boolean(connected?.bound)
       };
     });

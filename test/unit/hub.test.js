@@ -110,8 +110,10 @@ describe('BrowserHub', () => {
       const rotated = core.browserEnroll({
         browserId,
         key: nextKey,
+        previousKey: legacyKey,
         browserLabel: 'Rotated'
       });
+      assert.equal(rotated.browserId, browserId);
       assert.equal(rotated.superseded, true);
       assert.notEqual(rotated.fingerprint, first.fingerprint);
 
@@ -132,8 +134,10 @@ describe('BrowserHub', () => {
       const again = core.browserEnroll({
         browserId,
         key: replaced,
+        previousKey: nextKey,
         browserLabel: 'Rotated again'
       });
+      assert.equal(again.browserId, browserId);
       assert.equal(again.superseded, true);
 
       await assert.rejects(
@@ -153,6 +157,67 @@ describe('BrowserHub', () => {
       assert.equal(ok.welcome.browserId, browserId);
       ok.close();
       live.close();
+    });
+  });
+
+  it('enroll assigns server-owned browserId by ceb_ key (ignores stolen claimed id)', async () => {
+    await withServer(async (server) => {
+      const { core } = server;
+      core.keyNew();
+      const keyA = makeBrowserToken('own-a');
+      const keyB = makeBrowserToken('own-b');
+      const a = core.browserEnroll({
+        browserId: 'b-claimed-a',
+        key: keyA,
+        browserLabel: 'A'
+      });
+      assert.equal(a.browserId, 'b-claimed-a');
+      const b = core.browserEnroll({
+        // Clone profile still claims A's id but holds a different key → server mints a new id
+        browserId: 'b-claimed-a',
+        key: keyB,
+        browserLabel: 'B'
+      });
+      assert.notEqual(b.browserId, a.browserId);
+      assert.match(b.browserId, /^b-[a-f0-9]{8}$/);
+      const again = core.browserEnroll({
+        browserId: 'totally-wrong',
+        key: keyB,
+        browserLabel: 'B2'
+      });
+      assert.equal(again.browserId, b.browserId);
+    });
+  });
+
+  it('hello remaps cloned browserId when ceb_ key belongs to another row', async () => {
+    await withServer(async (server) => {
+      const { core, hub, port } = server;
+      core.keyNew();
+      const loggedInId = 'b-logged';
+      const loggedOutId = 'b-logged-out';
+      const keyA = makeBrowserToken('key-a-logged-in');
+      const keyB = makeBrowserToken('key-b-logged-out');
+      core.browserEnroll({ browserId: loggedInId, key: keyA, browserLabel: 'ЗАЛОГИНЕНЫЕ' });
+      core.browserEnroll({ browserId: loggedOutId, key: keyB, browserLabel: 'НЕЗАЛОГИНЕНЫЕ' });
+
+      const a = await connectMockBrowser(port, {
+        key: keyA,
+        browserId: loggedInId,
+        browserLabel: 'ЗАЛОГИНЕНЫЕ'
+      });
+      // Profile clone still claims loggedInId but holds keyB
+      const b = await connectMockBrowser(port, {
+        key: keyB,
+        browserId: loggedInId,
+        browserLabel: 'НЕЗАЛОГИНЕНЫЕ'
+      });
+      assert.equal(a.welcome.browserId, loggedInId);
+      assert.equal(b.welcome.browserId, loggedOutId);
+      assert.equal(hub.browsers.has(loggedInId), true);
+      assert.equal(hub.browsers.has(loggedOutId), true);
+      assert.equal(hub.listBrowsers().filter((x) => x.status === 'online' || hub.browsers.has(x.browserId)).length >= 2, true);
+      a.close();
+      b.close();
     });
   });
 

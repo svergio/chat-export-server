@@ -172,7 +172,13 @@
         "INVALID_ARGS",
         "PLATFORM_BUSY",
         "RATE_LIMIT",
-        "CAPTCHA"
+        "CAPTCHA",
+        "OPTION_NOT_FOUND",
+        "OPTION_LOCKED",
+        "ATTACH_UNSUPPORTED",
+        "FILE_NOT_ALLOWED",
+        "FILE_TOO_LARGE",
+        "ATTACH_TIMEOUT"
       ]
     },
     "BrowserTab": {
