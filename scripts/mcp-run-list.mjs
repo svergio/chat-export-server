@@ -6,10 +6,14 @@
  *   node scripts/mcp-run-list.mjs --dry-run
  *   node scripts/mcp-run-list.mjs
  *   node scripts/mcp-run-list.mjs --from=042
+ *   node scripts/mcp-run-list.mjs --from=042 --to=080
+ *   node scripts/mcp-run-list.mjs --ids=4,8,12
+ *   node scripts/mcp-run-list.mjs --ids=004,008,012
  *   node scripts/mcp-run-list.mjs --from-state
  *   node scripts/mcp-run-list.mjs --only=perplexity
- *   node scripts/mcp-run-list.mjs --only-tool=chats_list
+ *   node scripts/mcp-run-list.mjs --only-tool=chats_delete
  *
+ * Selection: --ids (arbitrary set) wins; else --from/--to range; else --from-state; else full list.
  * On case FAIL: append RED, continue. On orchestrator crash: state.nextId saved → --from=N.
  * Do not edit product code while this runs.
  */
@@ -30,12 +34,21 @@ function log(...a) {
   writeSync(1, a.map(String).join(' ') + '\n');
 }
 
+function padId(raw) {
+  const s = String(raw || '').trim();
+  if (!s) return s;
+  if (/^\d+$/.test(s)) return s.padStart(3, '0');
+  return s;
+}
+
 function parseArgs(argv) {
   const o = {
     url: process.env.CHAT_EXPORT_MCP_URL || 'http://127.0.0.1:8765/mcp',
     token: process.env.CHAT_EXPORT_MCP_TOKEN || '',
     browserId: process.env.CHAT_EXPORT_BROWSER_ID || 'b-215c6f46',
     from: null,
+    to: null,
+    ids: null,
     fromState: false,
     onlyPlatform: null,
     onlyTool: null,
@@ -45,8 +58,15 @@ function parseArgs(argv) {
     if (a.startsWith('--url=')) o.url = a.slice(6);
     else if (a.startsWith('--token=')) o.token = a.slice(8);
     else if (a.startsWith('--browser=')) o.browserId = a.slice(10);
-    else if (a.startsWith('--from=')) o.from = a.slice(7);
-    else if (a === '--from-state') o.fromState = true;
+    else if (a.startsWith('--from=')) o.from = padId(a.slice(7));
+    else if (a.startsWith('--to=')) o.to = padId(a.slice(5));
+    else if (a.startsWith('--ids=')) {
+      o.ids = a
+        .slice(6)
+        .split(/[,;\s]+/)
+        .map(padId)
+        .filter(Boolean);
+    } else if (a === '--from-state') o.fromState = true;
     else if (a.startsWith('--only=')) o.onlyPlatform = a.slice(7);
     else if (a.startsWith('--only-tool=')) o.onlyTool = a.slice(12);
     else if (a === '--dry-run') o.dryRun = true;
@@ -378,34 +398,49 @@ async function main() {
   const opts = parseArgs(process.argv.slice(2));
   mkdirSync(QA, { recursive: true });
   const doc = loadList();
-  let cases = doc.cases || [];
+  const all = doc.cases || [];
+  let cases = all;
 
   if (opts.onlyPlatform) {
     cases = cases.filter((c) => c.platform === opts.onlyPlatform || c.platform === '*');
   }
   if (opts.onlyTool) {
-    cases = cases.filter((c) => c.tool === opts.onlyTool || c.tool.startsWith('__trap') || c.tool.startsWith('__skip'));
+    cases = cases.filter(
+      (c) => c.tool === opts.onlyTool || c.tool.startsWith('__trap') || c.tool.startsWith('__skip')
+    );
   }
 
-  let startIdx = 0;
-  if (opts.fromState) {
+  // Arbitrary set (pre-release smoke): preserve id order from the master list
+  if (opts.ids && opts.ids.length) {
+    const want = new Set(opts.ids);
+    const missing = opts.ids.filter((id) => !all.some((c) => c.id === id));
+    if (missing.length) throw new Error('unknown --ids: ' + missing.join(','));
+    cases = cases.filter((c) => want.has(c.id));
+  } else if (opts.from || opts.to) {
+    const fromId = opts.from || cases[0]?.id;
+    const toId = opts.to || cases[cases.length - 1]?.id;
+    const i0 = cases.findIndex((c) => c.id === fromId);
+    const i1 = cases.findIndex((c) => c.id === toId);
+    if (i0 < 0) throw new Error('unknown --from id ' + fromId);
+    if (i1 < 0) throw new Error('unknown --to id ' + toId);
+    if (i1 < i0) throw new Error('--to before --from');
+    cases = cases.slice(i0, i1 + 1);
+  } else if (opts.fromState) {
     const st = loadState();
     if (st.nextId) {
       const i = cases.findIndex((c) => c.id === st.nextId);
-      if (i >= 0) startIdx = i;
+      if (i >= 0) cases = cases.slice(i);
     }
-  } else if (opts.from) {
-    const i = cases.findIndex((c) => c.id === opts.from);
-    if (i < 0) throw new Error('unknown --from id ' + opts.from);
-    startIdx = i;
   }
 
-  log(`run-list cases=${cases.length} fromIdx=${startIdx} id=${cases[startIdx]?.id || '-'} dry=${opts.dryRun}`);
+  log(
+    `run-list selected=${cases.length}/${all.length} first=${cases[0]?.id || '-'} last=${cases[cases.length - 1]?.id || '-'} dry=${opts.dryRun}`
+  );
   if (opts.dryRun) {
-    for (const c of cases.slice(startIdx)) {
+    for (const c of cases) {
       log(`${c.id}\t${c.tool}\t${c.platform}\t${c.destructive ? 'D' : ''}`);
     }
-    log(`total=${cases.length} remaining=${cases.length - startIdx}`);
+    log(`selected=${cases.length}`);
     return;
   }
 
@@ -413,12 +448,10 @@ async function main() {
   await orch.connect();
   try {
     await orch.call('browsers_bind', { browserId: opts.browserId }, 30000);
-    for (let i = startIdx; i < cases.length; i++) {
-      const c = cases[i];
+    for (const c of cases) {
       try {
         await orch.runCase(c);
       } catch (err) {
-        // Orchestrator bug — persist nextId and rethrow
         orch.state.nextId = c.id;
         saveState(orch.state);
         log(`ORCH_CRASH at ${c.id}: ${errMsg(err)}`);

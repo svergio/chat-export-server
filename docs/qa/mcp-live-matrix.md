@@ -29,12 +29,17 @@ node scripts/gen-mcp-run-list.mjs          # regenerate committed list
 node scripts/mcp-run-list.mjs --dry-run    # print id/tool/platform
 export CHAT_EXPORT_MCP_TOKEN=cem_…
 export CHAT_EXPORT_BROWSER_ID=b-215c6f46
-node scripts/mcp-run-list.mjs             # full walk
-node scripts/mcp-run-list.mjs --from=042  # resume from case id
-node scripts/mcp-run-list.mjs --from-state
+node scripts/mcp-run-list.mjs                 # full walk
+node scripts/mcp-run-list.mjs --from=042      # from id to end
+node scripts/mcp-run-list.mjs --from=042 --to=080   # inclusive range
+node scripts/mcp-run-list.mjs --ids=4,8,12    # arbitrary set (pre-release smoke)
+node scripts/mcp-run-list.mjs --ids=004,008,012
+node scripts/mcp-run-list.mjs --from-state    # resume after orch crash
 node scripts/mcp-run-list.mjs --only=perplexity
 node scripts/mcp-run-list.mjs --only-tool=chats_delete
 ```
+
+Selection priority: `--ids` > `--from`/`--to` > `--from-state` > full list.
 
 Deprecated: `scripts/mcp-live-matrix.mjs` (exits 2; prints pointer here).
 
