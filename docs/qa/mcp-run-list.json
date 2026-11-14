@@ -1,0 +1,5808 @@
+{
+  "version": 1,
+  "generatedAt": "2026-11-14T02:28:25.442Z",
+  "platforms": [
+    "chatgpt",
+    "grok",
+    "grok-x",
+    "copilot",
+    "claude",
+    "qwen",
+    "deepseek",
+    "perplexity",
+    "kimi",
+    "zai",
+    "minimax"
+  ],
+  "caseCount": 383,
+  "cases": [
+    {
+      "id": "001",
+      "tool": "browsers_list",
+      "platform": "*",
+      "args": {},
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "002",
+      "tool": "browsers_bind",
+      "platform": "*",
+      "args": {
+        "browserId": "{{browserId}}"
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "003",
+      "tool": "browsers_status",
+      "platform": "*",
+      "args": {},
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "004",
+      "tool": "__trap_T5_schema_testOnly",
+      "platform": "*",
+      "args": {},
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 30000,
+      "note": "listTools jobs_enqueue.testOnly must describe [ce-test] filter, not dry-run"
+    },
+    {
+      "id": "005",
+      "tool": "__trap_T1_empty_platforms",
+      "platform": "*",
+      "args": {},
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 60000,
+      "note": "bind online empty platformsEnabled browser → PLATFORM_DISABLED"
+    },
+    {
+      "id": "006",
+      "tool": "__trap_T2_testOnly_default",
+      "platform": "perplexity",
+      "args": {},
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 120000,
+      "note": "delete_batch default testOnly on non-[ce-test] → DESTRUCTIVE_DISABLED or paywall RED"
+    },
+    {
+      "id": "007",
+      "tool": "__skip_janitorai",
+      "platform": "janitorai",
+      "args": {},
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 1000,
+      "expect": "SKIP(wire-filtered)"
+    },
+    {
+      "id": "008",
+      "tool": "platforms_list",
+      "platform": "chatgpt",
+      "args": {},
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "009",
+      "tool": "tabs_ensure",
+      "platform": "chatgpt",
+      "args": {
+        "platform": "chatgpt"
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 60000
+    },
+    {
+      "id": "010",
+      "tool": "platforms_status",
+      "platform": "chatgpt",
+      "args": {
+        "platform": "chatgpt",
+        "ensureTab": false
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 60000
+    },
+    {
+      "id": "011",
+      "tool": "platforms_capabilities",
+      "platform": "chatgpt",
+      "args": {
+        "platform": "chatgpt"
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 120000
+    },
+    {
+      "id": "012",
+      "tool": "chats_list",
+      "platform": "chatgpt",
+      "args": {
+        "platform": "chatgpt",
+        "limit": 10
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "013",
+      "tool": "chats_create",
+      "platform": "chatgpt",
+      "args": {
+        "platform": "chatgpt",
+        "title": "[ce-test] runlist chatgpt {{ts}}",
+        "text": "[ce-test] runlist chatgpt {{ts}}\nrunlistNeedle{{ts}}",
+        "ensureTab": true
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 90000,
+      "slot": "chatId"
+    },
+    {
+      "id": "014",
+      "tool": "chats_send",
+      "platform": "chatgpt",
+      "args": {
+        "platform": "chatgpt",
+        "chatId": "{{chatId}}",
+        "text": "[ce-test] ping runlistNeedle{{ts}}",
+        "ensureTab": true
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "015",
+      "tool": "chat_ask",
+      "platform": "chatgpt",
+      "args": {
+        "platform": "chatgpt",
+        "chatId": "{{chatId}}",
+        "prompt": "[ce-test] reply ok runlistNeedle{{ts}}",
+        "timeout_s": 45,
+        "ensureTab": true,
+        "onCaptcha": "stop"
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "016",
+      "tool": "chats_get",
+      "platform": "chatgpt",
+      "args": {
+        "platform": "chatgpt",
+        "chatId": "{{chatId}}"
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "017",
+      "tool": "chat_outline",
+      "platform": "chatgpt",
+      "args": {
+        "platform": "chatgpt",
+        "chatId": "{{chatId}}"
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "018",
+      "tool": "chat_read",
+      "platform": "chatgpt",
+      "args": {
+        "platform": "chatgpt",
+        "chatId": "{{chatId}}",
+        "startTurn": 0,
+        "endTurn": 3,
+        "maxChars": 4000
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "019",
+      "tool": "chats_export",
+      "platform": "chatgpt",
+      "args": {
+        "platform": "chatgpt",
+        "chatId": "{{chatId}}",
+        "formats": [
+          "md"
+        ]
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 180000
+    },
+    {
+      "id": "020",
+      "tool": "chat_cache_sync",
+      "platform": "chatgpt",
+      "args": {
+        "platform": "chatgpt",
+        "chatId": "{{chatId}}"
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 180000,
+      "slot": "cacheId"
+    },
+    {
+      "id": "021",
+      "tool": "chat_cache_read",
+      "platform": "chatgpt",
+      "args": {
+        "cacheId": "{{cacheId}}",
+        "query": "runlistNeedle{{ts}}",
+        "maxChars": 4000
+      },
+      "needs": [
+        "cacheId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "022",
+      "tool": "chat_cache_append",
+      "platform": "chatgpt",
+      "args": {
+        "cacheId": "{{cacheId}}",
+        "turns": [
+          {
+            "role": "user",
+            "text": "append-runlistNeedle{{ts}}"
+          }
+        ]
+      },
+      "needs": [
+        "cacheId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "023",
+      "tool": "chat_cache_update_block",
+      "platform": "chatgpt",
+      "args": {
+        "cacheId": "{{cacheId}}",
+        "turnIndex": 0,
+        "content": "updated-runlistNeedle{{ts}}",
+        "role": "user"
+      },
+      "needs": [
+        "cacheId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "024",
+      "tool": "chats_search",
+      "platform": "chatgpt",
+      "args": {
+        "query": "runlistNeedle{{ts}}",
+        "platform": "chatgpt",
+        "limit": 20
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "025",
+      "tool": "tabs_search",
+      "platform": "chatgpt",
+      "args": {
+        "query": "chatgpt",
+        "platform": "chatgpt",
+        "limit": 20
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "026",
+      "tool": "jobs_enqueue",
+      "platform": "chatgpt",
+      "args": {
+        "kind": "library_ingest",
+        "platform": "chatgpt",
+        "chatIds": [
+          "{{chatId}}"
+        ]
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000,
+      "waitJob": true,
+      "assertBatch": true
+    },
+    {
+      "id": "027",
+      "tool": "jobs_status",
+      "platform": "chatgpt",
+      "args": {
+        "job_id": "{{lastJobId}}"
+      },
+      "needs": [
+        "lastJobId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "028",
+      "tool": "jobs_list",
+      "platform": "chatgpt",
+      "args": {
+        "limit": 5
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "029",
+      "tool": "jobs_enqueue",
+      "platform": "chatgpt",
+      "args": {
+        "kind": "export",
+        "platform": "chatgpt",
+        "chatId": "{{chatId}}",
+        "formats": [
+          "md"
+        ]
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000,
+      "waitJob": true,
+      "assertBatch": false
+    },
+    {
+      "id": "030",
+      "tool": "jobs_enqueue",
+      "platform": "chatgpt",
+      "args": {
+        "kind": "export_batch",
+        "platform": "chatgpt",
+        "chatIds": [
+          "{{chatId}}"
+        ],
+        "formats": [
+          "md"
+        ]
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000,
+      "waitJob": true,
+      "assertBatch": true
+    },
+    {
+      "id": "031",
+      "tool": "projects_list",
+      "platform": "chatgpt",
+      "args": {
+        "platform": "chatgpt",
+        "limit": 10
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 25000,
+      "softFail": "unsupported"
+    },
+    {
+      "id": "032",
+      "tool": "projects_create",
+      "platform": "chatgpt",
+      "args": {
+        "platform": "chatgpt",
+        "name": "[ce-test] runlist-proj chatgpt {{ts}}"
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 60000,
+      "softFail": "unsupported",
+      "slot": "containerId"
+    },
+    {
+      "id": "033",
+      "tool": "projects_chats",
+      "platform": "chatgpt",
+      "args": {
+        "platform": "chatgpt",
+        "containerId": "{{containerId}}",
+        "limit": 5
+      },
+      "needs": [
+        "containerId"
+      ],
+      "destructive": false,
+      "timeoutMs": 60000,
+      "softFail": "unsupported"
+    },
+    {
+      "id": "034",
+      "tool": "projects_move_chat",
+      "platform": "chatgpt",
+      "args": {
+        "platform": "chatgpt",
+        "chatId": "{{chatId}}",
+        "containerId": "{{containerId}}"
+      },
+      "needs": [
+        "chatId",
+        "containerId"
+      ],
+      "destructive": false,
+      "timeoutMs": 60000,
+      "softFail": "unsupported"
+    },
+    {
+      "id": "035",
+      "tool": "projects_delete",
+      "platform": "chatgpt",
+      "args": {
+        "platform": "chatgpt",
+        "containerId": "{{containerId}}",
+        "confirm": true
+      },
+      "needs": [
+        "containerId"
+      ],
+      "destructive": true,
+      "timeoutMs": 60000,
+      "softFail": "unsupported"
+    },
+    {
+      "id": "036",
+      "tool": "chats_create",
+      "platform": "chatgpt",
+      "args": {
+        "platform": "chatgpt",
+        "title": "[ce-test] runlist2 chatgpt {{ts}}",
+        "text": "[ce-test] runlist2 chatgpt {{ts}}",
+        "ensureTab": true
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 90000,
+      "slot": "chatId2"
+    },
+    {
+      "id": "037",
+      "tool": "jobs_enqueue",
+      "platform": "chatgpt",
+      "args": {
+        "kind": "delete",
+        "platform": "chatgpt",
+        "chatId": "{{chatId2}}",
+        "confirm": true
+      },
+      "needs": [
+        "chatId2"
+      ],
+      "destructive": true,
+      "timeoutMs": 30000,
+      "waitJob": true,
+      "assertBatch": false
+    },
+    {
+      "id": "038",
+      "tool": "chats_delete",
+      "platform": "chatgpt",
+      "args": {
+        "platform": "chatgpt",
+        "chatId": "{{chatId}}",
+        "confirm": true
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": true,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "039",
+      "tool": "chats_create",
+      "platform": "chatgpt",
+      "args": {
+        "platform": "chatgpt",
+        "title": "[ce-test] runlist3 chatgpt {{ts}}",
+        "text": "[ce-test] runlist3 chatgpt {{ts}}",
+        "ensureTab": true
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 90000,
+      "slot": "chatId3"
+    },
+    {
+      "id": "040",
+      "tool": "jobs_enqueue",
+      "platform": "chatgpt",
+      "args": {
+        "kind": "delete_batch",
+        "platform": "chatgpt",
+        "chatIds": [
+          "{{chatId3}}"
+        ],
+        "confirm": true
+      },
+      "needs": [
+        "chatId3"
+      ],
+      "destructive": true,
+      "timeoutMs": 30000,
+      "waitJob": true,
+      "assertBatch": true
+    },
+    {
+      "id": "041",
+      "tool": "chat_cache_delete",
+      "platform": "chatgpt",
+      "args": {
+        "cacheId": "{{cacheId}}"
+      },
+      "needs": [
+        "cacheId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000,
+      "softFail": "missing-slot"
+    },
+    {
+      "id": "042",
+      "tool": "platforms_list",
+      "platform": "grok",
+      "args": {},
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "043",
+      "tool": "tabs_ensure",
+      "platform": "grok",
+      "args": {
+        "platform": "grok"
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 60000
+    },
+    {
+      "id": "044",
+      "tool": "platforms_status",
+      "platform": "grok",
+      "args": {
+        "platform": "grok",
+        "ensureTab": false
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 60000
+    },
+    {
+      "id": "045",
+      "tool": "platforms_capabilities",
+      "platform": "grok",
+      "args": {
+        "platform": "grok"
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 120000
+    },
+    {
+      "id": "046",
+      "tool": "chats_list",
+      "platform": "grok",
+      "args": {
+        "platform": "grok",
+        "limit": 10
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "047",
+      "tool": "chats_create",
+      "platform": "grok",
+      "args": {
+        "platform": "grok",
+        "title": "[ce-test] runlist grok {{ts}}",
+        "text": "[ce-test] runlist grok {{ts}}\nrunlistNeedle{{ts}}",
+        "ensureTab": true
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 90000,
+      "slot": "chatId"
+    },
+    {
+      "id": "048",
+      "tool": "chats_send",
+      "platform": "grok",
+      "args": {
+        "platform": "grok",
+        "chatId": "{{chatId}}",
+        "text": "[ce-test] ping runlistNeedle{{ts}}",
+        "ensureTab": true
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "049",
+      "tool": "chat_ask",
+      "platform": "grok",
+      "args": {
+        "platform": "grok",
+        "chatId": "{{chatId}}",
+        "prompt": "[ce-test] reply ok runlistNeedle{{ts}}",
+        "timeout_s": 45,
+        "ensureTab": true,
+        "onCaptcha": "stop"
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "050",
+      "tool": "chats_get",
+      "platform": "grok",
+      "args": {
+        "platform": "grok",
+        "chatId": "{{chatId}}"
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "051",
+      "tool": "chat_outline",
+      "platform": "grok",
+      "args": {
+        "platform": "grok",
+        "chatId": "{{chatId}}"
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "052",
+      "tool": "chat_read",
+      "platform": "grok",
+      "args": {
+        "platform": "grok",
+        "chatId": "{{chatId}}",
+        "startTurn": 0,
+        "endTurn": 3,
+        "maxChars": 4000
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "053",
+      "tool": "chats_export",
+      "platform": "grok",
+      "args": {
+        "platform": "grok",
+        "chatId": "{{chatId}}",
+        "formats": [
+          "md"
+        ]
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 180000
+    },
+    {
+      "id": "054",
+      "tool": "chat_cache_sync",
+      "platform": "grok",
+      "args": {
+        "platform": "grok",
+        "chatId": "{{chatId}}"
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 180000,
+      "slot": "cacheId"
+    },
+    {
+      "id": "055",
+      "tool": "chat_cache_read",
+      "platform": "grok",
+      "args": {
+        "cacheId": "{{cacheId}}",
+        "query": "runlistNeedle{{ts}}",
+        "maxChars": 4000
+      },
+      "needs": [
+        "cacheId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "056",
+      "tool": "chat_cache_append",
+      "platform": "grok",
+      "args": {
+        "cacheId": "{{cacheId}}",
+        "turns": [
+          {
+            "role": "user",
+            "text": "append-runlistNeedle{{ts}}"
+          }
+        ]
+      },
+      "needs": [
+        "cacheId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "057",
+      "tool": "chat_cache_update_block",
+      "platform": "grok",
+      "args": {
+        "cacheId": "{{cacheId}}",
+        "turnIndex": 0,
+        "content": "updated-runlistNeedle{{ts}}",
+        "role": "user"
+      },
+      "needs": [
+        "cacheId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "058",
+      "tool": "chats_search",
+      "platform": "grok",
+      "args": {
+        "query": "runlistNeedle{{ts}}",
+        "platform": "grok",
+        "limit": 20
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "059",
+      "tool": "tabs_search",
+      "platform": "grok",
+      "args": {
+        "query": "grok",
+        "platform": "grok",
+        "limit": 20
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "060",
+      "tool": "jobs_enqueue",
+      "platform": "grok",
+      "args": {
+        "kind": "library_ingest",
+        "platform": "grok",
+        "chatIds": [
+          "{{chatId}}"
+        ]
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000,
+      "waitJob": true,
+      "assertBatch": true
+    },
+    {
+      "id": "061",
+      "tool": "jobs_status",
+      "platform": "grok",
+      "args": {
+        "job_id": "{{lastJobId}}"
+      },
+      "needs": [
+        "lastJobId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "062",
+      "tool": "jobs_list",
+      "platform": "grok",
+      "args": {
+        "limit": 5
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "063",
+      "tool": "jobs_enqueue",
+      "platform": "grok",
+      "args": {
+        "kind": "export",
+        "platform": "grok",
+        "chatId": "{{chatId}}",
+        "formats": [
+          "md"
+        ]
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000,
+      "waitJob": true,
+      "assertBatch": false
+    },
+    {
+      "id": "064",
+      "tool": "jobs_enqueue",
+      "platform": "grok",
+      "args": {
+        "kind": "export_batch",
+        "platform": "grok",
+        "chatIds": [
+          "{{chatId}}"
+        ],
+        "formats": [
+          "md"
+        ]
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000,
+      "waitJob": true,
+      "assertBatch": true
+    },
+    {
+      "id": "065",
+      "tool": "projects_list",
+      "platform": "grok",
+      "args": {
+        "platform": "grok",
+        "limit": 10
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 25000,
+      "softFail": "unsupported"
+    },
+    {
+      "id": "066",
+      "tool": "projects_create",
+      "platform": "grok",
+      "args": {
+        "platform": "grok",
+        "name": "[ce-test] runlist-proj grok {{ts}}"
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 60000,
+      "softFail": "unsupported",
+      "slot": "containerId"
+    },
+    {
+      "id": "067",
+      "tool": "projects_chats",
+      "platform": "grok",
+      "args": {
+        "platform": "grok",
+        "containerId": "{{containerId}}",
+        "limit": 5
+      },
+      "needs": [
+        "containerId"
+      ],
+      "destructive": false,
+      "timeoutMs": 60000,
+      "softFail": "unsupported"
+    },
+    {
+      "id": "068",
+      "tool": "projects_move_chat",
+      "platform": "grok",
+      "args": {
+        "platform": "grok",
+        "chatId": "{{chatId}}",
+        "containerId": "{{containerId}}"
+      },
+      "needs": [
+        "chatId",
+        "containerId"
+      ],
+      "destructive": false,
+      "timeoutMs": 60000,
+      "softFail": "unsupported"
+    },
+    {
+      "id": "069",
+      "tool": "projects_delete",
+      "platform": "grok",
+      "args": {
+        "platform": "grok",
+        "containerId": "{{containerId}}",
+        "confirm": true
+      },
+      "needs": [
+        "containerId"
+      ],
+      "destructive": true,
+      "timeoutMs": 60000,
+      "softFail": "unsupported"
+    },
+    {
+      "id": "070",
+      "tool": "chats_create",
+      "platform": "grok",
+      "args": {
+        "platform": "grok",
+        "title": "[ce-test] runlist2 grok {{ts}}",
+        "text": "[ce-test] runlist2 grok {{ts}}",
+        "ensureTab": true
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 90000,
+      "slot": "chatId2"
+    },
+    {
+      "id": "071",
+      "tool": "jobs_enqueue",
+      "platform": "grok",
+      "args": {
+        "kind": "delete",
+        "platform": "grok",
+        "chatId": "{{chatId2}}",
+        "confirm": true
+      },
+      "needs": [
+        "chatId2"
+      ],
+      "destructive": true,
+      "timeoutMs": 30000,
+      "waitJob": true,
+      "assertBatch": false
+    },
+    {
+      "id": "072",
+      "tool": "chats_delete",
+      "platform": "grok",
+      "args": {
+        "platform": "grok",
+        "chatId": "{{chatId}}",
+        "confirm": true
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": true,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "073",
+      "tool": "chats_create",
+      "platform": "grok",
+      "args": {
+        "platform": "grok",
+        "title": "[ce-test] runlist3 grok {{ts}}",
+        "text": "[ce-test] runlist3 grok {{ts}}",
+        "ensureTab": true
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 90000,
+      "slot": "chatId3"
+    },
+    {
+      "id": "074",
+      "tool": "jobs_enqueue",
+      "platform": "grok",
+      "args": {
+        "kind": "delete_batch",
+        "platform": "grok",
+        "chatIds": [
+          "{{chatId3}}"
+        ],
+        "confirm": true
+      },
+      "needs": [
+        "chatId3"
+      ],
+      "destructive": true,
+      "timeoutMs": 30000,
+      "waitJob": true,
+      "assertBatch": true
+    },
+    {
+      "id": "075",
+      "tool": "chat_cache_delete",
+      "platform": "grok",
+      "args": {
+        "cacheId": "{{cacheId}}"
+      },
+      "needs": [
+        "cacheId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000,
+      "softFail": "missing-slot"
+    },
+    {
+      "id": "076",
+      "tool": "platforms_list",
+      "platform": "grok-x",
+      "args": {},
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "077",
+      "tool": "tabs_ensure",
+      "platform": "grok-x",
+      "args": {
+        "platform": "grok-x"
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 60000
+    },
+    {
+      "id": "078",
+      "tool": "platforms_status",
+      "platform": "grok-x",
+      "args": {
+        "platform": "grok-x",
+        "ensureTab": false
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 60000
+    },
+    {
+      "id": "079",
+      "tool": "platforms_capabilities",
+      "platform": "grok-x",
+      "args": {
+        "platform": "grok-x"
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 120000
+    },
+    {
+      "id": "080",
+      "tool": "chats_list",
+      "platform": "grok-x",
+      "args": {
+        "platform": "grok-x",
+        "limit": 10
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "081",
+      "tool": "chats_create",
+      "platform": "grok-x",
+      "args": {
+        "platform": "grok-x",
+        "title": "[ce-test] runlist grok-x {{ts}}",
+        "text": "[ce-test] runlist grok-x {{ts}}\nrunlistNeedle{{ts}}",
+        "ensureTab": true
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 90000,
+      "slot": "chatId"
+    },
+    {
+      "id": "082",
+      "tool": "chats_send",
+      "platform": "grok-x",
+      "args": {
+        "platform": "grok-x",
+        "chatId": "{{chatId}}",
+        "text": "[ce-test] ping runlistNeedle{{ts}}",
+        "ensureTab": true
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "083",
+      "tool": "chat_ask",
+      "platform": "grok-x",
+      "args": {
+        "platform": "grok-x",
+        "chatId": "{{chatId}}",
+        "prompt": "[ce-test] reply ok runlistNeedle{{ts}}",
+        "timeout_s": 45,
+        "ensureTab": true,
+        "onCaptcha": "stop"
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "084",
+      "tool": "chats_get",
+      "platform": "grok-x",
+      "args": {
+        "platform": "grok-x",
+        "chatId": "{{chatId}}"
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "085",
+      "tool": "chat_outline",
+      "platform": "grok-x",
+      "args": {
+        "platform": "grok-x",
+        "chatId": "{{chatId}}"
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "086",
+      "tool": "chat_read",
+      "platform": "grok-x",
+      "args": {
+        "platform": "grok-x",
+        "chatId": "{{chatId}}",
+        "startTurn": 0,
+        "endTurn": 3,
+        "maxChars": 4000
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "087",
+      "tool": "chats_export",
+      "platform": "grok-x",
+      "args": {
+        "platform": "grok-x",
+        "chatId": "{{chatId}}",
+        "formats": [
+          "md"
+        ]
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 180000
+    },
+    {
+      "id": "088",
+      "tool": "chat_cache_sync",
+      "platform": "grok-x",
+      "args": {
+        "platform": "grok-x",
+        "chatId": "{{chatId}}"
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 180000,
+      "slot": "cacheId"
+    },
+    {
+      "id": "089",
+      "tool": "chat_cache_read",
+      "platform": "grok-x",
+      "args": {
+        "cacheId": "{{cacheId}}",
+        "query": "runlistNeedle{{ts}}",
+        "maxChars": 4000
+      },
+      "needs": [
+        "cacheId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "090",
+      "tool": "chat_cache_append",
+      "platform": "grok-x",
+      "args": {
+        "cacheId": "{{cacheId}}",
+        "turns": [
+          {
+            "role": "user",
+            "text": "append-runlistNeedle{{ts}}"
+          }
+        ]
+      },
+      "needs": [
+        "cacheId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "091",
+      "tool": "chat_cache_update_block",
+      "platform": "grok-x",
+      "args": {
+        "cacheId": "{{cacheId}}",
+        "turnIndex": 0,
+        "content": "updated-runlistNeedle{{ts}}",
+        "role": "user"
+      },
+      "needs": [
+        "cacheId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "092",
+      "tool": "chats_search",
+      "platform": "grok-x",
+      "args": {
+        "query": "runlistNeedle{{ts}}",
+        "platform": "grok-x",
+        "limit": 20
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "093",
+      "tool": "tabs_search",
+      "platform": "grok-x",
+      "args": {
+        "query": "grok-x",
+        "platform": "grok-x",
+        "limit": 20
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "094",
+      "tool": "jobs_enqueue",
+      "platform": "grok-x",
+      "args": {
+        "kind": "library_ingest",
+        "platform": "grok-x",
+        "chatIds": [
+          "{{chatId}}"
+        ]
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000,
+      "waitJob": true,
+      "assertBatch": true
+    },
+    {
+      "id": "095",
+      "tool": "jobs_status",
+      "platform": "grok-x",
+      "args": {
+        "job_id": "{{lastJobId}}"
+      },
+      "needs": [
+        "lastJobId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "096",
+      "tool": "jobs_list",
+      "platform": "grok-x",
+      "args": {
+        "limit": 5
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "097",
+      "tool": "jobs_enqueue",
+      "platform": "grok-x",
+      "args": {
+        "kind": "export",
+        "platform": "grok-x",
+        "chatId": "{{chatId}}",
+        "formats": [
+          "md"
+        ]
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000,
+      "waitJob": true,
+      "assertBatch": false
+    },
+    {
+      "id": "098",
+      "tool": "jobs_enqueue",
+      "platform": "grok-x",
+      "args": {
+        "kind": "export_batch",
+        "platform": "grok-x",
+        "chatIds": [
+          "{{chatId}}"
+        ],
+        "formats": [
+          "md"
+        ]
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000,
+      "waitJob": true,
+      "assertBatch": true
+    },
+    {
+      "id": "099",
+      "tool": "projects_list",
+      "platform": "grok-x",
+      "args": {
+        "platform": "grok-x",
+        "limit": 10
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 25000,
+      "softFail": "unsupported"
+    },
+    {
+      "id": "100",
+      "tool": "projects_create",
+      "platform": "grok-x",
+      "args": {
+        "platform": "grok-x",
+        "name": "[ce-test] runlist-proj grok-x {{ts}}"
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 60000,
+      "softFail": "unsupported",
+      "slot": "containerId"
+    },
+    {
+      "id": "101",
+      "tool": "projects_chats",
+      "platform": "grok-x",
+      "args": {
+        "platform": "grok-x",
+        "containerId": "{{containerId}}",
+        "limit": 5
+      },
+      "needs": [
+        "containerId"
+      ],
+      "destructive": false,
+      "timeoutMs": 60000,
+      "softFail": "unsupported"
+    },
+    {
+      "id": "102",
+      "tool": "projects_move_chat",
+      "platform": "grok-x",
+      "args": {
+        "platform": "grok-x",
+        "chatId": "{{chatId}}",
+        "containerId": "{{containerId}}"
+      },
+      "needs": [
+        "chatId",
+        "containerId"
+      ],
+      "destructive": false,
+      "timeoutMs": 60000,
+      "softFail": "unsupported"
+    },
+    {
+      "id": "103",
+      "tool": "projects_delete",
+      "platform": "grok-x",
+      "args": {
+        "platform": "grok-x",
+        "containerId": "{{containerId}}",
+        "confirm": true
+      },
+      "needs": [
+        "containerId"
+      ],
+      "destructive": true,
+      "timeoutMs": 60000,
+      "softFail": "unsupported"
+    },
+    {
+      "id": "104",
+      "tool": "chats_create",
+      "platform": "grok-x",
+      "args": {
+        "platform": "grok-x",
+        "title": "[ce-test] runlist2 grok-x {{ts}}",
+        "text": "[ce-test] runlist2 grok-x {{ts}}",
+        "ensureTab": true
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 90000,
+      "slot": "chatId2"
+    },
+    {
+      "id": "105",
+      "tool": "jobs_enqueue",
+      "platform": "grok-x",
+      "args": {
+        "kind": "delete",
+        "platform": "grok-x",
+        "chatId": "{{chatId2}}",
+        "confirm": true
+      },
+      "needs": [
+        "chatId2"
+      ],
+      "destructive": true,
+      "timeoutMs": 30000,
+      "waitJob": true,
+      "assertBatch": false
+    },
+    {
+      "id": "106",
+      "tool": "chats_delete",
+      "platform": "grok-x",
+      "args": {
+        "platform": "grok-x",
+        "chatId": "{{chatId}}",
+        "confirm": true
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": true,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "107",
+      "tool": "chats_create",
+      "platform": "grok-x",
+      "args": {
+        "platform": "grok-x",
+        "title": "[ce-test] runlist3 grok-x {{ts}}",
+        "text": "[ce-test] runlist3 grok-x {{ts}}",
+        "ensureTab": true
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 90000,
+      "slot": "chatId3"
+    },
+    {
+      "id": "108",
+      "tool": "jobs_enqueue",
+      "platform": "grok-x",
+      "args": {
+        "kind": "delete_batch",
+        "platform": "grok-x",
+        "chatIds": [
+          "{{chatId3}}"
+        ],
+        "confirm": true
+      },
+      "needs": [
+        "chatId3"
+      ],
+      "destructive": true,
+      "timeoutMs": 30000,
+      "waitJob": true,
+      "assertBatch": true
+    },
+    {
+      "id": "109",
+      "tool": "chat_cache_delete",
+      "platform": "grok-x",
+      "args": {
+        "cacheId": "{{cacheId}}"
+      },
+      "needs": [
+        "cacheId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000,
+      "softFail": "missing-slot"
+    },
+    {
+      "id": "110",
+      "tool": "platforms_list",
+      "platform": "copilot",
+      "args": {},
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "111",
+      "tool": "tabs_ensure",
+      "platform": "copilot",
+      "args": {
+        "platform": "copilot"
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 60000
+    },
+    {
+      "id": "112",
+      "tool": "platforms_status",
+      "platform": "copilot",
+      "args": {
+        "platform": "copilot",
+        "ensureTab": false
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 60000
+    },
+    {
+      "id": "113",
+      "tool": "platforms_capabilities",
+      "platform": "copilot",
+      "args": {
+        "platform": "copilot"
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 120000
+    },
+    {
+      "id": "114",
+      "tool": "chats_list",
+      "platform": "copilot",
+      "args": {
+        "platform": "copilot",
+        "limit": 10
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "115",
+      "tool": "chats_create",
+      "platform": "copilot",
+      "args": {
+        "platform": "copilot",
+        "title": "[ce-test] runlist copilot {{ts}}",
+        "text": "[ce-test] runlist copilot {{ts}}\nrunlistNeedle{{ts}}",
+        "ensureTab": true
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 90000,
+      "slot": "chatId"
+    },
+    {
+      "id": "116",
+      "tool": "chats_send",
+      "platform": "copilot",
+      "args": {
+        "platform": "copilot",
+        "chatId": "{{chatId}}",
+        "text": "[ce-test] ping runlistNeedle{{ts}}",
+        "ensureTab": true
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "117",
+      "tool": "chat_ask",
+      "platform": "copilot",
+      "args": {
+        "platform": "copilot",
+        "chatId": "{{chatId}}",
+        "prompt": "[ce-test] reply ok runlistNeedle{{ts}}",
+        "timeout_s": 45,
+        "ensureTab": true,
+        "onCaptcha": "stop"
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "118",
+      "tool": "chats_get",
+      "platform": "copilot",
+      "args": {
+        "platform": "copilot",
+        "chatId": "{{chatId}}"
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "119",
+      "tool": "chat_outline",
+      "platform": "copilot",
+      "args": {
+        "platform": "copilot",
+        "chatId": "{{chatId}}"
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "120",
+      "tool": "chat_read",
+      "platform": "copilot",
+      "args": {
+        "platform": "copilot",
+        "chatId": "{{chatId}}",
+        "startTurn": 0,
+        "endTurn": 3,
+        "maxChars": 4000
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "121",
+      "tool": "chats_export",
+      "platform": "copilot",
+      "args": {
+        "platform": "copilot",
+        "chatId": "{{chatId}}",
+        "formats": [
+          "md"
+        ]
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 180000
+    },
+    {
+      "id": "122",
+      "tool": "chat_cache_sync",
+      "platform": "copilot",
+      "args": {
+        "platform": "copilot",
+        "chatId": "{{chatId}}"
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 180000,
+      "slot": "cacheId"
+    },
+    {
+      "id": "123",
+      "tool": "chat_cache_read",
+      "platform": "copilot",
+      "args": {
+        "cacheId": "{{cacheId}}",
+        "query": "runlistNeedle{{ts}}",
+        "maxChars": 4000
+      },
+      "needs": [
+        "cacheId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "124",
+      "tool": "chat_cache_append",
+      "platform": "copilot",
+      "args": {
+        "cacheId": "{{cacheId}}",
+        "turns": [
+          {
+            "role": "user",
+            "text": "append-runlistNeedle{{ts}}"
+          }
+        ]
+      },
+      "needs": [
+        "cacheId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "125",
+      "tool": "chat_cache_update_block",
+      "platform": "copilot",
+      "args": {
+        "cacheId": "{{cacheId}}",
+        "turnIndex": 0,
+        "content": "updated-runlistNeedle{{ts}}",
+        "role": "user"
+      },
+      "needs": [
+        "cacheId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "126",
+      "tool": "chats_search",
+      "platform": "copilot",
+      "args": {
+        "query": "runlistNeedle{{ts}}",
+        "platform": "copilot",
+        "limit": 20
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "127",
+      "tool": "tabs_search",
+      "platform": "copilot",
+      "args": {
+        "query": "copilot",
+        "platform": "copilot",
+        "limit": 20
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "128",
+      "tool": "jobs_enqueue",
+      "platform": "copilot",
+      "args": {
+        "kind": "library_ingest",
+        "platform": "copilot",
+        "chatIds": [
+          "{{chatId}}"
+        ]
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000,
+      "waitJob": true,
+      "assertBatch": true
+    },
+    {
+      "id": "129",
+      "tool": "jobs_status",
+      "platform": "copilot",
+      "args": {
+        "job_id": "{{lastJobId}}"
+      },
+      "needs": [
+        "lastJobId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "130",
+      "tool": "jobs_list",
+      "platform": "copilot",
+      "args": {
+        "limit": 5
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "131",
+      "tool": "jobs_enqueue",
+      "platform": "copilot",
+      "args": {
+        "kind": "export",
+        "platform": "copilot",
+        "chatId": "{{chatId}}",
+        "formats": [
+          "md"
+        ]
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000,
+      "waitJob": true,
+      "assertBatch": false
+    },
+    {
+      "id": "132",
+      "tool": "jobs_enqueue",
+      "platform": "copilot",
+      "args": {
+        "kind": "export_batch",
+        "platform": "copilot",
+        "chatIds": [
+          "{{chatId}}"
+        ],
+        "formats": [
+          "md"
+        ]
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000,
+      "waitJob": true,
+      "assertBatch": true
+    },
+    {
+      "id": "133",
+      "tool": "projects_list",
+      "platform": "copilot",
+      "args": {
+        "platform": "copilot",
+        "limit": 10
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 25000,
+      "softFail": "unsupported"
+    },
+    {
+      "id": "134",
+      "tool": "projects_create",
+      "platform": "copilot",
+      "args": {
+        "platform": "copilot",
+        "name": "[ce-test] runlist-proj copilot {{ts}}"
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 60000,
+      "softFail": "unsupported",
+      "slot": "containerId"
+    },
+    {
+      "id": "135",
+      "tool": "projects_chats",
+      "platform": "copilot",
+      "args": {
+        "platform": "copilot",
+        "containerId": "{{containerId}}",
+        "limit": 5
+      },
+      "needs": [
+        "containerId"
+      ],
+      "destructive": false,
+      "timeoutMs": 60000,
+      "softFail": "unsupported"
+    },
+    {
+      "id": "136",
+      "tool": "projects_move_chat",
+      "platform": "copilot",
+      "args": {
+        "platform": "copilot",
+        "chatId": "{{chatId}}",
+        "containerId": "{{containerId}}"
+      },
+      "needs": [
+        "chatId",
+        "containerId"
+      ],
+      "destructive": false,
+      "timeoutMs": 60000,
+      "softFail": "unsupported"
+    },
+    {
+      "id": "137",
+      "tool": "projects_delete",
+      "platform": "copilot",
+      "args": {
+        "platform": "copilot",
+        "containerId": "{{containerId}}",
+        "confirm": true
+      },
+      "needs": [
+        "containerId"
+      ],
+      "destructive": true,
+      "timeoutMs": 60000,
+      "softFail": "unsupported"
+    },
+    {
+      "id": "138",
+      "tool": "chats_create",
+      "platform": "copilot",
+      "args": {
+        "platform": "copilot",
+        "title": "[ce-test] runlist2 copilot {{ts}}",
+        "text": "[ce-test] runlist2 copilot {{ts}}",
+        "ensureTab": true
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 90000,
+      "slot": "chatId2"
+    },
+    {
+      "id": "139",
+      "tool": "jobs_enqueue",
+      "platform": "copilot",
+      "args": {
+        "kind": "delete",
+        "platform": "copilot",
+        "chatId": "{{chatId2}}",
+        "confirm": true
+      },
+      "needs": [
+        "chatId2"
+      ],
+      "destructive": true,
+      "timeoutMs": 30000,
+      "waitJob": true,
+      "assertBatch": false
+    },
+    {
+      "id": "140",
+      "tool": "chats_delete",
+      "platform": "copilot",
+      "args": {
+        "platform": "copilot",
+        "chatId": "{{chatId}}",
+        "confirm": true
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": true,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "141",
+      "tool": "chats_create",
+      "platform": "copilot",
+      "args": {
+        "platform": "copilot",
+        "title": "[ce-test] runlist3 copilot {{ts}}",
+        "text": "[ce-test] runlist3 copilot {{ts}}",
+        "ensureTab": true
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 90000,
+      "slot": "chatId3"
+    },
+    {
+      "id": "142",
+      "tool": "jobs_enqueue",
+      "platform": "copilot",
+      "args": {
+        "kind": "delete_batch",
+        "platform": "copilot",
+        "chatIds": [
+          "{{chatId3}}"
+        ],
+        "confirm": true
+      },
+      "needs": [
+        "chatId3"
+      ],
+      "destructive": true,
+      "timeoutMs": 30000,
+      "waitJob": true,
+      "assertBatch": true
+    },
+    {
+      "id": "143",
+      "tool": "chat_cache_delete",
+      "platform": "copilot",
+      "args": {
+        "cacheId": "{{cacheId}}"
+      },
+      "needs": [
+        "cacheId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000,
+      "softFail": "missing-slot"
+    },
+    {
+      "id": "144",
+      "tool": "platforms_list",
+      "platform": "claude",
+      "args": {},
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "145",
+      "tool": "tabs_ensure",
+      "platform": "claude",
+      "args": {
+        "platform": "claude"
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 60000
+    },
+    {
+      "id": "146",
+      "tool": "platforms_status",
+      "platform": "claude",
+      "args": {
+        "platform": "claude",
+        "ensureTab": false
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 60000
+    },
+    {
+      "id": "147",
+      "tool": "platforms_capabilities",
+      "platform": "claude",
+      "args": {
+        "platform": "claude"
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 120000
+    },
+    {
+      "id": "148",
+      "tool": "chats_list",
+      "platform": "claude",
+      "args": {
+        "platform": "claude",
+        "limit": 10
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "149",
+      "tool": "chats_create",
+      "platform": "claude",
+      "args": {
+        "platform": "claude",
+        "title": "[ce-test] runlist claude {{ts}}",
+        "text": "[ce-test] runlist claude {{ts}}\nrunlistNeedle{{ts}}",
+        "ensureTab": true
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 90000,
+      "slot": "chatId"
+    },
+    {
+      "id": "150",
+      "tool": "chats_send",
+      "platform": "claude",
+      "args": {
+        "platform": "claude",
+        "chatId": "{{chatId}}",
+        "text": "[ce-test] ping runlistNeedle{{ts}}",
+        "ensureTab": true
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "151",
+      "tool": "chat_ask",
+      "platform": "claude",
+      "args": {
+        "platform": "claude",
+        "chatId": "{{chatId}}",
+        "prompt": "[ce-test] reply ok runlistNeedle{{ts}}",
+        "timeout_s": 45,
+        "ensureTab": true,
+        "onCaptcha": "stop"
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "152",
+      "tool": "chats_get",
+      "platform": "claude",
+      "args": {
+        "platform": "claude",
+        "chatId": "{{chatId}}"
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "153",
+      "tool": "chat_outline",
+      "platform": "claude",
+      "args": {
+        "platform": "claude",
+        "chatId": "{{chatId}}"
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "154",
+      "tool": "chat_read",
+      "platform": "claude",
+      "args": {
+        "platform": "claude",
+        "chatId": "{{chatId}}",
+        "startTurn": 0,
+        "endTurn": 3,
+        "maxChars": 4000
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "155",
+      "tool": "chats_export",
+      "platform": "claude",
+      "args": {
+        "platform": "claude",
+        "chatId": "{{chatId}}",
+        "formats": [
+          "md"
+        ]
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 180000
+    },
+    {
+      "id": "156",
+      "tool": "chat_cache_sync",
+      "platform": "claude",
+      "args": {
+        "platform": "claude",
+        "chatId": "{{chatId}}"
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 180000,
+      "slot": "cacheId"
+    },
+    {
+      "id": "157",
+      "tool": "chat_cache_read",
+      "platform": "claude",
+      "args": {
+        "cacheId": "{{cacheId}}",
+        "query": "runlistNeedle{{ts}}",
+        "maxChars": 4000
+      },
+      "needs": [
+        "cacheId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "158",
+      "tool": "chat_cache_append",
+      "platform": "claude",
+      "args": {
+        "cacheId": "{{cacheId}}",
+        "turns": [
+          {
+            "role": "user",
+            "text": "append-runlistNeedle{{ts}}"
+          }
+        ]
+      },
+      "needs": [
+        "cacheId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "159",
+      "tool": "chat_cache_update_block",
+      "platform": "claude",
+      "args": {
+        "cacheId": "{{cacheId}}",
+        "turnIndex": 0,
+        "content": "updated-runlistNeedle{{ts}}",
+        "role": "user"
+      },
+      "needs": [
+        "cacheId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "160",
+      "tool": "chats_search",
+      "platform": "claude",
+      "args": {
+        "query": "runlistNeedle{{ts}}",
+        "platform": "claude",
+        "limit": 20
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "161",
+      "tool": "tabs_search",
+      "platform": "claude",
+      "args": {
+        "query": "claude",
+        "platform": "claude",
+        "limit": 20
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "162",
+      "tool": "jobs_enqueue",
+      "platform": "claude",
+      "args": {
+        "kind": "library_ingest",
+        "platform": "claude",
+        "chatIds": [
+          "{{chatId}}"
+        ]
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000,
+      "waitJob": true,
+      "assertBatch": true
+    },
+    {
+      "id": "163",
+      "tool": "jobs_status",
+      "platform": "claude",
+      "args": {
+        "job_id": "{{lastJobId}}"
+      },
+      "needs": [
+        "lastJobId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "164",
+      "tool": "jobs_list",
+      "platform": "claude",
+      "args": {
+        "limit": 5
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "165",
+      "tool": "jobs_enqueue",
+      "platform": "claude",
+      "args": {
+        "kind": "export",
+        "platform": "claude",
+        "chatId": "{{chatId}}",
+        "formats": [
+          "md"
+        ]
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000,
+      "waitJob": true,
+      "assertBatch": false
+    },
+    {
+      "id": "166",
+      "tool": "jobs_enqueue",
+      "platform": "claude",
+      "args": {
+        "kind": "export_batch",
+        "platform": "claude",
+        "chatIds": [
+          "{{chatId}}"
+        ],
+        "formats": [
+          "md"
+        ]
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000,
+      "waitJob": true,
+      "assertBatch": true
+    },
+    {
+      "id": "167",
+      "tool": "projects_list",
+      "platform": "claude",
+      "args": {
+        "platform": "claude",
+        "limit": 10
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 25000,
+      "softFail": "unsupported"
+    },
+    {
+      "id": "168",
+      "tool": "projects_create",
+      "platform": "claude",
+      "args": {
+        "platform": "claude",
+        "name": "[ce-test] runlist-proj claude {{ts}}"
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 60000,
+      "softFail": "unsupported",
+      "slot": "containerId"
+    },
+    {
+      "id": "169",
+      "tool": "projects_chats",
+      "platform": "claude",
+      "args": {
+        "platform": "claude",
+        "containerId": "{{containerId}}",
+        "limit": 5
+      },
+      "needs": [
+        "containerId"
+      ],
+      "destructive": false,
+      "timeoutMs": 60000,
+      "softFail": "unsupported"
+    },
+    {
+      "id": "170",
+      "tool": "projects_move_chat",
+      "platform": "claude",
+      "args": {
+        "platform": "claude",
+        "chatId": "{{chatId}}",
+        "containerId": "{{containerId}}"
+      },
+      "needs": [
+        "chatId",
+        "containerId"
+      ],
+      "destructive": false,
+      "timeoutMs": 60000,
+      "softFail": "unsupported"
+    },
+    {
+      "id": "171",
+      "tool": "projects_delete",
+      "platform": "claude",
+      "args": {
+        "platform": "claude",
+        "containerId": "{{containerId}}",
+        "confirm": true
+      },
+      "needs": [
+        "containerId"
+      ],
+      "destructive": true,
+      "timeoutMs": 60000,
+      "softFail": "unsupported"
+    },
+    {
+      "id": "172",
+      "tool": "chats_create",
+      "platform": "claude",
+      "args": {
+        "platform": "claude",
+        "title": "[ce-test] runlist2 claude {{ts}}",
+        "text": "[ce-test] runlist2 claude {{ts}}",
+        "ensureTab": true
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 90000,
+      "slot": "chatId2"
+    },
+    {
+      "id": "173",
+      "tool": "jobs_enqueue",
+      "platform": "claude",
+      "args": {
+        "kind": "delete",
+        "platform": "claude",
+        "chatId": "{{chatId2}}",
+        "confirm": true
+      },
+      "needs": [
+        "chatId2"
+      ],
+      "destructive": true,
+      "timeoutMs": 30000,
+      "waitJob": true,
+      "assertBatch": false
+    },
+    {
+      "id": "174",
+      "tool": "chats_delete",
+      "platform": "claude",
+      "args": {
+        "platform": "claude",
+        "chatId": "{{chatId}}",
+        "confirm": true
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": true,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "175",
+      "tool": "chats_create",
+      "platform": "claude",
+      "args": {
+        "platform": "claude",
+        "title": "[ce-test] runlist3 claude {{ts}}",
+        "text": "[ce-test] runlist3 claude {{ts}}",
+        "ensureTab": true
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 90000,
+      "slot": "chatId3"
+    },
+    {
+      "id": "176",
+      "tool": "jobs_enqueue",
+      "platform": "claude",
+      "args": {
+        "kind": "delete_batch",
+        "platform": "claude",
+        "chatIds": [
+          "{{chatId3}}"
+        ],
+        "confirm": true
+      },
+      "needs": [
+        "chatId3"
+      ],
+      "destructive": true,
+      "timeoutMs": 30000,
+      "waitJob": true,
+      "assertBatch": true
+    },
+    {
+      "id": "177",
+      "tool": "chat_cache_delete",
+      "platform": "claude",
+      "args": {
+        "cacheId": "{{cacheId}}"
+      },
+      "needs": [
+        "cacheId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000,
+      "softFail": "missing-slot"
+    },
+    {
+      "id": "178",
+      "tool": "platforms_list",
+      "platform": "qwen",
+      "args": {},
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "179",
+      "tool": "tabs_ensure",
+      "platform": "qwen",
+      "args": {
+        "platform": "qwen"
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 60000
+    },
+    {
+      "id": "180",
+      "tool": "platforms_status",
+      "platform": "qwen",
+      "args": {
+        "platform": "qwen",
+        "ensureTab": false
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 60000
+    },
+    {
+      "id": "181",
+      "tool": "platforms_capabilities",
+      "platform": "qwen",
+      "args": {
+        "platform": "qwen"
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 120000
+    },
+    {
+      "id": "182",
+      "tool": "chats_list",
+      "platform": "qwen",
+      "args": {
+        "platform": "qwen",
+        "limit": 10
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "183",
+      "tool": "chats_create",
+      "platform": "qwen",
+      "args": {
+        "platform": "qwen",
+        "title": "[ce-test] runlist qwen {{ts}}",
+        "text": "[ce-test] runlist qwen {{ts}}\nrunlistNeedle{{ts}}",
+        "ensureTab": true
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 90000,
+      "slot": "chatId"
+    },
+    {
+      "id": "184",
+      "tool": "chats_send",
+      "platform": "qwen",
+      "args": {
+        "platform": "qwen",
+        "chatId": "{{chatId}}",
+        "text": "[ce-test] ping runlistNeedle{{ts}}",
+        "ensureTab": true
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "185",
+      "tool": "chat_ask",
+      "platform": "qwen",
+      "args": {
+        "platform": "qwen",
+        "chatId": "{{chatId}}",
+        "prompt": "[ce-test] reply ok runlistNeedle{{ts}}",
+        "timeout_s": 45,
+        "ensureTab": true,
+        "onCaptcha": "stop"
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "186",
+      "tool": "chats_get",
+      "platform": "qwen",
+      "args": {
+        "platform": "qwen",
+        "chatId": "{{chatId}}"
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "187",
+      "tool": "chat_outline",
+      "platform": "qwen",
+      "args": {
+        "platform": "qwen",
+        "chatId": "{{chatId}}"
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "188",
+      "tool": "chat_read",
+      "platform": "qwen",
+      "args": {
+        "platform": "qwen",
+        "chatId": "{{chatId}}",
+        "startTurn": 0,
+        "endTurn": 3,
+        "maxChars": 4000
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "189",
+      "tool": "chats_export",
+      "platform": "qwen",
+      "args": {
+        "platform": "qwen",
+        "chatId": "{{chatId}}",
+        "formats": [
+          "md"
+        ]
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 180000
+    },
+    {
+      "id": "190",
+      "tool": "chat_cache_sync",
+      "platform": "qwen",
+      "args": {
+        "platform": "qwen",
+        "chatId": "{{chatId}}"
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 180000,
+      "slot": "cacheId"
+    },
+    {
+      "id": "191",
+      "tool": "chat_cache_read",
+      "platform": "qwen",
+      "args": {
+        "cacheId": "{{cacheId}}",
+        "query": "runlistNeedle{{ts}}",
+        "maxChars": 4000
+      },
+      "needs": [
+        "cacheId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "192",
+      "tool": "chat_cache_append",
+      "platform": "qwen",
+      "args": {
+        "cacheId": "{{cacheId}}",
+        "turns": [
+          {
+            "role": "user",
+            "text": "append-runlistNeedle{{ts}}"
+          }
+        ]
+      },
+      "needs": [
+        "cacheId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "193",
+      "tool": "chat_cache_update_block",
+      "platform": "qwen",
+      "args": {
+        "cacheId": "{{cacheId}}",
+        "turnIndex": 0,
+        "content": "updated-runlistNeedle{{ts}}",
+        "role": "user"
+      },
+      "needs": [
+        "cacheId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "194",
+      "tool": "chats_search",
+      "platform": "qwen",
+      "args": {
+        "query": "runlistNeedle{{ts}}",
+        "platform": "qwen",
+        "limit": 20
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "195",
+      "tool": "tabs_search",
+      "platform": "qwen",
+      "args": {
+        "query": "qwen",
+        "platform": "qwen",
+        "limit": 20
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "196",
+      "tool": "jobs_enqueue",
+      "platform": "qwen",
+      "args": {
+        "kind": "library_ingest",
+        "platform": "qwen",
+        "chatIds": [
+          "{{chatId}}"
+        ]
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000,
+      "waitJob": true,
+      "assertBatch": true
+    },
+    {
+      "id": "197",
+      "tool": "jobs_status",
+      "platform": "qwen",
+      "args": {
+        "job_id": "{{lastJobId}}"
+      },
+      "needs": [
+        "lastJobId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "198",
+      "tool": "jobs_list",
+      "platform": "qwen",
+      "args": {
+        "limit": 5
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "199",
+      "tool": "jobs_enqueue",
+      "platform": "qwen",
+      "args": {
+        "kind": "export",
+        "platform": "qwen",
+        "chatId": "{{chatId}}",
+        "formats": [
+          "md"
+        ]
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000,
+      "waitJob": true,
+      "assertBatch": false
+    },
+    {
+      "id": "200",
+      "tool": "jobs_enqueue",
+      "platform": "qwen",
+      "args": {
+        "kind": "export_batch",
+        "platform": "qwen",
+        "chatIds": [
+          "{{chatId}}"
+        ],
+        "formats": [
+          "md"
+        ]
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000,
+      "waitJob": true,
+      "assertBatch": true
+    },
+    {
+      "id": "201",
+      "tool": "projects_list",
+      "platform": "qwen",
+      "args": {
+        "platform": "qwen",
+        "limit": 10
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 25000,
+      "softFail": "unsupported"
+    },
+    {
+      "id": "202",
+      "tool": "projects_create",
+      "platform": "qwen",
+      "args": {
+        "platform": "qwen",
+        "name": "[ce-test] runlist-proj qwen {{ts}}"
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 60000,
+      "softFail": "unsupported",
+      "slot": "containerId"
+    },
+    {
+      "id": "203",
+      "tool": "projects_chats",
+      "platform": "qwen",
+      "args": {
+        "platform": "qwen",
+        "containerId": "{{containerId}}",
+        "limit": 5
+      },
+      "needs": [
+        "containerId"
+      ],
+      "destructive": false,
+      "timeoutMs": 60000,
+      "softFail": "unsupported"
+    },
+    {
+      "id": "204",
+      "tool": "projects_move_chat",
+      "platform": "qwen",
+      "args": {
+        "platform": "qwen",
+        "chatId": "{{chatId}}",
+        "containerId": "{{containerId}}"
+      },
+      "needs": [
+        "chatId",
+        "containerId"
+      ],
+      "destructive": false,
+      "timeoutMs": 60000,
+      "softFail": "unsupported"
+    },
+    {
+      "id": "205",
+      "tool": "projects_delete",
+      "platform": "qwen",
+      "args": {
+        "platform": "qwen",
+        "containerId": "{{containerId}}",
+        "confirm": true
+      },
+      "needs": [
+        "containerId"
+      ],
+      "destructive": true,
+      "timeoutMs": 60000,
+      "softFail": "unsupported"
+    },
+    {
+      "id": "206",
+      "tool": "chats_create",
+      "platform": "qwen",
+      "args": {
+        "platform": "qwen",
+        "title": "[ce-test] runlist2 qwen {{ts}}",
+        "text": "[ce-test] runlist2 qwen {{ts}}",
+        "ensureTab": true
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 90000,
+      "slot": "chatId2"
+    },
+    {
+      "id": "207",
+      "tool": "jobs_enqueue",
+      "platform": "qwen",
+      "args": {
+        "kind": "delete",
+        "platform": "qwen",
+        "chatId": "{{chatId2}}",
+        "confirm": true
+      },
+      "needs": [
+        "chatId2"
+      ],
+      "destructive": true,
+      "timeoutMs": 30000,
+      "waitJob": true,
+      "assertBatch": false
+    },
+    {
+      "id": "208",
+      "tool": "chats_delete",
+      "platform": "qwen",
+      "args": {
+        "platform": "qwen",
+        "chatId": "{{chatId}}",
+        "confirm": true
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": true,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "209",
+      "tool": "chats_create",
+      "platform": "qwen",
+      "args": {
+        "platform": "qwen",
+        "title": "[ce-test] runlist3 qwen {{ts}}",
+        "text": "[ce-test] runlist3 qwen {{ts}}",
+        "ensureTab": true
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 90000,
+      "slot": "chatId3"
+    },
+    {
+      "id": "210",
+      "tool": "jobs_enqueue",
+      "platform": "qwen",
+      "args": {
+        "kind": "delete_batch",
+        "platform": "qwen",
+        "chatIds": [
+          "{{chatId3}}"
+        ],
+        "confirm": true
+      },
+      "needs": [
+        "chatId3"
+      ],
+      "destructive": true,
+      "timeoutMs": 30000,
+      "waitJob": true,
+      "assertBatch": true
+    },
+    {
+      "id": "211",
+      "tool": "chat_cache_delete",
+      "platform": "qwen",
+      "args": {
+        "cacheId": "{{cacheId}}"
+      },
+      "needs": [
+        "cacheId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000,
+      "softFail": "missing-slot"
+    },
+    {
+      "id": "212",
+      "tool": "platforms_list",
+      "platform": "deepseek",
+      "args": {},
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "213",
+      "tool": "tabs_ensure",
+      "platform": "deepseek",
+      "args": {
+        "platform": "deepseek"
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 60000
+    },
+    {
+      "id": "214",
+      "tool": "platforms_status",
+      "platform": "deepseek",
+      "args": {
+        "platform": "deepseek",
+        "ensureTab": false
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 60000
+    },
+    {
+      "id": "215",
+      "tool": "platforms_capabilities",
+      "platform": "deepseek",
+      "args": {
+        "platform": "deepseek"
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 120000
+    },
+    {
+      "id": "216",
+      "tool": "chats_list",
+      "platform": "deepseek",
+      "args": {
+        "platform": "deepseek",
+        "limit": 10
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "217",
+      "tool": "chats_create",
+      "platform": "deepseek",
+      "args": {
+        "platform": "deepseek",
+        "title": "[ce-test] runlist deepseek {{ts}}",
+        "text": "[ce-test] runlist deepseek {{ts}}\nrunlistNeedle{{ts}}",
+        "ensureTab": true
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 90000,
+      "slot": "chatId"
+    },
+    {
+      "id": "218",
+      "tool": "chats_send",
+      "platform": "deepseek",
+      "args": {
+        "platform": "deepseek",
+        "chatId": "{{chatId}}",
+        "text": "[ce-test] ping runlistNeedle{{ts}}",
+        "ensureTab": true
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "219",
+      "tool": "chat_ask",
+      "platform": "deepseek",
+      "args": {
+        "platform": "deepseek",
+        "chatId": "{{chatId}}",
+        "prompt": "[ce-test] reply ok runlistNeedle{{ts}}",
+        "timeout_s": 45,
+        "ensureTab": true,
+        "onCaptcha": "stop"
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "220",
+      "tool": "chats_get",
+      "platform": "deepseek",
+      "args": {
+        "platform": "deepseek",
+        "chatId": "{{chatId}}"
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "221",
+      "tool": "chat_outline",
+      "platform": "deepseek",
+      "args": {
+        "platform": "deepseek",
+        "chatId": "{{chatId}}"
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "222",
+      "tool": "chat_read",
+      "platform": "deepseek",
+      "args": {
+        "platform": "deepseek",
+        "chatId": "{{chatId}}",
+        "startTurn": 0,
+        "endTurn": 3,
+        "maxChars": 4000
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "223",
+      "tool": "chats_export",
+      "platform": "deepseek",
+      "args": {
+        "platform": "deepseek",
+        "chatId": "{{chatId}}",
+        "formats": [
+          "md"
+        ]
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 180000
+    },
+    {
+      "id": "224",
+      "tool": "chat_cache_sync",
+      "platform": "deepseek",
+      "args": {
+        "platform": "deepseek",
+        "chatId": "{{chatId}}"
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 180000,
+      "slot": "cacheId"
+    },
+    {
+      "id": "225",
+      "tool": "chat_cache_read",
+      "platform": "deepseek",
+      "args": {
+        "cacheId": "{{cacheId}}",
+        "query": "runlistNeedle{{ts}}",
+        "maxChars": 4000
+      },
+      "needs": [
+        "cacheId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "226",
+      "tool": "chat_cache_append",
+      "platform": "deepseek",
+      "args": {
+        "cacheId": "{{cacheId}}",
+        "turns": [
+          {
+            "role": "user",
+            "text": "append-runlistNeedle{{ts}}"
+          }
+        ]
+      },
+      "needs": [
+        "cacheId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "227",
+      "tool": "chat_cache_update_block",
+      "platform": "deepseek",
+      "args": {
+        "cacheId": "{{cacheId}}",
+        "turnIndex": 0,
+        "content": "updated-runlistNeedle{{ts}}",
+        "role": "user"
+      },
+      "needs": [
+        "cacheId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "228",
+      "tool": "chats_search",
+      "platform": "deepseek",
+      "args": {
+        "query": "runlistNeedle{{ts}}",
+        "platform": "deepseek",
+        "limit": 20
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "229",
+      "tool": "tabs_search",
+      "platform": "deepseek",
+      "args": {
+        "query": "deepseek",
+        "platform": "deepseek",
+        "limit": 20
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "230",
+      "tool": "jobs_enqueue",
+      "platform": "deepseek",
+      "args": {
+        "kind": "library_ingest",
+        "platform": "deepseek",
+        "chatIds": [
+          "{{chatId}}"
+        ]
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000,
+      "waitJob": true,
+      "assertBatch": true
+    },
+    {
+      "id": "231",
+      "tool": "jobs_status",
+      "platform": "deepseek",
+      "args": {
+        "job_id": "{{lastJobId}}"
+      },
+      "needs": [
+        "lastJobId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "232",
+      "tool": "jobs_list",
+      "platform": "deepseek",
+      "args": {
+        "limit": 5
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "233",
+      "tool": "jobs_enqueue",
+      "platform": "deepseek",
+      "args": {
+        "kind": "export",
+        "platform": "deepseek",
+        "chatId": "{{chatId}}",
+        "formats": [
+          "md"
+        ]
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000,
+      "waitJob": true,
+      "assertBatch": false
+    },
+    {
+      "id": "234",
+      "tool": "jobs_enqueue",
+      "platform": "deepseek",
+      "args": {
+        "kind": "export_batch",
+        "platform": "deepseek",
+        "chatIds": [
+          "{{chatId}}"
+        ],
+        "formats": [
+          "md"
+        ]
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000,
+      "waitJob": true,
+      "assertBatch": true
+    },
+    {
+      "id": "235",
+      "tool": "projects_list",
+      "platform": "deepseek",
+      "args": {
+        "platform": "deepseek",
+        "limit": 10
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 25000,
+      "softFail": "unsupported"
+    },
+    {
+      "id": "236",
+      "tool": "projects_create",
+      "platform": "deepseek",
+      "args": {
+        "platform": "deepseek",
+        "name": "[ce-test] runlist-proj deepseek {{ts}}"
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 60000,
+      "softFail": "unsupported",
+      "slot": "containerId"
+    },
+    {
+      "id": "237",
+      "tool": "projects_chats",
+      "platform": "deepseek",
+      "args": {
+        "platform": "deepseek",
+        "containerId": "{{containerId}}",
+        "limit": 5
+      },
+      "needs": [
+        "containerId"
+      ],
+      "destructive": false,
+      "timeoutMs": 60000,
+      "softFail": "unsupported"
+    },
+    {
+      "id": "238",
+      "tool": "projects_move_chat",
+      "platform": "deepseek",
+      "args": {
+        "platform": "deepseek",
+        "chatId": "{{chatId}}",
+        "containerId": "{{containerId}}"
+      },
+      "needs": [
+        "chatId",
+        "containerId"
+      ],
+      "destructive": false,
+      "timeoutMs": 60000,
+      "softFail": "unsupported"
+    },
+    {
+      "id": "239",
+      "tool": "projects_delete",
+      "platform": "deepseek",
+      "args": {
+        "platform": "deepseek",
+        "containerId": "{{containerId}}",
+        "confirm": true
+      },
+      "needs": [
+        "containerId"
+      ],
+      "destructive": true,
+      "timeoutMs": 60000,
+      "softFail": "unsupported"
+    },
+    {
+      "id": "240",
+      "tool": "chats_create",
+      "platform": "deepseek",
+      "args": {
+        "platform": "deepseek",
+        "title": "[ce-test] runlist2 deepseek {{ts}}",
+        "text": "[ce-test] runlist2 deepseek {{ts}}",
+        "ensureTab": true
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 90000,
+      "slot": "chatId2"
+    },
+    {
+      "id": "241",
+      "tool": "jobs_enqueue",
+      "platform": "deepseek",
+      "args": {
+        "kind": "delete",
+        "platform": "deepseek",
+        "chatId": "{{chatId2}}",
+        "confirm": true
+      },
+      "needs": [
+        "chatId2"
+      ],
+      "destructive": true,
+      "timeoutMs": 30000,
+      "waitJob": true,
+      "assertBatch": false
+    },
+    {
+      "id": "242",
+      "tool": "chats_delete",
+      "platform": "deepseek",
+      "args": {
+        "platform": "deepseek",
+        "chatId": "{{chatId}}",
+        "confirm": true
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": true,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "243",
+      "tool": "chats_create",
+      "platform": "deepseek",
+      "args": {
+        "platform": "deepseek",
+        "title": "[ce-test] runlist3 deepseek {{ts}}",
+        "text": "[ce-test] runlist3 deepseek {{ts}}",
+        "ensureTab": true
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 90000,
+      "slot": "chatId3"
+    },
+    {
+      "id": "244",
+      "tool": "jobs_enqueue",
+      "platform": "deepseek",
+      "args": {
+        "kind": "delete_batch",
+        "platform": "deepseek",
+        "chatIds": [
+          "{{chatId3}}"
+        ],
+        "confirm": true
+      },
+      "needs": [
+        "chatId3"
+      ],
+      "destructive": true,
+      "timeoutMs": 30000,
+      "waitJob": true,
+      "assertBatch": true
+    },
+    {
+      "id": "245",
+      "tool": "chat_cache_delete",
+      "platform": "deepseek",
+      "args": {
+        "cacheId": "{{cacheId}}"
+      },
+      "needs": [
+        "cacheId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000,
+      "softFail": "missing-slot"
+    },
+    {
+      "id": "246",
+      "tool": "platforms_list",
+      "platform": "perplexity",
+      "args": {},
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "247",
+      "tool": "tabs_ensure",
+      "platform": "perplexity",
+      "args": {
+        "platform": "perplexity"
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 60000
+    },
+    {
+      "id": "248",
+      "tool": "platforms_status",
+      "platform": "perplexity",
+      "args": {
+        "platform": "perplexity",
+        "ensureTab": false
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 60000
+    },
+    {
+      "id": "249",
+      "tool": "platforms_capabilities",
+      "platform": "perplexity",
+      "args": {
+        "platform": "perplexity"
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 120000
+    },
+    {
+      "id": "250",
+      "tool": "chats_list",
+      "platform": "perplexity",
+      "args": {
+        "platform": "perplexity",
+        "limit": 10
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "251",
+      "tool": "chats_create",
+      "platform": "perplexity",
+      "args": {
+        "platform": "perplexity",
+        "title": "[ce-test] runlist perplexity {{ts}}",
+        "text": "[ce-test] runlist perplexity {{ts}}\nrunlistNeedle{{ts}}",
+        "ensureTab": true
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 90000,
+      "slot": "chatId"
+    },
+    {
+      "id": "252",
+      "tool": "chats_send",
+      "platform": "perplexity",
+      "args": {
+        "platform": "perplexity",
+        "chatId": "{{chatId}}",
+        "text": "[ce-test] ping runlistNeedle{{ts}}",
+        "ensureTab": true
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "253",
+      "tool": "chat_ask",
+      "platform": "perplexity",
+      "args": {
+        "platform": "perplexity",
+        "chatId": "{{chatId}}",
+        "prompt": "[ce-test] reply ok runlistNeedle{{ts}}",
+        "timeout_s": 45,
+        "ensureTab": true,
+        "onCaptcha": "stop"
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "254",
+      "tool": "chats_get",
+      "platform": "perplexity",
+      "args": {
+        "platform": "perplexity",
+        "chatId": "{{chatId}}"
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "255",
+      "tool": "chat_outline",
+      "platform": "perplexity",
+      "args": {
+        "platform": "perplexity",
+        "chatId": "{{chatId}}"
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "256",
+      "tool": "chat_read",
+      "platform": "perplexity",
+      "args": {
+        "platform": "perplexity",
+        "chatId": "{{chatId}}",
+        "startTurn": 0,
+        "endTurn": 3,
+        "maxChars": 4000
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "257",
+      "tool": "chats_export",
+      "platform": "perplexity",
+      "args": {
+        "platform": "perplexity",
+        "chatId": "{{chatId}}",
+        "formats": [
+          "md"
+        ]
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 180000
+    },
+    {
+      "id": "258",
+      "tool": "chat_cache_sync",
+      "platform": "perplexity",
+      "args": {
+        "platform": "perplexity",
+        "chatId": "{{chatId}}"
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 180000,
+      "slot": "cacheId"
+    },
+    {
+      "id": "259",
+      "tool": "chat_cache_read",
+      "platform": "perplexity",
+      "args": {
+        "cacheId": "{{cacheId}}",
+        "query": "runlistNeedle{{ts}}",
+        "maxChars": 4000
+      },
+      "needs": [
+        "cacheId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "260",
+      "tool": "chat_cache_append",
+      "platform": "perplexity",
+      "args": {
+        "cacheId": "{{cacheId}}",
+        "turns": [
+          {
+            "role": "user",
+            "text": "append-runlistNeedle{{ts}}"
+          }
+        ]
+      },
+      "needs": [
+        "cacheId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "261",
+      "tool": "chat_cache_update_block",
+      "platform": "perplexity",
+      "args": {
+        "cacheId": "{{cacheId}}",
+        "turnIndex": 0,
+        "content": "updated-runlistNeedle{{ts}}",
+        "role": "user"
+      },
+      "needs": [
+        "cacheId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "262",
+      "tool": "chats_search",
+      "platform": "perplexity",
+      "args": {
+        "query": "runlistNeedle{{ts}}",
+        "platform": "perplexity",
+        "limit": 20
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "263",
+      "tool": "tabs_search",
+      "platform": "perplexity",
+      "args": {
+        "query": "perplexity",
+        "platform": "perplexity",
+        "limit": 20
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "264",
+      "tool": "jobs_enqueue",
+      "platform": "perplexity",
+      "args": {
+        "kind": "library_ingest",
+        "platform": "perplexity",
+        "chatIds": [
+          "{{chatId}}"
+        ]
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000,
+      "waitJob": true,
+      "assertBatch": true
+    },
+    {
+      "id": "265",
+      "tool": "jobs_status",
+      "platform": "perplexity",
+      "args": {
+        "job_id": "{{lastJobId}}"
+      },
+      "needs": [
+        "lastJobId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "266",
+      "tool": "jobs_list",
+      "platform": "perplexity",
+      "args": {
+        "limit": 5
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "267",
+      "tool": "jobs_enqueue",
+      "platform": "perplexity",
+      "args": {
+        "kind": "export",
+        "platform": "perplexity",
+        "chatId": "{{chatId}}",
+        "formats": [
+          "md"
+        ]
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000,
+      "waitJob": true,
+      "assertBatch": false
+    },
+    {
+      "id": "268",
+      "tool": "jobs_enqueue",
+      "platform": "perplexity",
+      "args": {
+        "kind": "export_batch",
+        "platform": "perplexity",
+        "chatIds": [
+          "{{chatId}}"
+        ],
+        "formats": [
+          "md"
+        ]
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000,
+      "waitJob": true,
+      "assertBatch": true
+    },
+    {
+      "id": "269",
+      "tool": "projects_list",
+      "platform": "perplexity",
+      "args": {
+        "platform": "perplexity",
+        "limit": 10
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 25000,
+      "softFail": "unsupported"
+    },
+    {
+      "id": "270",
+      "tool": "projects_create",
+      "platform": "perplexity",
+      "args": {
+        "platform": "perplexity",
+        "name": "[ce-test] runlist-proj perplexity {{ts}}"
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 60000,
+      "softFail": "unsupported",
+      "slot": "containerId"
+    },
+    {
+      "id": "271",
+      "tool": "projects_chats",
+      "platform": "perplexity",
+      "args": {
+        "platform": "perplexity",
+        "containerId": "{{containerId}}",
+        "limit": 5
+      },
+      "needs": [
+        "containerId"
+      ],
+      "destructive": false,
+      "timeoutMs": 60000,
+      "softFail": "unsupported"
+    },
+    {
+      "id": "272",
+      "tool": "projects_move_chat",
+      "platform": "perplexity",
+      "args": {
+        "platform": "perplexity",
+        "chatId": "{{chatId}}",
+        "containerId": "{{containerId}}"
+      },
+      "needs": [
+        "chatId",
+        "containerId"
+      ],
+      "destructive": false,
+      "timeoutMs": 60000,
+      "softFail": "unsupported"
+    },
+    {
+      "id": "273",
+      "tool": "projects_delete",
+      "platform": "perplexity",
+      "args": {
+        "platform": "perplexity",
+        "containerId": "{{containerId}}",
+        "confirm": true
+      },
+      "needs": [
+        "containerId"
+      ],
+      "destructive": true,
+      "timeoutMs": 60000,
+      "softFail": "unsupported"
+    },
+    {
+      "id": "274",
+      "tool": "chats_create",
+      "platform": "perplexity",
+      "args": {
+        "platform": "perplexity",
+        "title": "[ce-test] runlist2 perplexity {{ts}}",
+        "text": "[ce-test] runlist2 perplexity {{ts}}",
+        "ensureTab": true
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 90000,
+      "slot": "chatId2"
+    },
+    {
+      "id": "275",
+      "tool": "jobs_enqueue",
+      "platform": "perplexity",
+      "args": {
+        "kind": "delete",
+        "platform": "perplexity",
+        "chatId": "{{chatId2}}",
+        "confirm": true
+      },
+      "needs": [
+        "chatId2"
+      ],
+      "destructive": true,
+      "timeoutMs": 30000,
+      "waitJob": true,
+      "assertBatch": false
+    },
+    {
+      "id": "276",
+      "tool": "chats_delete",
+      "platform": "perplexity",
+      "args": {
+        "platform": "perplexity",
+        "chatId": "{{chatId}}",
+        "confirm": true
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": true,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "277",
+      "tool": "chats_create",
+      "platform": "perplexity",
+      "args": {
+        "platform": "perplexity",
+        "title": "[ce-test] runlist3 perplexity {{ts}}",
+        "text": "[ce-test] runlist3 perplexity {{ts}}",
+        "ensureTab": true
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 90000,
+      "slot": "chatId3"
+    },
+    {
+      "id": "278",
+      "tool": "jobs_enqueue",
+      "platform": "perplexity",
+      "args": {
+        "kind": "delete_batch",
+        "platform": "perplexity",
+        "chatIds": [
+          "{{chatId3}}"
+        ],
+        "confirm": true
+      },
+      "needs": [
+        "chatId3"
+      ],
+      "destructive": true,
+      "timeoutMs": 30000,
+      "waitJob": true,
+      "assertBatch": true
+    },
+    {
+      "id": "279",
+      "tool": "chat_cache_delete",
+      "platform": "perplexity",
+      "args": {
+        "cacheId": "{{cacheId}}"
+      },
+      "needs": [
+        "cacheId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000,
+      "softFail": "missing-slot"
+    },
+    {
+      "id": "280",
+      "tool": "platforms_list",
+      "platform": "kimi",
+      "args": {},
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "281",
+      "tool": "tabs_ensure",
+      "platform": "kimi",
+      "args": {
+        "platform": "kimi"
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 60000
+    },
+    {
+      "id": "282",
+      "tool": "platforms_status",
+      "platform": "kimi",
+      "args": {
+        "platform": "kimi",
+        "ensureTab": false
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 60000
+    },
+    {
+      "id": "283",
+      "tool": "platforms_capabilities",
+      "platform": "kimi",
+      "args": {
+        "platform": "kimi"
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 120000
+    },
+    {
+      "id": "284",
+      "tool": "chats_list",
+      "platform": "kimi",
+      "args": {
+        "platform": "kimi",
+        "limit": 10
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "285",
+      "tool": "chats_create",
+      "platform": "kimi",
+      "args": {
+        "platform": "kimi",
+        "title": "[ce-test] runlist kimi {{ts}}",
+        "text": "[ce-test] runlist kimi {{ts}}\nrunlistNeedle{{ts}}",
+        "ensureTab": true
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 90000,
+      "slot": "chatId"
+    },
+    {
+      "id": "286",
+      "tool": "chats_send",
+      "platform": "kimi",
+      "args": {
+        "platform": "kimi",
+        "chatId": "{{chatId}}",
+        "text": "[ce-test] ping runlistNeedle{{ts}}",
+        "ensureTab": true
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "287",
+      "tool": "chat_ask",
+      "platform": "kimi",
+      "args": {
+        "platform": "kimi",
+        "chatId": "{{chatId}}",
+        "prompt": "[ce-test] reply ok runlistNeedle{{ts}}",
+        "timeout_s": 45,
+        "ensureTab": true,
+        "onCaptcha": "stop"
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "288",
+      "tool": "chats_get",
+      "platform": "kimi",
+      "args": {
+        "platform": "kimi",
+        "chatId": "{{chatId}}"
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "289",
+      "tool": "chat_outline",
+      "platform": "kimi",
+      "args": {
+        "platform": "kimi",
+        "chatId": "{{chatId}}"
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "290",
+      "tool": "chat_read",
+      "platform": "kimi",
+      "args": {
+        "platform": "kimi",
+        "chatId": "{{chatId}}",
+        "startTurn": 0,
+        "endTurn": 3,
+        "maxChars": 4000
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "291",
+      "tool": "chats_export",
+      "platform": "kimi",
+      "args": {
+        "platform": "kimi",
+        "chatId": "{{chatId}}",
+        "formats": [
+          "md"
+        ]
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 180000
+    },
+    {
+      "id": "292",
+      "tool": "chat_cache_sync",
+      "platform": "kimi",
+      "args": {
+        "platform": "kimi",
+        "chatId": "{{chatId}}"
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 180000,
+      "slot": "cacheId"
+    },
+    {
+      "id": "293",
+      "tool": "chat_cache_read",
+      "platform": "kimi",
+      "args": {
+        "cacheId": "{{cacheId}}",
+        "query": "runlistNeedle{{ts}}",
+        "maxChars": 4000
+      },
+      "needs": [
+        "cacheId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "294",
+      "tool": "chat_cache_append",
+      "platform": "kimi",
+      "args": {
+        "cacheId": "{{cacheId}}",
+        "turns": [
+          {
+            "role": "user",
+            "text": "append-runlistNeedle{{ts}}"
+          }
+        ]
+      },
+      "needs": [
+        "cacheId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "295",
+      "tool": "chat_cache_update_block",
+      "platform": "kimi",
+      "args": {
+        "cacheId": "{{cacheId}}",
+        "turnIndex": 0,
+        "content": "updated-runlistNeedle{{ts}}",
+        "role": "user"
+      },
+      "needs": [
+        "cacheId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "296",
+      "tool": "chats_search",
+      "platform": "kimi",
+      "args": {
+        "query": "runlistNeedle{{ts}}",
+        "platform": "kimi",
+        "limit": 20
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "297",
+      "tool": "tabs_search",
+      "platform": "kimi",
+      "args": {
+        "query": "kimi",
+        "platform": "kimi",
+        "limit": 20
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "298",
+      "tool": "jobs_enqueue",
+      "platform": "kimi",
+      "args": {
+        "kind": "library_ingest",
+        "platform": "kimi",
+        "chatIds": [
+          "{{chatId}}"
+        ]
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000,
+      "waitJob": true,
+      "assertBatch": true
+    },
+    {
+      "id": "299",
+      "tool": "jobs_status",
+      "platform": "kimi",
+      "args": {
+        "job_id": "{{lastJobId}}"
+      },
+      "needs": [
+        "lastJobId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "300",
+      "tool": "jobs_list",
+      "platform": "kimi",
+      "args": {
+        "limit": 5
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "301",
+      "tool": "jobs_enqueue",
+      "platform": "kimi",
+      "args": {
+        "kind": "export",
+        "platform": "kimi",
+        "chatId": "{{chatId}}",
+        "formats": [
+          "md"
+        ]
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000,
+      "waitJob": true,
+      "assertBatch": false
+    },
+    {
+      "id": "302",
+      "tool": "jobs_enqueue",
+      "platform": "kimi",
+      "args": {
+        "kind": "export_batch",
+        "platform": "kimi",
+        "chatIds": [
+          "{{chatId}}"
+        ],
+        "formats": [
+          "md"
+        ]
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000,
+      "waitJob": true,
+      "assertBatch": true
+    },
+    {
+      "id": "303",
+      "tool": "projects_list",
+      "platform": "kimi",
+      "args": {
+        "platform": "kimi",
+        "limit": 10
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 25000,
+      "softFail": "unsupported"
+    },
+    {
+      "id": "304",
+      "tool": "projects_create",
+      "platform": "kimi",
+      "args": {
+        "platform": "kimi",
+        "name": "[ce-test] runlist-proj kimi {{ts}}"
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 60000,
+      "softFail": "unsupported",
+      "slot": "containerId"
+    },
+    {
+      "id": "305",
+      "tool": "projects_chats",
+      "platform": "kimi",
+      "args": {
+        "platform": "kimi",
+        "containerId": "{{containerId}}",
+        "limit": 5
+      },
+      "needs": [
+        "containerId"
+      ],
+      "destructive": false,
+      "timeoutMs": 60000,
+      "softFail": "unsupported"
+    },
+    {
+      "id": "306",
+      "tool": "projects_move_chat",
+      "platform": "kimi",
+      "args": {
+        "platform": "kimi",
+        "chatId": "{{chatId}}",
+        "containerId": "{{containerId}}"
+      },
+      "needs": [
+        "chatId",
+        "containerId"
+      ],
+      "destructive": false,
+      "timeoutMs": 60000,
+      "softFail": "unsupported"
+    },
+    {
+      "id": "307",
+      "tool": "projects_delete",
+      "platform": "kimi",
+      "args": {
+        "platform": "kimi",
+        "containerId": "{{containerId}}",
+        "confirm": true
+      },
+      "needs": [
+        "containerId"
+      ],
+      "destructive": true,
+      "timeoutMs": 60000,
+      "softFail": "unsupported"
+    },
+    {
+      "id": "308",
+      "tool": "chats_create",
+      "platform": "kimi",
+      "args": {
+        "platform": "kimi",
+        "title": "[ce-test] runlist2 kimi {{ts}}",
+        "text": "[ce-test] runlist2 kimi {{ts}}",
+        "ensureTab": true
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 90000,
+      "slot": "chatId2"
+    },
+    {
+      "id": "309",
+      "tool": "jobs_enqueue",
+      "platform": "kimi",
+      "args": {
+        "kind": "delete",
+        "platform": "kimi",
+        "chatId": "{{chatId2}}",
+        "confirm": true
+      },
+      "needs": [
+        "chatId2"
+      ],
+      "destructive": true,
+      "timeoutMs": 30000,
+      "waitJob": true,
+      "assertBatch": false
+    },
+    {
+      "id": "310",
+      "tool": "chats_delete",
+      "platform": "kimi",
+      "args": {
+        "platform": "kimi",
+        "chatId": "{{chatId}}",
+        "confirm": true
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": true,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "311",
+      "tool": "chats_create",
+      "platform": "kimi",
+      "args": {
+        "platform": "kimi",
+        "title": "[ce-test] runlist3 kimi {{ts}}",
+        "text": "[ce-test] runlist3 kimi {{ts}}",
+        "ensureTab": true
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 90000,
+      "slot": "chatId3"
+    },
+    {
+      "id": "312",
+      "tool": "jobs_enqueue",
+      "platform": "kimi",
+      "args": {
+        "kind": "delete_batch",
+        "platform": "kimi",
+        "chatIds": [
+          "{{chatId3}}"
+        ],
+        "confirm": true
+      },
+      "needs": [
+        "chatId3"
+      ],
+      "destructive": true,
+      "timeoutMs": 30000,
+      "waitJob": true,
+      "assertBatch": true
+    },
+    {
+      "id": "313",
+      "tool": "chat_cache_delete",
+      "platform": "kimi",
+      "args": {
+        "cacheId": "{{cacheId}}"
+      },
+      "needs": [
+        "cacheId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000,
+      "softFail": "missing-slot"
+    },
+    {
+      "id": "314",
+      "tool": "platforms_list",
+      "platform": "zai",
+      "args": {},
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "315",
+      "tool": "tabs_ensure",
+      "platform": "zai",
+      "args": {
+        "platform": "zai"
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 60000
+    },
+    {
+      "id": "316",
+      "tool": "platforms_status",
+      "platform": "zai",
+      "args": {
+        "platform": "zai",
+        "ensureTab": false
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 60000
+    },
+    {
+      "id": "317",
+      "tool": "platforms_capabilities",
+      "platform": "zai",
+      "args": {
+        "platform": "zai"
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 120000
+    },
+    {
+      "id": "318",
+      "tool": "chats_list",
+      "platform": "zai",
+      "args": {
+        "platform": "zai",
+        "limit": 10
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "319",
+      "tool": "chats_create",
+      "platform": "zai",
+      "args": {
+        "platform": "zai",
+        "title": "[ce-test] runlist zai {{ts}}",
+        "text": "[ce-test] runlist zai {{ts}}\nrunlistNeedle{{ts}}",
+        "ensureTab": true
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 90000,
+      "slot": "chatId"
+    },
+    {
+      "id": "320",
+      "tool": "chats_send",
+      "platform": "zai",
+      "args": {
+        "platform": "zai",
+        "chatId": "{{chatId}}",
+        "text": "[ce-test] ping runlistNeedle{{ts}}",
+        "ensureTab": true
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "321",
+      "tool": "chat_ask",
+      "platform": "zai",
+      "args": {
+        "platform": "zai",
+        "chatId": "{{chatId}}",
+        "prompt": "[ce-test] reply ok runlistNeedle{{ts}}",
+        "timeout_s": 45,
+        "ensureTab": true,
+        "onCaptcha": "stop"
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "322",
+      "tool": "chats_get",
+      "platform": "zai",
+      "args": {
+        "platform": "zai",
+        "chatId": "{{chatId}}"
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "323",
+      "tool": "chat_outline",
+      "platform": "zai",
+      "args": {
+        "platform": "zai",
+        "chatId": "{{chatId}}"
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "324",
+      "tool": "chat_read",
+      "platform": "zai",
+      "args": {
+        "platform": "zai",
+        "chatId": "{{chatId}}",
+        "startTurn": 0,
+        "endTurn": 3,
+        "maxChars": 4000
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "325",
+      "tool": "chats_export",
+      "platform": "zai",
+      "args": {
+        "platform": "zai",
+        "chatId": "{{chatId}}",
+        "formats": [
+          "md"
+        ]
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 180000
+    },
+    {
+      "id": "326",
+      "tool": "chat_cache_sync",
+      "platform": "zai",
+      "args": {
+        "platform": "zai",
+        "chatId": "{{chatId}}"
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 180000,
+      "slot": "cacheId"
+    },
+    {
+      "id": "327",
+      "tool": "chat_cache_read",
+      "platform": "zai",
+      "args": {
+        "cacheId": "{{cacheId}}",
+        "query": "runlistNeedle{{ts}}",
+        "maxChars": 4000
+      },
+      "needs": [
+        "cacheId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "328",
+      "tool": "chat_cache_append",
+      "platform": "zai",
+      "args": {
+        "cacheId": "{{cacheId}}",
+        "turns": [
+          {
+            "role": "user",
+            "text": "append-runlistNeedle{{ts}}"
+          }
+        ]
+      },
+      "needs": [
+        "cacheId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "329",
+      "tool": "chat_cache_update_block",
+      "platform": "zai",
+      "args": {
+        "cacheId": "{{cacheId}}",
+        "turnIndex": 0,
+        "content": "updated-runlistNeedle{{ts}}",
+        "role": "user"
+      },
+      "needs": [
+        "cacheId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "330",
+      "tool": "chats_search",
+      "platform": "zai",
+      "args": {
+        "query": "runlistNeedle{{ts}}",
+        "platform": "zai",
+        "limit": 20
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "331",
+      "tool": "tabs_search",
+      "platform": "zai",
+      "args": {
+        "query": "zai",
+        "platform": "zai",
+        "limit": 20
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "332",
+      "tool": "jobs_enqueue",
+      "platform": "zai",
+      "args": {
+        "kind": "library_ingest",
+        "platform": "zai",
+        "chatIds": [
+          "{{chatId}}"
+        ]
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000,
+      "waitJob": true,
+      "assertBatch": true
+    },
+    {
+      "id": "333",
+      "tool": "jobs_status",
+      "platform": "zai",
+      "args": {
+        "job_id": "{{lastJobId}}"
+      },
+      "needs": [
+        "lastJobId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "334",
+      "tool": "jobs_list",
+      "platform": "zai",
+      "args": {
+        "limit": 5
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "335",
+      "tool": "jobs_enqueue",
+      "platform": "zai",
+      "args": {
+        "kind": "export",
+        "platform": "zai",
+        "chatId": "{{chatId}}",
+        "formats": [
+          "md"
+        ]
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000,
+      "waitJob": true,
+      "assertBatch": false
+    },
+    {
+      "id": "336",
+      "tool": "jobs_enqueue",
+      "platform": "zai",
+      "args": {
+        "kind": "export_batch",
+        "platform": "zai",
+        "chatIds": [
+          "{{chatId}}"
+        ],
+        "formats": [
+          "md"
+        ]
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000,
+      "waitJob": true,
+      "assertBatch": true
+    },
+    {
+      "id": "337",
+      "tool": "projects_list",
+      "platform": "zai",
+      "args": {
+        "platform": "zai",
+        "limit": 10
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 25000,
+      "softFail": "unsupported"
+    },
+    {
+      "id": "338",
+      "tool": "projects_create",
+      "platform": "zai",
+      "args": {
+        "platform": "zai",
+        "name": "[ce-test] runlist-proj zai {{ts}}"
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 60000,
+      "softFail": "unsupported",
+      "slot": "containerId"
+    },
+    {
+      "id": "339",
+      "tool": "projects_chats",
+      "platform": "zai",
+      "args": {
+        "platform": "zai",
+        "containerId": "{{containerId}}",
+        "limit": 5
+      },
+      "needs": [
+        "containerId"
+      ],
+      "destructive": false,
+      "timeoutMs": 60000,
+      "softFail": "unsupported"
+    },
+    {
+      "id": "340",
+      "tool": "projects_move_chat",
+      "platform": "zai",
+      "args": {
+        "platform": "zai",
+        "chatId": "{{chatId}}",
+        "containerId": "{{containerId}}"
+      },
+      "needs": [
+        "chatId",
+        "containerId"
+      ],
+      "destructive": false,
+      "timeoutMs": 60000,
+      "softFail": "unsupported"
+    },
+    {
+      "id": "341",
+      "tool": "projects_delete",
+      "platform": "zai",
+      "args": {
+        "platform": "zai",
+        "containerId": "{{containerId}}",
+        "confirm": true
+      },
+      "needs": [
+        "containerId"
+      ],
+      "destructive": true,
+      "timeoutMs": 60000,
+      "softFail": "unsupported"
+    },
+    {
+      "id": "342",
+      "tool": "chats_create",
+      "platform": "zai",
+      "args": {
+        "platform": "zai",
+        "title": "[ce-test] runlist2 zai {{ts}}",
+        "text": "[ce-test] runlist2 zai {{ts}}",
+        "ensureTab": true
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 90000,
+      "slot": "chatId2"
+    },
+    {
+      "id": "343",
+      "tool": "jobs_enqueue",
+      "platform": "zai",
+      "args": {
+        "kind": "delete",
+        "platform": "zai",
+        "chatId": "{{chatId2}}",
+        "confirm": true
+      },
+      "needs": [
+        "chatId2"
+      ],
+      "destructive": true,
+      "timeoutMs": 30000,
+      "waitJob": true,
+      "assertBatch": false
+    },
+    {
+      "id": "344",
+      "tool": "chats_delete",
+      "platform": "zai",
+      "args": {
+        "platform": "zai",
+        "chatId": "{{chatId}}",
+        "confirm": true
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": true,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "345",
+      "tool": "chats_create",
+      "platform": "zai",
+      "args": {
+        "platform": "zai",
+        "title": "[ce-test] runlist3 zai {{ts}}",
+        "text": "[ce-test] runlist3 zai {{ts}}",
+        "ensureTab": true
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 90000,
+      "slot": "chatId3"
+    },
+    {
+      "id": "346",
+      "tool": "jobs_enqueue",
+      "platform": "zai",
+      "args": {
+        "kind": "delete_batch",
+        "platform": "zai",
+        "chatIds": [
+          "{{chatId3}}"
+        ],
+        "confirm": true
+      },
+      "needs": [
+        "chatId3"
+      ],
+      "destructive": true,
+      "timeoutMs": 30000,
+      "waitJob": true,
+      "assertBatch": true
+    },
+    {
+      "id": "347",
+      "tool": "chat_cache_delete",
+      "platform": "zai",
+      "args": {
+        "cacheId": "{{cacheId}}"
+      },
+      "needs": [
+        "cacheId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000,
+      "softFail": "missing-slot"
+    },
+    {
+      "id": "348",
+      "tool": "platforms_list",
+      "platform": "minimax",
+      "args": {},
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "349",
+      "tool": "tabs_ensure",
+      "platform": "minimax",
+      "args": {
+        "platform": "minimax"
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 60000
+    },
+    {
+      "id": "350",
+      "tool": "platforms_status",
+      "platform": "minimax",
+      "args": {
+        "platform": "minimax",
+        "ensureTab": false
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 60000
+    },
+    {
+      "id": "351",
+      "tool": "platforms_capabilities",
+      "platform": "minimax",
+      "args": {
+        "platform": "minimax"
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 120000
+    },
+    {
+      "id": "352",
+      "tool": "chats_list",
+      "platform": "minimax",
+      "args": {
+        "platform": "minimax",
+        "limit": 10
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "353",
+      "tool": "chats_create",
+      "platform": "minimax",
+      "args": {
+        "platform": "minimax",
+        "title": "[ce-test] runlist minimax {{ts}}",
+        "text": "[ce-test] runlist minimax {{ts}}\nrunlistNeedle{{ts}}",
+        "ensureTab": true
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 90000,
+      "slot": "chatId"
+    },
+    {
+      "id": "354",
+      "tool": "chats_send",
+      "platform": "minimax",
+      "args": {
+        "platform": "minimax",
+        "chatId": "{{chatId}}",
+        "text": "[ce-test] ping runlistNeedle{{ts}}",
+        "ensureTab": true
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "355",
+      "tool": "chat_ask",
+      "platform": "minimax",
+      "args": {
+        "platform": "minimax",
+        "chatId": "{{chatId}}",
+        "prompt": "[ce-test] reply ok runlistNeedle{{ts}}",
+        "timeout_s": 45,
+        "ensureTab": true,
+        "onCaptcha": "stop"
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "356",
+      "tool": "chats_get",
+      "platform": "minimax",
+      "args": {
+        "platform": "minimax",
+        "chatId": "{{chatId}}"
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "357",
+      "tool": "chat_outline",
+      "platform": "minimax",
+      "args": {
+        "platform": "minimax",
+        "chatId": "{{chatId}}"
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "358",
+      "tool": "chat_read",
+      "platform": "minimax",
+      "args": {
+        "platform": "minimax",
+        "chatId": "{{chatId}}",
+        "startTurn": 0,
+        "endTurn": 3,
+        "maxChars": 4000
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "359",
+      "tool": "chats_export",
+      "platform": "minimax",
+      "args": {
+        "platform": "minimax",
+        "chatId": "{{chatId}}",
+        "formats": [
+          "md"
+        ]
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 180000
+    },
+    {
+      "id": "360",
+      "tool": "chat_cache_sync",
+      "platform": "minimax",
+      "args": {
+        "platform": "minimax",
+        "chatId": "{{chatId}}"
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 180000,
+      "slot": "cacheId"
+    },
+    {
+      "id": "361",
+      "tool": "chat_cache_read",
+      "platform": "minimax",
+      "args": {
+        "cacheId": "{{cacheId}}",
+        "query": "runlistNeedle{{ts}}",
+        "maxChars": 4000
+      },
+      "needs": [
+        "cacheId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "362",
+      "tool": "chat_cache_append",
+      "platform": "minimax",
+      "args": {
+        "cacheId": "{{cacheId}}",
+        "turns": [
+          {
+            "role": "user",
+            "text": "append-runlistNeedle{{ts}}"
+          }
+        ]
+      },
+      "needs": [
+        "cacheId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "363",
+      "tool": "chat_cache_update_block",
+      "platform": "minimax",
+      "args": {
+        "cacheId": "{{cacheId}}",
+        "turnIndex": 0,
+        "content": "updated-runlistNeedle{{ts}}",
+        "role": "user"
+      },
+      "needs": [
+        "cacheId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "364",
+      "tool": "chats_search",
+      "platform": "minimax",
+      "args": {
+        "query": "runlistNeedle{{ts}}",
+        "platform": "minimax",
+        "limit": 20
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "365",
+      "tool": "tabs_search",
+      "platform": "minimax",
+      "args": {
+        "query": "minimax",
+        "platform": "minimax",
+        "limit": 20
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "366",
+      "tool": "jobs_enqueue",
+      "platform": "minimax",
+      "args": {
+        "kind": "library_ingest",
+        "platform": "minimax",
+        "chatIds": [
+          "{{chatId}}"
+        ]
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000,
+      "waitJob": true,
+      "assertBatch": true
+    },
+    {
+      "id": "367",
+      "tool": "jobs_status",
+      "platform": "minimax",
+      "args": {
+        "job_id": "{{lastJobId}}"
+      },
+      "needs": [
+        "lastJobId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "368",
+      "tool": "jobs_list",
+      "platform": "minimax",
+      "args": {
+        "limit": 5
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 30000
+    },
+    {
+      "id": "369",
+      "tool": "jobs_enqueue",
+      "platform": "minimax",
+      "args": {
+        "kind": "export",
+        "platform": "minimax",
+        "chatId": "{{chatId}}",
+        "formats": [
+          "md"
+        ]
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000,
+      "waitJob": true,
+      "assertBatch": false
+    },
+    {
+      "id": "370",
+      "tool": "jobs_enqueue",
+      "platform": "minimax",
+      "args": {
+        "kind": "export_batch",
+        "platform": "minimax",
+        "chatIds": [
+          "{{chatId}}"
+        ],
+        "formats": [
+          "md"
+        ]
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000,
+      "waitJob": true,
+      "assertBatch": true
+    },
+    {
+      "id": "371",
+      "tool": "projects_list",
+      "platform": "minimax",
+      "args": {
+        "platform": "minimax",
+        "limit": 10
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 25000,
+      "softFail": "unsupported"
+    },
+    {
+      "id": "372",
+      "tool": "projects_create",
+      "platform": "minimax",
+      "args": {
+        "platform": "minimax",
+        "name": "[ce-test] runlist-proj minimax {{ts}}"
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 60000,
+      "softFail": "unsupported",
+      "slot": "containerId"
+    },
+    {
+      "id": "373",
+      "tool": "projects_chats",
+      "platform": "minimax",
+      "args": {
+        "platform": "minimax",
+        "containerId": "{{containerId}}",
+        "limit": 5
+      },
+      "needs": [
+        "containerId"
+      ],
+      "destructive": false,
+      "timeoutMs": 60000,
+      "softFail": "unsupported"
+    },
+    {
+      "id": "374",
+      "tool": "projects_move_chat",
+      "platform": "minimax",
+      "args": {
+        "platform": "minimax",
+        "chatId": "{{chatId}}",
+        "containerId": "{{containerId}}"
+      },
+      "needs": [
+        "chatId",
+        "containerId"
+      ],
+      "destructive": false,
+      "timeoutMs": 60000,
+      "softFail": "unsupported"
+    },
+    {
+      "id": "375",
+      "tool": "projects_delete",
+      "platform": "minimax",
+      "args": {
+        "platform": "minimax",
+        "containerId": "{{containerId}}",
+        "confirm": true
+      },
+      "needs": [
+        "containerId"
+      ],
+      "destructive": true,
+      "timeoutMs": 60000,
+      "softFail": "unsupported"
+    },
+    {
+      "id": "376",
+      "tool": "chats_create",
+      "platform": "minimax",
+      "args": {
+        "platform": "minimax",
+        "title": "[ce-test] runlist2 minimax {{ts}}",
+        "text": "[ce-test] runlist2 minimax {{ts}}",
+        "ensureTab": true
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 90000,
+      "slot": "chatId2"
+    },
+    {
+      "id": "377",
+      "tool": "jobs_enqueue",
+      "platform": "minimax",
+      "args": {
+        "kind": "delete",
+        "platform": "minimax",
+        "chatId": "{{chatId2}}",
+        "confirm": true
+      },
+      "needs": [
+        "chatId2"
+      ],
+      "destructive": true,
+      "timeoutMs": 30000,
+      "waitJob": true,
+      "assertBatch": false
+    },
+    {
+      "id": "378",
+      "tool": "chats_delete",
+      "platform": "minimax",
+      "args": {
+        "platform": "minimax",
+        "chatId": "{{chatId}}",
+        "confirm": true
+      },
+      "needs": [
+        "chatId"
+      ],
+      "destructive": true,
+      "timeoutMs": 90000
+    },
+    {
+      "id": "379",
+      "tool": "chats_create",
+      "platform": "minimax",
+      "args": {
+        "platform": "minimax",
+        "title": "[ce-test] runlist3 minimax {{ts}}",
+        "text": "[ce-test] runlist3 minimax {{ts}}",
+        "ensureTab": true
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 90000,
+      "slot": "chatId3"
+    },
+    {
+      "id": "380",
+      "tool": "jobs_enqueue",
+      "platform": "minimax",
+      "args": {
+        "kind": "delete_batch",
+        "platform": "minimax",
+        "chatIds": [
+          "{{chatId3}}"
+        ],
+        "confirm": true
+      },
+      "needs": [
+        "chatId3"
+      ],
+      "destructive": true,
+      "timeoutMs": 30000,
+      "waitJob": true,
+      "assertBatch": true
+    },
+    {
+      "id": "381",
+      "tool": "chat_cache_delete",
+      "platform": "minimax",
+      "args": {
+        "cacheId": "{{cacheId}}"
+      },
+      "needs": [
+        "cacheId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000,
+      "softFail": "missing-slot"
+    },
+    {
+      "id": "382",
+      "tool": "jobs_enqueue",
+      "platform": "perplexity",
+      "args": {
+        "kind": "export_batch",
+        "platform": "perplexity",
+        "query": "zzz-runlist-cancel",
+        "max": 1,
+        "formats": [
+          "md"
+        ]
+      },
+      "needs": [],
+      "destructive": false,
+      "timeoutMs": 30000,
+      "slot": "cancelJobId",
+      "waitJob": false
+    },
+    {
+      "id": "383",
+      "tool": "jobs_cancel",
+      "platform": "perplexity",
+      "args": {
+        "job_id": "{{cancelJobId}}"
+      },
+      "needs": [
+        "cancelJobId"
+      ],
+      "destructive": false,
+      "timeoutMs": 30000
+    }
+  ]
+}
